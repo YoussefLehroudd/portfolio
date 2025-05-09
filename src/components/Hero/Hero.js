@@ -5,9 +5,10 @@ import TechSlider from './TechSlider';
 
 const SplineScene = React.memo(() => (
   <Suspense fallback={<div className={styles.splineFallback} />}>
-    <Spline scene="https://prod.spline.design/daHslO6sl8nd7EVW/scene.splinecode" />
+    <Spline scene="https://prod.spline.design/daHslO6sl8nd7EVW/scene.splinecode"/>
   </Suspense>
 ));
+
 
 const Hero = () => {
   const [text1, setText1] = useState('');
@@ -107,9 +108,6 @@ const Hero = () => {
         </div>
       </div>
       <TechSlider />
-      <div className={styles.scrollHint}>
-        <p>🖱️ Place your mouse here to scroll or use the scroll wheel</p>
-      </div>
     </section>
   );
 };
