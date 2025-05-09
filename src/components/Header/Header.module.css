@@ -1,0 +1,115 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  backdrop-filter: blur(12px);
+}
+
+.nav {
+  display: flex;
+  gap: 2rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  background-color: rgba(229, 229, 229, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+/* Light mode styles */
+[data-theme='light'] .nav {
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .nav a {
+  color: #1a1a1a;
+}
+
+[data-theme='light'] .themeToggle {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1a1a1a;
+}
+
+[data-theme='light'] .themeToggle:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode styles */
+[data-theme='dark'] .nav {
+  background-color: rgba(17, 25, 40, 0.75);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] .nav a {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .themeToggle {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+[data-theme='dark'] .themeToggle:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Common styles */
+.nav a {
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+  padding: 0.25rem 0;
+}
+
+.nav a:hover {
+  opacity: 0.8;
+}
+
+.themeToggle {
+  position: fixed;
+  right: 1.5rem;
+  top: 1.5rem;
+  border: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.themeIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+}
+
+@media (max-width: 640px) {
+  .nav {
+    gap: 1.25rem;
+    padding: 0.625rem 1.25rem;
+  }
+
+  .nav a {
+    font-size: 0.875rem;
+  }
+
+  .themeToggle {
+    right: 1rem;
+    top: 1rem;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+}
