@@ -20,7 +20,7 @@
 .heroContent {
   position: relative;
   z-index: 2;
-  pointer-events: none; /* ميتحكّمش فـ الماوس */
+  pointer-events: none;
   max-width: 50rem;
   text-align: left;
   background: rgba(0, 0, 0, 0.5);

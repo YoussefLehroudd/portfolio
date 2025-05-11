@@ -9,6 +9,8 @@ const Contact = () => {
   });
   const [status, setStatus] = useState('');
   const [placeholder, setPlaceholder] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [nameError, setNameError] = useState('');
   const messages = useMemo(() => [
     "Hi, I'd love to work together...",
     "I have a project idea...",
@@ -49,18 +51,62 @@ const Contact = () => {
   }, [charIndex, messageIndex, isDeleting, messages, deletingSpeed, typingSpeed, pauseDuration]);
 
   const handleChange = (e) => {
+    const { name: fieldName, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [fieldName]: value
     });
+
+    if (fieldName === 'name') {
+      setNameError('');
+      const nameRegex = /^[a-zA-Z\s]{3,}$/;
+      if (value && !nameRegex.test(value)) {
+        setNameError("Le nom doit contenir au moins 3 lettres et ne pas contenir de chiffres");
+      }
+    }
+
+    if (fieldName === 'email') {
+      setEmailError('');
+      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (value && !emailRegex.test(value)) {
+        setEmailError("Veuillez entrer une adresse e-mail valide (exemple: nom@domaine.com)");
+      }
+    }
   };
+
+  // Clear status message after timeout
+  useEffect(() => {
+    if (status === 'success' || status === 'error') {
+      const timer = setTimeout(() => {
+        setStatus('');
+      }, 3000); // Clear message after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate name and email before submitting
+    const nameRegex = /^[a-zA-Z\s]{3,}$/;
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    if (!nameRegex.test(formData.name)) {
+      setNameError("Le nom doit contenir au moins 3 lettres et ne pas contenir de chiffres");
+      return;
+    }
+
+    if (!emailRegex.test(formData.email)) {
+      setEmailError("Veuillez entrer une adresse e-mail valide (exemple: nom@domaine.com)");
+      return;
+    }
+
     setStatus('sending');
 
+
     try {
-      const response = await fetch('http://localhost:5001/api/messages', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,6 +127,7 @@ const Contact = () => {
 
   return (
     <section id="contact" className={styles.contact}>
+      
       <div className={styles.container}>
         <div className={styles.header}>
           <h2>Get in Touch</h2>
@@ -102,6 +149,7 @@ const Contact = () => {
               className={styles.input}
               placeholder="Your name"
             />
+            {nameError && <p className={styles.emailError}>{nameError}</p>}
           </div>
 
           <div className={styles.formGroup}>
@@ -118,6 +166,7 @@ const Contact = () => {
               className={styles.input}
               placeholder="your.email@example.com"
             />
+            {emailError && <p className={styles.emailError}>{emailError}</p>}
           </div>
 
           <div className={styles.formGroup}>

@@ -1,0 +1,197 @@
+.dashboardContainer {
+  display: flex;
+  min-height: 100vh;
+  background-color: #0a0a0a;
+  color: #fff;
+}
+
+.dashboard {
+  flex: 1;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+  min-height: 100vh;
+  position: relative;
+}
+
+.sidebarCollapsed .dashboard,
+:global(.sidebar-collapsed) .dashboard {
+  margin-left: 60px;
+}
+
+.header {
+  background: rgba(25, 25, 25, 0.95);
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 250px;
+  height: 60px;
+  z-index: 10;
+  transition: left 0.3s ease;
+}
+
+.sidebarCollapsed .header,
+:global(.sidebar-collapsed) .header {
+  left: 60px;
+}
+
+.header h1 {
+  margin: 0;
+  color: #64ffda;
+  font-size: 1.5rem;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.userInfo span {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.logoutButton {
+  padding: 0.5rem 1rem;
+  background: rgba(100, 255, 218, 0.1);
+  color: #64ffda;
+  border: 1px solid #64ffda;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logoutButton:hover {
+  background: rgba(100, 255, 218, 0.2);
+  transform: translateY(-2px);
+}
+
+.main {
+  padding: calc(60px + 2rem) 2rem 2rem;
+}
+
+.messagesSection {
+  background: rgba(25, 25, 25, 0.95);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.messagesList {
+  display: grid;
+  gap: 1rem;
+}
+
+.messageCard {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.messageCard:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(100, 255, 218, 0.2);
+}
+
+.messageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.messageHeader h3 {
+  margin: 0;
+  color: #64ffda;
+  font-size: 1.1rem;
+}
+
+.messageEmail {
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.messageContent {
+  margin: 1rem 0;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.messageDate {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.deleteButton {
+  padding: 0.4rem 0.8rem;
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+  border: 1px solid #dc2626;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.deleteButton:hover {
+  background: rgba(220, 38, 38, 0.2);
+  transform: translateY(-2px);
+}
+
+.error {
+  color: #dc2626;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 4px;
+}
+
+.loadingWrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #0a0a0a;
+  z-index: 9999;
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    margin-left: 60px;
+  }
+
+  .header {
+    left: 60px;
+    padding: 1rem;
+  }
+
+  .header h1 {
+    font-size: 1.2rem;
+  }
+
+  .userInfo span {
+    display: none;
+  }
+
+  .main {
+    padding: calc(60px + 1rem) 1rem 1rem;
+  }
+
+  .messageCard {
+    padding: 1rem;
+  }
+}

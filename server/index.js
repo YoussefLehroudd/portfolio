@@ -1,37 +1,43 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
+const { connectMongo } = require('./config/database');
+const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
+const projectRoutes = require('./routes/projects');
+const categoryRoutes = require('./routes/categories');
+const Message = require('./models/Message');
 
 dotenv.config();
+
+// JWT Secret
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET is not defined.');
+  process.exit(1);
+}
 
 const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
-  methods: ['GET', 'POST'],
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  methods: ['GET', 'POST', 'DELETE', 'PATCH'],
   credentials: true
 }));
 app.use(express.json());
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Message Schema
-const messageSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  message: String,
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/categories', categoryRoutes);
 
-const Message = mongoose.model('Message', messageSchema);
+// Connect to MongoDB
+connectMongo();
 
 // Basic route
 app.get('/api', (req, res) => {

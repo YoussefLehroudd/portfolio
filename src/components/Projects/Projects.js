@@ -164,6 +164,7 @@ const Projects = () => {
           ))}
         </div>
       </div>
+      
       {selectedProject && (
         <ProjectModal 
           project={selectedProject} 

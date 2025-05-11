@@ -1,0 +1,226 @@
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background: rgba(25, 25, 25, 0.95);
+  border-right: 1px solid rgba(100, 255, 218, 0.1);
+  position: fixed;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  z-index: 100;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.logo {
+  height: 60px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #64ffda;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.logoWrapper {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoIcon {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+  margin: auto;
+}
+.hidden {
+  display: none;
+}
+.collapsed .logoIcon {
+  transform: scale(1.1);
+}
+
+.logoText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  white-space: nowrap;
+}
+
+.collapsed .logoText {
+  opacity: 0;
+  transform: translateX(-20px);
+  width: 0;
+}
+
+.toggleButton {
+  position: absolute;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #64ffda;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+}
+
+.toggleButton:hover {
+  background: rgba(100, 255, 218, 0.1);
+}
+
+.collapsed .toggleButton {
+  right: 50%;
+  transform: translateX(50%);
+}
+
+.toggleIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.nav {
+  padding: 1rem 0.5rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.navItem {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 0.5rem;
+  position: relative;
+  white-space: nowrap;
+}
+
+.navItem:hover {
+  background: rgba(100, 255, 218, 0.1);
+  color: #64ffda;
+}
+
+.navItem.active {
+  background: rgba(100, 255, 218, 0.1);
+  color: #64ffda;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  transition: transform 0.3s ease;
+}
+
+.collapsed .icon {
+  width: 24px;
+  height: 24px;
+  transform: scale(1.1);
+}
+
+.badge {
+  position: absolute;
+  right: 1rem;
+  background: #64ffda;
+  color: #0a0a0a;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.collapsed .badge {
+  position: absolute;
+  top: 0;
+  right: 4px;
+  transform: scale(0.8);
+  padding: 0.1rem 0.35rem;
+}
+
+.footer {
+  padding: 1rem 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.collapsed .navItem span:not(.badge) {
+  opacity: 0;
+  transform: translateX(-20px);
+  width: 0;
+  overflow: hidden;
+}
+
+.collapsed .navItem {
+  justify-content: center;
+  padding: 0;
+  width: 42px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.collapsed .logo {
+  justify-content: center;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 60px;
+  }
+
+  .logo {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .logoText {
+    display: none;
+  }
+
+  .navItem span:not(.badge) {
+    display: none;
+  }
+
+  .navItem {
+    justify-content: center;
+    padding: 0;
+    width: 42px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .badge {
+    position: absolute;
+    top: 0;
+    right: 4px;
+    transform: scale(0.8);
+    padding: 0.1rem 0.35rem;
+  }
+
+  .icon {
+    width: 24px;
+    height: 24px;
+    transform: scale(1.1);
+  }
+
+  .toggleButton {
+    display: none;
+  }
+}

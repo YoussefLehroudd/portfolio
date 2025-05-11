@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Hero from './components/Hero/Hero';
 import About from './components/About/About';
 import Projects from './components/Projects/Projects';
 import Contact from './components/Contact/Contact';
-import DecorativePattern from './components/DecorativePattern/DecorativePattern';
+import Login from './components/Admin/Login';
+import Dashboard from './components/Admin/Dashboard';
 import Loading from './components/Loading/Loading';
-import { ThemeProvider } from './context/ThemeContext';
+import DecorativePattern from './components/DecorativePattern/DecorativePattern';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import './App.css';
+
+const PrivateRoute = ({ children }) => {
+  const { admin } = useAuth();
+  return admin ? children : <Navigate to="/admin" />;
+};
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -22,24 +30,42 @@ function App() {
   }, []);
 
   return (
-    <ThemeProvider>
-      <div className="App">
+    <AuthProvider>
+      <Router>
         {isLoading ? (
           <Loading />
         ) : (
-          <>
-            <Header />
-            <main>
-              <Hero />
-              <About />
-              <Projects />
-              <DecorativePattern />
-              <Contact />
-            </main>
-          </>
+          <Routes>
+            <Route path="/" element={
+              <>
+                <Header />
+                <main>
+                  <Hero />
+                  <About />
+                  <Projects />
+                  <DecorativePattern />
+                  <Contact />
+                </main>
+              </>
+            } />
+            <Route path="/admin" element={<Login />} />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            >
+              <Route index element={<Navigate to="messages" />} />
+              <Route path="messages/*" element={<Dashboard />} />
+              <Route path="projects/*" element={<Dashboard />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         )}
-      </div>
-    </ThemeProvider>
+      </Router>
+    </AuthProvider>
   );
 }
 
