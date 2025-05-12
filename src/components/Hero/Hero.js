@@ -3,12 +3,11 @@ import styles from './Hero.module.css';
 import Spline from '@splinetool/react-spline';
 import TechSlider from './TechSlider';
 
-const SplineScene = React.memo(() => (
+const SplineScene = React.memo(({ sceneUrl }) => (
   <Suspense fallback={<div className={styles.splineFallback} />}>
-    <Spline scene="https://prod.spline.design/daHslO6sl8nd7EVW/scene.splinecode"/>
+    <Spline scene={sceneUrl}/>
   </Suspense>
 ));
-
 
 const Hero = () => {
   const [text1, setText1] = useState('');
@@ -17,11 +16,24 @@ const Hero = () => {
   const [descriptionText, setDescriptionText] = useState('');
   const [currentLine, setCurrentLine] = useState(1);
   const [isSplineVisible, setIsSplineVisible] = useState(true);
+  const [data, setData] = useState(null);
 
-  const firstPart = "Hi, I'm";
-  const secondPart = " Youssef";
-  const subtitleContent = "Full Stack Developer";
-  const descriptionContent = "I create engaging web experiences with modern technologies";
+  useEffect(() => {
+    // Fetch hero data
+    const fetchHeroData = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/hero`);
+        if (response.ok) {
+          const heroData = await response.json();
+          setData(heroData);
+        }
+      } catch (error) {
+        console.error('Error fetching hero data:', error);
+      }
+    };
+
+    fetchHeroData();
+  }, []);
 
   useEffect(() => {
     // Scroll visibility control
@@ -36,22 +48,24 @@ const Hero = () => {
   }, []);
 
   useEffect(() => {
+    if (!data) return;
+
     // Typing animation
     let index = 0;
     let phase = 1;
 
     const interval = setInterval(() => {
       if (phase === 1) {
-        if (index <= firstPart.length) {
-          setText1(firstPart.slice(0, index));
+        if (index <= data.firstName.length) {
+          setText1(data.firstName.slice(0, index));
           index++;
         } else {
           phase = 2;
           index = 0;
         }
       } else if (phase === 2) {
-        if (index <= secondPart.length) {
-          setText2(secondPart.slice(0, index));
+        if (index <= data.lastName.length) {
+          setText2(data.lastName.slice(0, index));
           index++;
         } else {
           phase = 3;
@@ -59,8 +73,8 @@ const Hero = () => {
           setCurrentLine(2);
         }
       } else if (phase === 3) {
-        if (index <= subtitleContent.length) {
-          setSubtitleText(subtitleContent.slice(0, index));
+        if (index <= data.title.length) {
+          setSubtitleText(data.title.slice(0, index));
           index++;
         } else {
           phase = 4;
@@ -68,8 +82,8 @@ const Hero = () => {
           setCurrentLine(3);
         }
       } else if (phase === 4) {
-        if (index <= descriptionContent.length) {
-          setDescriptionText(descriptionContent.slice(0, index));
+        if (index <= data.description.length) {
+          setDescriptionText(data.description.slice(0, index));
           index++;
         } else {
           clearInterval(interval);
@@ -79,18 +93,21 @@ const Hero = () => {
     }, 100);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [data]);
+
+  if (!data) return null;
 
   return (
     <section id="hero" className={styles.hero}>
       {isSplineVisible && (
         <div className={styles.splineContainer}>
-          <SplineScene />
+          <SplineScene sceneUrl={data.splineUrl} />
         </div>
       )}
       <div className={styles.heroContent}>
         <h1 className={styles.title}>
           <span>{text1}</span>
+          {text1.length === data?.firstName?.length && <span>&nbsp;</span>}
           <span>{text2}</span>
           {currentLine === 1 && <span className={styles.cursor}>|</span>}
         </h1>
@@ -103,8 +120,12 @@ const Hero = () => {
           {currentLine === 3 && <span className={styles.cursor}>|</span>}
         </p>
         <div className={styles.buttonContainer}>
-          <a href="#projects" className={styles.primaryBtn}>View My Work</a>
-          <a href="#contact" className={styles.secondaryBtn}>Get in Touch</a>
+          <a href={data.primaryButton.link} className={styles.primaryBtn}>
+            {data.primaryButton.text}
+          </a>
+          <a href={data.secondaryButton.link} className={styles.secondaryBtn}>
+            {data.secondaryButton.text}
+          </a>
         </div>
       </div>
       <TechSlider />

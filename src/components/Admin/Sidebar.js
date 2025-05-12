@@ -124,6 +124,49 @@ const Sidebar = ({ messageCount = 0 }) => {
           <span>Projects</span>
         </div>
 
+        <div 
+          className={`${styles.navItem} ${isActive('hero') ? styles.active : ''}`}
+          onClick={() => handleNavigation('hero')}
+        >
+          <div className={styles.iconWrapper}>
+            <svg 
+              className={styles.icon} 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path>
+              <line x1="16" y1="8" x2="2" y2="22"></line>
+              <line x1="17.5" y1="15" x2="9" y2="15"></line>
+            </svg>
+          </div>
+          <span>Hero Section</span>
+        </div>
+
+        <div 
+          className={`${styles.navItem} ${isActive('about') ? styles.active : ''}`}
+          onClick={() => handleNavigation('about')}
+        >
+          <div className={styles.iconWrapper}>
+            <svg 
+              className={styles.icon} 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <span>About Section</span>
+        </div>
+
         <div className={styles.navItem}>
           <div className={styles.iconWrapper}>
             <svg 

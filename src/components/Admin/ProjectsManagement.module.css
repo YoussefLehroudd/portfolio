@@ -119,6 +119,15 @@
   min-width: 80px;
 }
 
+.viewButton {
+  background: rgba(100, 255, 218, 0.1);
+  color: #64ffda;
+}
+
+.viewButton:hover {
+  background: rgba(100, 255, 218, 0.2);
+}
+
 .visibilityButton {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;

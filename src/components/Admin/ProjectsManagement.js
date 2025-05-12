@@ -3,6 +3,7 @@ import styles from './ProjectsManagement.module.css';
 import ProjectForm from './ProjectForm';
 import DeleteModal from './DeleteModal';
 import CategoryManagement from './CategoryManagement';
+import ProjectDetailModal from './ProjectDetailModal';
 
 const ProjectsManagement = () => {
   const [projects, setProjects] = useState([]);
@@ -14,6 +15,7 @@ const ProjectsManagement = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [showCategories, setShowCategories] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   useEffect(() => {
     fetchProjects();
@@ -201,6 +203,12 @@ const ProjectsManagement = () => {
               <h3>{project.title}</h3>
               <div className={styles.actions}>
                 <button
+                  onClick={() => setSelectedProject(project)}
+                  className={styles.viewButton}
+                >
+                  View
+                </button>
+                <button
                   onClick={() => handleToggleVisibility(project._id)}
                   className={`${styles.visibilityButton} ${project.isVisible ? styles.visible : ''}`}
                 >
@@ -248,6 +256,13 @@ const ProjectsManagement = () => {
         onConfirm={handleDeleteConfirm}
         message="Are you sure you want to delete this project? This action cannot be undone."
       />
+
+      {selectedProject && (
+        <ProjectDetailModal
+          project={selectedProject}
+          onClose={() => setSelectedProject(null)}
+        />
+      )}
     </div>
   );
 };

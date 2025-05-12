@@ -50,7 +50,7 @@ function App() {
             } />
             <Route path="/admin" element={<Login />} />
             <Route
-              path="/admin/dashboard"
+              path="/admin/dashboard/*"
               element={
                 <PrivateRoute>
                   <Dashboard />
@@ -60,6 +60,8 @@ function App() {
               <Route index element={<Navigate to="messages" />} />
               <Route path="messages/*" element={<Dashboard />} />
               <Route path="projects/*" element={<Dashboard />} />
+              <Route path="hero/*" element={<Dashboard />} />
+              <Route path="about/*" element={<Dashboard />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

@@ -7,6 +7,8 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const projectRoutes = require('./routes/projects');
 const categoryRoutes = require('./routes/categories');
+const heroRoutes = require('./routes/hero');
+const aboutRoutes = require('./routes/about');
 const Message = require('./models/Message');
 
 dotenv.config();
@@ -22,7 +24,7 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:3001'],
-  methods: ['GET', 'POST', 'DELETE', 'PATCH'],
+  methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT'],
   credentials: true
 }));
 app.use(express.json());
@@ -35,6 +37,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/hero', heroRoutes);
+app.use('/api/about', aboutRoutes);
 
 // Connect to MongoDB
 connectMongo();

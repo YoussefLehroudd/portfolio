@@ -47,90 +47,69 @@ const Projects = () => {
   const [activeFilter, setActiveFilter] = useState('All Projects');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState(null);
-
-  const filters = [
-    'All Projects',
-    'HTML & CSS',
-    'JavaScript',
-    'React & MUI',
-    'Node & Express'
-  ];
-
-  const projects = [
-    {
-      title: "Mochaccino Dalgona",
-      description: "A modern e-commerce platform for a premium coffee brand, featuring a sleek user interface, real-time inventory management, and secure payment processing.",
-      image: "/images/projects/mochaccino.png",
-      demoLink: "#",
-      githubLink: "https://github.com/YoussefLehroudd",
-      type: "React Project",
-      category: "React & MUI",
-      technologies: ["React", "Material-UI", "Node.js", "MongoDB", "Stripe API"],
-      timeline: "6 weeks",
-      features: [
-        "Responsive design for all devices",
-        "Real-time inventory tracking",
-        "Secure payment processing",
-        "User authentication and profiles"
-      ]
-    },
-    {
-      title: "Unleash Your Energy",
-      description: "A fitness tracking application that helps users monitor their workouts, set goals, and track their progress over time with interactive visualizations.",
-      image: "/images/projects/energy.png",
-      demoLink: "#",
-      githubLink: "https://github.com/YoussefLehroudd",
-      type: "React & CSS Project",
-      category: "React & MUI",
-      technologies: ["React", "Chart.js", "Firebase", "CSS Modules"],
-      timeline: "4 weeks",
-      features: [
-        "Custom workout planning",
-        "Progress tracking with charts",
-        "Social sharing features",
-        "Personalized recommendations"
-      ]
-    },
-    {
-      title: "Disrupt",
-      description: "A modern landing page for a tech startup, showcasing their innovative products and services with stunning animations and interactive elements.",
-      image: "/images/projects/disrupt.png",
-      demoLink: "#",
-      githubLink: "https://github.com/YoussefLehroudd",
-      type: "CSS Project",
-      category: "HTML & CSS",
-      technologies: ["HTML5", "CSS3", "JavaScript", "GSAP"],
-      timeline: "2 weeks",
-      features: [
-        "Smooth scroll animations",
-        "Responsive design",
-        "Performance optimized",
-        "Modern UI/UX design"
-      ]
-    }
-  ];
+  const [projects, setProjects] = useState([]);
+  const [categories, setCategories] = useState(['All Projects']);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const loadImages = async () => {
+    const fetchCategories = async () => {
       try {
-        await Promise.all(
-          projects.map(project => {
-            return new Promise((resolve, reject) => {
-              const img = new Image();
-              img.src = project.image;
-              img.onload = resolve;
-              img.onerror = reject;
-            });
-          })
-        );
-      } catch (error) {
-        console.error('Error preloading images:', error);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/categories`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        const data = await response.json();
+        setCategories(['All Projects', ...data.map(category => category.name)]);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+        const data = await response.json();
+        setProjects(data);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching projects:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadImages();
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    if (projects.length > 0) {
+      const loadImages = async () => {
+        try {
+          await Promise.all(
+            projects.map(project => {
+              return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.src = project.image;
+                img.onload = resolve;
+                img.onerror = reject;
+              });
+            })
+          );
+        } catch (error) {
+          console.error('Error preloading images:', error);
+        }
+      };
+
+      loadImages();
+    }
   }, [projects]);
 
   const handleFilterClick = useCallback((filter) => {
@@ -141,11 +120,15 @@ const Projects = () => {
     ? projects 
     : projects.filter(project => project.category === activeFilter);
 
+  if (error) {
+    return <div className={styles.error}>Error loading projects: {error}</div>;
+  }
+
   return (
     <section id="projects" className={styles.projects}>
       <div className={styles.container}>
         <div className={styles.filters}>
-          {filters.map((filter) => (
+          {categories.map((filter) => (
             <FilterButton
               key={filter}
               filter={filter}
@@ -155,13 +138,17 @@ const Projects = () => {
           ))}
         </div>
         <div className={`${styles.grid} ${isLoading ? styles.loading : ''}`}>
-          {filteredProjects.map((project, index) => (
-            <ProjectCard 
-              key={`${project.title}-${index}`} 
-              project={project}
-              onMoreClick={setSelectedProject}
-            />
-          ))}
+          {isLoading ? (
+            <div className={styles.loadingSpinner}>Loading projects...</div>
+          ) : (
+            filteredProjects.map((project) => (
+              <ProjectCard 
+                key={project._id}
+                project={project}
+                onMoreClick={setSelectedProject}
+              />
+            ))
+          )}
         </div>
       </div>
       

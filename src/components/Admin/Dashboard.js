@@ -5,6 +5,8 @@ import styles from './Dashboard.module.css';
 import DeleteModal from './DeleteModal';
 import Sidebar from './Sidebar';
 import ProjectsManagement from './ProjectsManagement';
+import AboutManagement from './AboutManagement';
+import HeroManagement from './HeroManagement';
 
 const MessagesSection = ({ messages, error, onDeleteClick }) => (
   <section className={styles.messagesSection}>
@@ -127,6 +129,12 @@ const Dashboard = () => {
     if (location.pathname.includes('/projects')) {
       return 'Projects Management';
     }
+    if (location.pathname.includes('/hero')) {
+      return 'Hero Section Management';
+    }
+    if (location.pathname.includes('/about')) {
+      return 'About Section Management';
+    }
     return 'Messages';
   };
 
@@ -157,6 +165,8 @@ const Dashboard = () => {
               }
             />
             <Route path="projects/*" element={<ProjectsManagement />} />
+            <Route path="about/*" element={<AboutManagement />} />
+            <Route path="hero/*" element={<HeroManagement />} />
           </Routes>
         </main>
 
