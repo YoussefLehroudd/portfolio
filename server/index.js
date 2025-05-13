@@ -33,10 +33,13 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Serve static files from public directory
+// Serve static files from public directory for uploads
 app.use('/uploads', express.static(path.join(__dirname, '..', 'public')));
 
-// Routes
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, '../build')));
+
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
@@ -49,7 +52,7 @@ app.use('/api/admin/profile', profileRoutes);
 // Connect to MongoDB
 connectMongo();
 
-// Basic route
+// Basic API route
 app.get('/api', (req, res) => {
   res.json({ message: 'Welcome to the Portfolio API' });
 });
@@ -81,6 +84,11 @@ app.get('/api/messages', async (req, res) => {
 // Health check endpoint for Render
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy' });
+});
+
+// Catch-all route to serve React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5001;
