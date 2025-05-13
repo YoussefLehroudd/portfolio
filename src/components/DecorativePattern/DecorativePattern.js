@@ -1,8 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './DecorativePattern.module.css';
 import { FaGithub, FaWhatsapp, FaInstagram, FaLinkedin } from 'react-icons/fa';
 
 const DecorativePattern = () => {
+  const [socialLinks, setSocialLinks] = useState({
+    github: 'https://github.com',
+    whatsapp: 'https://wa.me',
+    instagram: 'https://instagram.com',
+    linkedin: 'https://linkedin.com'
+  });
+
+  useEffect(() => {
+    const fetchSocialLinks = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/social`);
+        if (response.ok) {
+          const data = await response.json();
+          setSocialLinks(data);
+        }
+      } catch (error) {
+        console.error('Error fetching social links:', error);
+      }
+    };
+
+    fetchSocialLinks();
+  }, []);
+
   return (
     <div className={styles.pattern}>
       <div className={styles.grid}>
@@ -21,16 +44,16 @@ const DecorativePattern = () => {
         ))}
       </div>
       <div className={styles.socialLinks}>
-        <a href="https://github.com/YoussefLehroudd" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
+        <a href={socialLinks.github} target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
           <FaGithub />
         </a>
-        <a href="https://wa.me/064481899" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
+        <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
           <FaWhatsapp />
         </a>
-        <a href="https://www.instagram.com/youssef___hrd/" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
+        <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
           <FaInstagram />
         </a>
-        <a href="https://www.linkedin.com/in/youssef-lehroud-51952827b" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
+        <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
           <FaLinkedin />
         </a>
       </div>

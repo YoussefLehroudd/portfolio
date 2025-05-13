@@ -39,11 +39,12 @@
   width: 24px;
   height: 24px;
   transition: transform 0.3s ease;
-  margin: auto;
 }
+
 .hidden {
   display: none;
 }
+
 .collapsed .logoIcon {
   transform: scale(1.1);
 }
@@ -122,17 +123,30 @@
   color: #64ffda;
 }
 
+.iconWrapper {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
 .icon {
   width: 20px;
   height: 20px;
   min-width: 20px;
   transition: transform 0.3s ease;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .collapsed .icon {
   width: 24px;
   height: 24px;
-  transform: scale(1.1);
+  transform: translate(-50%, -50%) scale(1.1);
 }
 
 .badge {
@@ -217,7 +231,6 @@
   .icon {
     width: 24px;
     height: 24px;
-    transform: scale(1.1);
   }
 
   .toggleButton {

@@ -9,6 +9,8 @@ const projectRoutes = require('./routes/projects');
 const categoryRoutes = require('./routes/categories');
 const heroRoutes = require('./routes/hero');
 const aboutRoutes = require('./routes/about');
+const socialRoutes = require('./routes/social');
+const profileRoutes = require('./routes/profile');
 const Message = require('./models/Message');
 
 dotenv.config();
@@ -39,6 +41,8 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/hero', heroRoutes);
 app.use('/api/about', aboutRoutes);
+app.use('/api/social', socialRoutes);
+app.use('/api/admin/profile', profileRoutes);
 
 // Connect to MongoDB
 connectMongo();

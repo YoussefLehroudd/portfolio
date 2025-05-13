@@ -167,7 +167,30 @@ const Sidebar = ({ messageCount = 0 }) => {
           <span>About Section</span>
         </div>
 
-        <div className={styles.navItem}>
+        <div 
+          className={`${styles.navItem} ${isActive('social') ? styles.active : ''}`}
+          onClick={() => handleNavigation('social')}
+        >
+          <div className={styles.iconWrapper}>
+            <svg 
+              className={styles.icon} 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+            </svg>
+          </div>
+          <span>Social Links</span>
+        </div>
+
+        <div 
+          className={`${styles.navItem} ${isActive('profile') ? styles.active : ''}`}
+          onClick={() => handleNavigation('profile')}
+        >
           <div className={styles.iconWrapper}>
             <svg 
               className={styles.icon} 
@@ -184,46 +207,7 @@ const Sidebar = ({ messageCount = 0 }) => {
           </div>
           <span>Profile</span>
         </div>
-
-        <div className={styles.navItem}>
-          <div className={styles.iconWrapper}>
-            <svg 
-              className={styles.icon} 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-          </div>
-          <span>Settings</span>
-        </div>
       </nav>
-
-      <div className={styles.footer}>
-        <div className={styles.navItem}>
-          <div className={styles.iconWrapper}>
-            <svg 
-              className={styles.icon} 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="16" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12.01" y2="8"></line>
-            </svg>
-          </div>
-          <span>Help</span>
-        </div>
-      </div>
     </div>
   );
 };
