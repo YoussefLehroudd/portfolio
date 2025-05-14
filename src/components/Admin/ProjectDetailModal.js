@@ -14,7 +14,7 @@ const ProjectDetailModal = ({ project, onClose }) => {
         <div className={styles.modalContent}>
           <div className={styles.imageContainer}>
             <img 
-              src={`${process.env.REACT_APP_API_URL}${project.image}`}
+              src={project.image}
               alt={project.title} 
               loading="lazy"
               decoding="async"
