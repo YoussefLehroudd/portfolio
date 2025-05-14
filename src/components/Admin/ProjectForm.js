@@ -66,20 +66,23 @@ const ProjectForm = ({ project, onSubmit, onClose }) => {
             body: imageData,
           });
 
-          if (!response.ok) {
-            throw new Error('Failed to upload image');
-          }
-
           const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to upload image');
+          }
+          
+          // Ensure the Cloudinary URL is absolute
+          const imageUrl = data.url.startsWith('http') ? data.url : `https:${data.url}`;
           
           // Update form with Cloudinary URL
           setFormData(prev => ({
             ...prev,
-            image: data.url // Store Cloudinary URL instead of file
+            image: imageUrl
           }));
           
           // Set preview to Cloudinary URL
-          setImagePreview(data.url);
+          setImagePreview(imageUrl);
           setErrors([]);
         } catch (error) {
           setErrors(prev => [...prev, 'Failed to upload image']);
