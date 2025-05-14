@@ -11,9 +11,16 @@ const heroRoutes = require('./routes/hero');
 const aboutRoutes = require('./routes/about');
 const socialRoutes = require('./routes/social');
 const profileRoutes = require('./routes/profile');
+const uploadRoutes = require('./routes/upload');
 const Message = require('./models/Message');
 
 dotenv.config();
+
+// Check for required Cloudinary environment variables
+if (!process.env.CLOUDINARY_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.error('FATAL ERROR: Cloudinary credentials are not defined.');
+  process.exit(1);
+}
 
 // JWT Secret
 if (!process.env.JWT_SECRET) {
@@ -48,6 +55,7 @@ app.use('/api/hero', heroRoutes);
 app.use('/api/about', aboutRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api/admin/profile', profileRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Connect to MongoDB
 connectMongo();

@@ -50,22 +50,41 @@ const ProjectForm = ({ project, onSubmit, onClose }) => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === 'file') {
       const file = files[0];
-      setFormData(prev => ({
-        ...prev,
-        [name]: file
-      }));
-      
-      // Create preview URL for the image
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
       if (file) {
-        reader.readAsDataURL(file);
+        try {
+          // Create FormData for image upload
+          const imageData = new FormData();
+          imageData.append('image', file);
+
+          // Upload to Cloudinary through our API
+          const response = await fetch(`${process.env.REACT_APP_API_URL}/api/upload/image`, {
+            method: 'POST',
+            body: imageData,
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to upload image');
+          }
+
+          const data = await response.json();
+          
+          // Update form with Cloudinary URL
+          setFormData(prev => ({
+            ...prev,
+            image: data.url // Store Cloudinary URL instead of file
+          }));
+          
+          // Set preview to Cloudinary URL
+          setImagePreview(data.url);
+          setErrors([]);
+        } catch (error) {
+          setErrors(prev => [...prev, 'Failed to upload image']);
+          console.error('Error uploading image:', error);
+        }
       }
     } else {
       setFormData(prev => ({
@@ -148,24 +167,14 @@ const ProjectForm = ({ project, onSubmit, onClose }) => {
       return;
     }
 
-    // Create FormData object to handle file upload
+    // Create data object for submission
     const submitData = new FormData();
     Object.keys(formData).forEach(key => {
       if (key === 'technologies' || key === 'features') {
         submitData.append(key, JSON.stringify(formData[key]));
       } else if (key === 'image') {
-        // Handle image field
-        if (formData[key]) {
-          // If there's a new file, append it
-          submitData.append(key, formData[key]);
-        } else if (imagePreview && imagePreview.startsWith('/')) {
-          // If editing and using existing image (path starts with /)
-          submitData.append(key, imagePreview);
-        } else if (imagePreview) {
-          // If editing and image path needs formatting
-          const imagePath = imagePreview.split(process.env.REACT_APP_API_URL).pop();
-          submitData.append(key, imagePath);
-        }
+        // Use the Cloudinary URL directly
+        submitData.append(key, formData.image || imagePreview || '');
       } else {
         submitData.append(key, formData[key]);
       }
