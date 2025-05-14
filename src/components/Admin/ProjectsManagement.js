@@ -197,7 +197,7 @@ const ProjectsManagement = () => {
         {projects.map(project => (
           <div key={project._id} className={styles.projectCard}>
             <div className={styles.projectImage}>
-              <img src={`${process.env.REACT_APP_API_URL}${project.image}`} alt={project.title} />
+              <img src={project.image} alt={project.title} />
             </div>
             <div className={styles.projectHeader}>
               <h3>{project.title}</h3>
