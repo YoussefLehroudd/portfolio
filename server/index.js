@@ -40,27 +40,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Serve static files from public directory and React build
-app.use(express.static(path.join(__dirname, '../public'), {
-  maxAge: '1y',
-  setHeaders: (res, path) => {
-    if (path.endsWith('.json')) {
-      res.setHeader('Content-Type', 'application/json');
-    }
-    if (path.endsWith('.png')) {
-      res.setHeader('Content-Type', 'image/png');
-    }
-    if (path.endsWith('.ico')) {
-      res.setHeader('Content-Type', 'image/x-icon');
-    }
-    if (path.endsWith('.svg')) {
-      res.setHeader('Content-Type', 'image/svg+xml');
-    }
-  }
-}));
-app.use(express.static(path.join(__dirname, '../build')));
+// Connect to MongoDB
+connectMongo();
 
-// API Routes
+// API Routes first to ensure they take precedence
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
@@ -71,15 +54,35 @@ app.use('/api/social', socialRoutes);
 app.use('/api/admin/profile', profileRoutes);
 app.use('/api/upload', uploadRoutes);
 
-// Connect to MongoDB
-connectMongo();
+// Then serve static files
+app.use('/static', express.static(path.join(__dirname, '../build/static')));
+app.use(express.static(path.join(__dirname, '../public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json');
+    }
+    if (filePath.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    }
+    if (filePath.endsWith('.ico')) {
+      res.setHeader('Content-Type', 'image/x-icon');
+    }
+    if (filePath.endsWith('.svg')) {
+      res.setHeader('Content-Type', 'image/svg+xml');
+    }
+  }
+}));
 
-// Basic API route
+// Health check and basic API routes
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
+});
+
 app.get('/api', (req, res) => {
   res.json({ message: 'Welcome to the Portfolio API' });
 });
 
-// POST endpoint to save messages
+// Message endpoints
 app.post('/api/messages', async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -92,7 +95,6 @@ app.post('/api/messages', async (req, res) => {
   }
 });
 
-// GET endpoint to retrieve messages
 app.get('/api/messages', async (req, res) => {
   try {
     const messages = await Message.find().sort({ createdAt: -1 });
@@ -101,11 +103,6 @@ app.get('/api/messages', async (req, res) => {
     console.error('Error retrieving messages:', error);
     res.status(500).json({ error: 'Error retrieving messages' });
   }
-});
-
-// Health check endpoint for Render
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy' });
 });
 
 // Catch-all route to serve React app
