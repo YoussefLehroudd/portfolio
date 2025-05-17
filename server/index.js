@@ -41,7 +41,23 @@ app.use(cors({
 app.use(express.json());
 
 // Serve static files from public directory and React build
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../public'), {
+  maxAge: '1y',
+  setHeaders: (res, path) => {
+    if (path.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json');
+    }
+    if (path.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    }
+    if (path.endsWith('.ico')) {
+      res.setHeader('Content-Type', 'image/x-icon');
+    }
+    if (path.endsWith('.svg')) {
+      res.setHeader('Content-Type', 'image/svg+xml');
+    }
+  }
+}));
 app.use(express.static(path.join(__dirname, '../build')));
 
 // API Routes
