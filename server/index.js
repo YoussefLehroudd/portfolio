@@ -55,7 +55,7 @@ app.use('/api/admin/profile', profileRoutes);
 app.use('/api/upload', uploadRoutes);
 
 // Then serve static files
-app.use('/static', express.static(path.join(__dirname, '../build/static')));
+app.use(express.static(path.join(__dirname, '../build')));
 app.use(express.static(path.join(__dirname, '../public'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.json')) {

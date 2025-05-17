@@ -26,6 +26,7 @@
     "sequelize": "^6.37.7",
     "web-vitals": "^2.1.4"
   },
+  "homepage": ".",
   "scripts": {
     "start": "cross-env PORT=3000 react-scripts start",
     "server": "cross-env PORT=5001 node server/index.js",
