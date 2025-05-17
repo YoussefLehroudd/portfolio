@@ -126,6 +126,94 @@ const Hero = () => {
           <a href={data.secondaryButton.link} className={styles.secondaryBtn}>
             {data.secondaryButton.text}
           </a>
+          {data.cvButton.link && (
+            <a 
+              href={data.cvButton.link} 
+              className={styles.secondaryBtn}
+              target="_blank" 
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                e.preventDefault();
+                const win = window.open('', 'CV Preview');
+                win.document.write(`<!DOCTYPE html>
+                  <html>
+                    <head>
+                      <title>Youssef Lehroud - CV</title>
+                      <style>
+                        body { margin: 0; background: #1a1a1a; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; }
+                        .container { position: relative; max-width: 100%; margin: 20px; }
+                        img { max-width: 100%; height: auto; box-shadow: 0 0 20px rgba(0,0,0,0.3); }
+                        .actions { 
+                          position: fixed;
+                          bottom: 20px;
+                          left: 50%;
+                          transform: translateX(-50%);
+                          display: flex;
+                          gap: 10px;
+                          z-index: 1000;
+                          background: rgba(0,0,0,0.8);
+                          padding: 10px 20px;
+                          border-radius: 10px;
+                        }
+                        .btn { 
+                          background: #00ff9d; 
+                          color: #1a1a1a; 
+                          padding: 12px 24px; 
+                          border: none; 
+                          border-radius: 5px; 
+                          cursor: pointer;
+                          font-size: 16px;
+                          font-weight: bold;
+                          text-decoration: none;
+                          display: inline-flex;
+                          align-items: center;
+                          transition: all 0.3s ease;
+                        }
+                        .btn:hover {
+                          background: #00cc7d;
+                          transform: translateY(-2px);
+                        }
+                        @media print {
+                          .actions { display: none; }
+                          body { background: white; }
+                          img { box-shadow: none; }
+                        }
+                      </style>
+                    </head>
+                    <body>
+                      <div class="container">
+                        <img src="${data.cvButton.link}" alt="CV" />
+                      </div>
+                      <div class="actions">
+                        <a href="${data.cvButton.link}" download="youssef_cv.png" class="btn">Download</a>
+                        <button class="btn" onclick="window.print(); return false;">Print</button>
+                      </div>
+                      <script>
+                        // Force download instead of preview
+                        document.querySelector('a[download]').addEventListener('click', (e) => {
+                          e.preventDefault();
+                          fetch(e.target.href)
+                            .then(resp => resp.blob())
+                            .then(blob => {
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.style.display = 'none';
+                              a.href = url;
+                              a.download = 'youssef_cv.png';
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                            });
+                        });
+                      </script>
+                    </body>
+                  </html>`);
+                win.document.close();
+              }}
+            >
+              {data.cvButton.text}
+            </a>
+          )}
         </div>
       </div>
       <TechSlider />

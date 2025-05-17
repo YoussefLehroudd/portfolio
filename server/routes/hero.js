@@ -30,38 +30,44 @@ router.put('/', auth, async (req, res) => {
       description,
       splineUrl,
       primaryButton,
-      secondaryButton
+      secondaryButton,
+      cvButton
     } = req.body;
 
-    // Validate required fields
     if (!firstName || !lastName || !title || !description) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ message: 'All required fields must be provided' });
     }
 
-    // Find existing hero data or create new one
     let heroData = await Hero.findOne();
-    
+
     if (heroData) {
-      // Update existing hero data
       heroData.firstName = firstName;
       heroData.lastName = lastName;
       heroData.title = title;
       heroData.description = description;
       heroData.splineUrl = splineUrl;
-      heroData.primaryButton = primaryButton;
-      heroData.secondaryButton = secondaryButton;
-      
+
+      if (primaryButton && typeof primaryButton === 'object') {
+        heroData.primaryButton = primaryButton;
+      }
+      if (secondaryButton && typeof secondaryButton === 'object') {
+        heroData.secondaryButton = secondaryButton;
+      }
+      if (cvButton && typeof cvButton === 'object') {
+        heroData.cvButton = cvButton;
+      }
+
       await heroData.save();
     } else {
-      // Create new hero data
       heroData = await Hero.create({
         firstName,
         lastName,
         title,
         description,
         splineUrl,
-        primaryButton,
-        secondaryButton
+        primaryButton: primaryButton && typeof primaryButton === 'object' ? primaryButton : undefined,
+        secondaryButton: secondaryButton && typeof secondaryButton === 'object' ? secondaryButton : undefined,
+        cvButton: cvButton && typeof cvButton === 'object' ? cvButton : undefined,
       });
     }
 
@@ -71,5 +77,6 @@ router.put('/', auth, async (req, res) => {
     res.status(500).json({ message: 'Error updating hero data' });
   }
 });
+
 
 module.exports = router;

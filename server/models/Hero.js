@@ -49,6 +49,18 @@ const heroSchema = new mongoose.Schema({
       required: true,
       default: "#contact"
     }
+  },
+  cvButton: {
+    text: {
+      type: String,
+      required: true,
+      default: "Download CV"
+    },
+    link: {
+      type: String,
+      required: true,
+      default: "/youssef_cv.pdf"
+    }
   }
 }, { timestamps: true });
 

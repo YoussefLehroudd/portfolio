@@ -15,6 +15,10 @@ const HeroManagement = () => {
     secondaryButton: {
       text: "Get in Touch",
       link: "#contact"
+    },
+    cvButton: {
+      text: "Download CV",
+      link: "/youssef_cv.pdf"
     }
   });
   const [loading, setLoading] = useState(false);
@@ -76,13 +80,26 @@ const HeroManagement = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+ const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  if (name.includes('.')) {
+    const [parentKey, childKey] = name.split('.');
+    setHeroData(prev => ({
+      ...prev,
+      [parentKey]: {
+        ...prev[parentKey],
+        [childKey]: value
+      }
+    }));
+  } else {
     setHeroData(prev => ({
       ...prev,
       [name]: value
     }));
-  };
+  }
+};
+
 
   if (loading) {
     return <div className={styles.loading}>Loading...</div>;
@@ -208,6 +225,66 @@ const HeroManagement = () => {
           </div>
         </div>
 
+        <div className={styles.formGroup}>
+          <label>CV Button</label>
+          <div className={styles.buttonFields}>
+            <input
+              type="text"
+              name="cvButton.text"
+              value={heroData.cvButton.text}
+              onChange={(e) => setHeroData(prev => ({
+                ...prev,
+                cvButton: { ...prev.cvButton, text: e.target.value }
+              }))}
+              placeholder="CV Button Text"
+            />
+            <div className={styles.fileUploadContainer}>
+              <input
+                type="file"
+                accept=".png,.jpg,.jpeg,.svg"
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const formData = new FormData();
+                    formData.append('cv', file);
+                    
+                    try {
+                      setLoading(true);
+                      const token = localStorage.getItem('adminToken');
+                      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/upload/cv`, {
+                        method: 'POST',
+                        headers: {
+                          Authorization: `Bearer ${token}`
+                        },
+                        body: formData
+                      });
+
+                      if (response.ok) {
+                        const data = await response.json();
+                        // Fetch updated hero data to ensure we have the latest state
+                        await fetchHeroData();
+                        setSuccess('CV uploaded successfully');
+                      } else {
+                        setError('Failed to upload CV');
+                      }
+                    } catch (error) {
+                      setError('Error uploading CV');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }
+                }}
+              />
+              <span className={styles.currentFile}>
+                {heroData.cvButton.link ? 
+                  'Current CV: ' + heroData.cvButton.link.split('/').pop().replace(/\.[^/.]+$/, '.png') :
+                  'No CV uploaded yet'
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div className={styles.preview}>
           <h3>Preview</h3>
           <div className={styles.previewContent}>
@@ -224,6 +301,15 @@ const HeroManagement = () => {
               <button className={styles.previewSecondaryBtn}>
                 {heroData.secondaryButton.text}
               </button>
+              <a
+                href={heroData.cvButton.link}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.previewSecondaryBtn}
+              >
+                {heroData.cvButton.text}
+              </a>
             </div>
           </div>
         </div>
@@ -235,5 +321,6 @@ const HeroManagement = () => {
     </div>
   );
 };
+
 
 export default HeroManagement;
