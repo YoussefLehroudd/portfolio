@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ProjectForm.module.css';
+import { useAuth } from '../../context/AuthContext';
 
 const ProjectForm = ({ project, onSubmit, onClose }) => {
   const [formData, setFormData] = useState({
@@ -50,6 +51,8 @@ const ProjectForm = ({ project, onSubmit, onClose }) => {
     }
   };
 
+  const { admin } = useAuth();
+  
   const handleChange = async (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === 'file') {
@@ -61,8 +64,20 @@ const ProjectForm = ({ project, onSubmit, onClose }) => {
           imageData.append('image', file);
 
           // Upload to Cloudinary through our API
+          if (!admin) {
+            throw new Error('You must be logged in to upload images');
+          }
+
+          const token = localStorage.getItem('adminToken');
+          if (!token) {
+            throw new Error('Authentication token not found');
+          }
+
           const response = await fetch(`${process.env.REACT_APP_API_URL}/api/upload/image`, {
             method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
             body: imageData,
           });
 
