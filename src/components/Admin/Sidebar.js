@@ -20,8 +20,8 @@ const Sidebar = ({ messageCount = 0 }) => {
 
   const isActive = (path) => {
     const currentPath = location.pathname;
-    if (path === 'messages') {
-      return currentPath.includes('/messages') || currentPath === '/admin/dashboard';
+    if (path === 'statistics') {
+      return currentPath.includes('/statistics') || currentPath === '/admin/dashboard' || currentPath === '/admin';
     }
     return currentPath.includes(path);
   };
@@ -79,6 +79,28 @@ const Sidebar = ({ messageCount = 0 }) => {
       </div>
 
       <nav className={styles.nav}>
+        <div 
+          className={`${styles.navItem} ${isActive('statistics') ? styles.active : ''}`}
+          onClick={() => handleNavigation('statistics')}
+        >
+          <div className={styles.iconWrapper}>
+            <svg 
+              className={styles.icon} 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+          </div>
+          <span>Statistics</span>
+        </div>
+
         <div 
           className={`${styles.navItem} ${isActive('messages') ? styles.active : ''}`}
           onClick={() => handleNavigation('messages')}

@@ -26,6 +26,18 @@ function App() {
       setIsLoading(false);
     }, 2000);
 
+    // Record visit only for non-admin pages and count once per day
+    const currentPath = window.location.pathname;
+    const lastVisitDate = localStorage.getItem('lastVisitDate');
+    const today = new Date().toDateString();
+    
+    if (!currentPath.includes('/admin') && lastVisitDate !== today) {
+      localStorage.setItem('lastVisitDate', today);
+      fetch(`${process.env.REACT_APP_API_URL}/api/statistics/visit`, {
+        method: 'POST'
+      }).catch(error => console.error('Error recording visit:', error));
+    }
+
     return () => clearTimeout(timer);
   }, []);
 

@@ -3,8 +3,6 @@ import styles from './ProjectModal.module.css';
 import { FaTimes, FaGithub, FaLink } from 'react-icons/fa';
 
 const ProjectModal = ({ project, onClose }) => {
-  if (!project) return null;
-
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>

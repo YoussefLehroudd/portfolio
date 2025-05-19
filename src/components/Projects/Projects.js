@@ -3,36 +3,87 @@ import styles from './Projects.module.css';
 import { FaGithub, FaLink } from 'react-icons/fa';
 import ProjectModal from './ProjectModal';
 
-const ProjectCard = React.memo(({ project, onMoreClick }) => (
-  <div className={styles.projectCard}>
-    <div className={styles.imageContainer}>
-      <img 
-        src={project.image} 
-        alt={project.title} 
-        loading="lazy"
-        decoding="async"
-        width="400"
-        height="250"
-      />
-      <div className={styles.overlay}>
-        <h3>{project.type}</h3>
+const ProjectCard = React.memo(({ project, onMoreClick }) => {
+  const recordProjectClick = async () => {
+    try {
+      // Only record clicks for non-admin pages
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes('/admin')) {
+        await fetch(`${process.env.REACT_APP_API_URL}/api/statistics/project-click`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            projectId: project._id,
+            title: project.title,
+            image: project.image
+          })
+        });
+      }
+    } catch (error) {
+      console.error('Error recording project click:', error);
+    }
+  };
+
+  const handleLinkClick = async (e) => {
+    await recordProjectClick();
+  };
+
+  const handleMoreClick = async () => {
+    await recordProjectClick();
+    onMoreClick(project);
+  };
+
+  return (
+    <div className={styles.projectCard}>
+      <div className={styles.imageContainer}>
+        <img 
+          src={project.image} 
+          alt={project.title} 
+          loading="lazy"
+          decoding="async"
+          width="400"
+          height="250"
+        />
+        <div className={styles.overlay}>
+          <h3>{project.type}</h3>
+        </div>
+      </div>
+      <div className={styles.content}>
+        <h3>{project.title}</h3>
+        <p>{project.description}</p>
+        <div className={styles.links}>
+          <a 
+            href={project.demoLink} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            aria-label="Live Demo"
+            onClick={handleLinkClick}
+          >
+            <FaLink />
+          </a>
+          <a 
+            href={project.githubLink} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            aria-label="GitHub Repository"
+            onClick={handleLinkClick}
+          >
+            <FaGithub />
+          </a>
+          <span 
+            className={styles.more} 
+            onClick={handleMoreClick}
+            aria-label="View More Details"
+          >
+            more→
+          </span>
+        </div>
       </div>
     </div>
-    <div className={styles.content}>
-      <h3>{project.title}</h3>
-      <p>{project.description}</p>
-      <div className={styles.links}>
-        <a href={project.demoLink} target="_blank" rel="noopener noreferrer" aria-label="Live Demo">
-          <FaLink />
-        </a>
-        <a href={project.githubLink} target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository">
-          <FaGithub />
-        </a>
-        <span className={styles.more} onClick={() => onMoreClick(project)}>more→</span>
-      </div>
-    </div>
-  </div>
-));
+  );
+});
 
 const FilterButton = React.memo(({ filter, isActive, onClick }) => (
   <button

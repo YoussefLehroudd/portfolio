@@ -10,6 +10,91 @@ import HeroManagement from './HeroManagement';
 import SocialManagement from './SocialManagement';
 import ProfileManagement from './ProfileManagement';
 
+const StatisticsSection = ({ stats }) => {
+  const [projects, setProjects] = useState([]);
+  
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects`);
+        if (response.ok) {
+          const data = await response.json();
+          setProjects(data);
+        }
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  return (
+    <section className={styles.messagesSection}>
+      <div className={styles.messagesList}>
+        <div className={styles.statsCards}>
+          <div className={styles.messageCard}>
+            <h3>Total Visits</h3>
+            <p className={styles.statsNumber}>
+              {stats.reduce((total, stat) => total + stat.visits, 0)}
+            </p>
+          </div>
+          <div className={styles.messageCard}>
+            <h3>Total Project Clicks</h3>
+            <p className={styles.statsNumber}>
+              {stats.reduce((total, stat) => {
+                const dailyClicks = stat.project_details?.reduce((sum, project) => sum + project.clicks, 0) || 0;
+                return total + dailyClicks;
+              }, 0)}
+            </p>
+          </div>
+        </div>
+        <div className={styles.messageCard}>
+          <h3>Recent Statistics</h3>
+          <table className={styles.statsTable}>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Visits</th>
+                <th>Project Clicks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.map((stat) => (
+                <tr key={stat.date}>
+                  <td>{new Date(stat.date).toLocaleDateString()}</td>
+                  <td>{stat.visits}</td>
+                  <td>{stat.project_details?.reduce((sum, project) => sum + project.clicks, 0) || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className={styles.messageCard}>
+          <h3>Most Clicked Projects</h3>
+          <div className={styles.projectGrid}>
+            {projects.map(project => {
+              const totalClicks = stats.reduce((total, stat) => {
+                const projectStat = stat.project_details?.find(p => p.project_id.toString() === project._id.toString());
+                return total + (projectStat?.clicks || 0);
+              }, 0);
+              
+              return (
+                <div key={project._id} className={styles.projectThumbnail}>
+                  <img src={project.image} alt={project.title} />
+                  <div className={styles.projectInfo}>
+                    <h4>{project.title}</h4>
+                    <p>Clicks: {totalClicks}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const MessagesSection = ({ messages, error, onDeleteClick }) => (
   <section className={styles.messagesSection}>
     {error && <div className={styles.error}>{error}</div>}
@@ -46,6 +131,7 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState(null);
+  const [statistics, setStatistics] = useState([]);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { admin, logout } = useAuth();
   const navigate = useNavigate();
@@ -53,6 +139,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchMessages();
+    fetchStatistics();
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.attributeName === 'class') {
@@ -68,6 +155,26 @@ const Dashboard = () => {
 
     return () => observer.disconnect();
   }, []);
+
+  const fetchStatistics = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/statistics`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStatistics(data);
+      } else {
+        console.error('Failed to fetch statistics');
+      }
+    } catch (error) {
+      console.error('Error loading statistics:', error);
+    }
+  };
 
   const fetchMessages = async () => {
     try {
@@ -128,22 +235,32 @@ const Dashboard = () => {
   }
 
   const getPageTitle = () => {
-    if (location.pathname.includes('/projects')) {
+    const path = location.pathname;
+    if (path === '/admin' || path === '/admin/') {
+      return 'Statistics';
+    }
+    if (path.includes('/projects')) {
       return 'Projects Management';
     }
-    if (location.pathname.includes('/hero')) {
+    if (path.includes('/hero')) {
       return 'Hero Section Management';
     }
-    if (location.pathname.includes('/about')) {
+    if (path.includes('/about')) {
       return 'About Section Management';
     }
-    if (location.pathname.includes('/social')) {
+    if (path.includes('/social')) {
       return 'Social Links Management';
     }
-    if (location.pathname.includes('/profile')) {
+    if (path.includes('/profile')) {
       return 'Profile Management';
     }
-    return 'Messages';
+    if (path.includes('/statistics')) {
+      return 'Statistics';
+    }
+    if (path.includes('/messages')) {
+      return 'Messages';
+    }
+    return 'Statistics';
   };
 
   return (
@@ -163,6 +280,10 @@ const Dashboard = () => {
         <main className={styles.main}>
           <Routes>
             <Route 
+              path="/" 
+              element={<StatisticsSection stats={statistics} />} 
+            />
+            <Route 
               path="messages/*" 
               element={
                 <MessagesSection 
@@ -177,6 +298,10 @@ const Dashboard = () => {
             <Route path="hero/*" element={<HeroManagement />} />
             <Route path="social/*" element={<SocialManagement />} />
             <Route path="profile/*" element={<ProfileManagement />} />
+            <Route 
+              path="statistics/*" 
+              element={<StatisticsSection stats={statistics} />}
+            />
           </Routes>
         </main>
 

@@ -53,6 +53,7 @@ app.use('/api/about', aboutRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api/admin/profile', profileRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/statistics', require('./routes/statistics'));
 
 // Then serve static files
 app.use(express.static(path.join(__dirname, '../build')));
