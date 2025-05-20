@@ -55,8 +55,22 @@ app.use('/api/admin/profile', profileRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/statistics', require('./routes/statistics'));
 
-// Then serve static files
-app.use(express.static(path.join(__dirname, '../build')));
+// Serve static files from build directory with proper cache control
+app.use('/static', express.static(path.join(__dirname, '../build/static'), {
+  maxAge: '1y',
+  etag: false
+}));
+
+// Serve other static files from build with no cache
+app.use(express.static(path.join(__dirname, '../build'), {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-store, must-revalidate');
+  }
+}));
+
+// Serve public files with proper content types
 app.use(express.static(path.join(__dirname, '../public'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.json')) {
@@ -71,6 +85,7 @@ app.use(express.static(path.join(__dirname, '../public'), {
     if (filePath.endsWith('.svg')) {
       res.setHeader('Content-Type', 'image/svg+xml');
     }
+    res.setHeader('Cache-Control', 'no-store, must-revalidate');
   }
 }));
 
@@ -106,9 +121,20 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
+// Special handling for admin routes
+app.get('/admin/*', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, must-revalidate');
+  res.sendFile(path.join(__dirname, '../build', 'index.html'));
+});
+
 // Catch-all route to serve React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../build', 'index.html'));
+  if (!req.path.startsWith('/api')) {
+    res.setHeader('Cache-Control', 'no-store, must-revalidate');
+    res.sendFile(path.join(__dirname, '../build', 'index.html'));
+  } else {
+    res.status(404).json({ error: 'Not Found' });
+  }
 });
 
 const PORT = process.env.PORT || 5001;

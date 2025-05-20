@@ -10,20 +10,27 @@ services:
       - key: PORT
         value: 5001
     staticPublishPath: ./build  # Directory containing your React build
-    routes:
-      - type: rewrite
-        source: /admin/*
-        destination: /index.html
-      - type: rewrite
-        source: /static/*
-        destination: /static/*
-      - type: rewrite
-        source: /*
-        destination: /index.html
     headers:
+      - path: /*
+        name: Cache-Control
+        value: no-store, must-revalidate
       - path: /static/*
         name: Cache-Control
         value: public, max-age=31536000, immutable
-      - path: /*
-        name: Cache-Control
-        value: no-cache
+    routes:
+      # Serve static files first
+      - type: rewrite
+        source: /static/*
+        destination: /static/*
+      # Handle API routes
+      - type: rewrite
+        source: /api/*
+        destination: /api/*
+      # Admin routes - ensure React handles these
+      - type: rewrite
+        source: /admin/*
+        destination: /index.html
+      # All other routes to index.html for client-side routing
+      - type: rewrite
+        source: /*
+        destination: /index.html
