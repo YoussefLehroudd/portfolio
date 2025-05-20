@@ -114,8 +114,7 @@ app.get('/api/messages', async (req, res) => {
 
 
 app.get('*', (req, res) => {
-  const indexPath = path.resolve(__dirname, '..', 'build', 'index.html');
-  res.sendFile(indexPath);
+  res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
