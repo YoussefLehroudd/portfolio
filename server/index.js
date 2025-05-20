@@ -106,7 +106,7 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
-// Catch-all route to serve React app
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
