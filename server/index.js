@@ -43,25 +43,7 @@ app.use(express.json());
 // Connect to MongoDB
 connectMongo();
 
-// Serve static JS/CSS files first with proper headers
-app.use('/static', express.static(path.join(__dirname, '../build/static'), {
-  setHeaders: (res, path) => {
-    if (path.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    }
-    if (path.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
-    }
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-  }
-}));
-
-// Serve other build files
-app.use(express.static(path.join(__dirname, '../build'), {
-  index: false // Don't serve index.html for directory requests
-}));
-
-// API Routes after static files
+// API Routes first to ensure they take precedence
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
@@ -73,7 +55,8 @@ app.use('/api/admin/profile', profileRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/statistics', require('./routes/statistics'));
 
-// Serve public files with proper content types
+// Then serve static files
+app.use(express.static(path.join(__dirname, '../build')));
 app.use(express.static(path.join(__dirname, '../public'), {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith('.json')) {
@@ -88,7 +71,6 @@ app.use(express.static(path.join(__dirname, '../public'), {
     if (filePath.endsWith('.svg')) {
       res.setHeader('Content-Type', 'image/svg+xml');
     }
-    res.setHeader('Cache-Control', 'no-store, must-revalidate');
   }
 }));
 
@@ -124,20 +106,9 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
-// Special handling for admin routes
-app.get('/admin/*', (req, res) => {
-  res.setHeader('Cache-Control', 'no-store, must-revalidate');
-  res.sendFile(path.join(__dirname, '../build', 'index.html'));
-});
-
 // Catch-all route to serve React app
 app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.setHeader('Cache-Control', 'no-store, must-revalidate');
-    res.sendFile(path.join(__dirname, '../build', 'index.html'));
-  } else {
-    res.status(404).json({ error: 'Not Found' });
-  }
+  res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5001;

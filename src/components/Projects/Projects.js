@@ -72,13 +72,13 @@ const ProjectCard = React.memo(({ project, onMoreClick }) => {
           >
             <FaGithub />
           </a>
-          <span 
+          <button 
             className={styles.more} 
             onClick={handleMoreClick}
             aria-label="View More Details"
           >
             more→
-          </span>
+          </button>
         </div>
       </div>
     </div>
