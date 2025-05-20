@@ -89,7 +89,7 @@ app.get('/api', (req, res) => {
   res.json({ message: 'Welcome to the Portfolio API' });
 });
 
-// Message endpoints
+// Message endpointss
 app.post('/api/messages', async (req, res) => {
   try {
     const { name, email, message } = req.body;
