@@ -43,7 +43,25 @@ app.use(express.json());
 // Connect to MongoDB
 connectMongo();
 
-// API Routes first to ensure they take precedence
+// Serve static JS/CSS files first with proper headers
+app.use('/static', express.static(path.join(__dirname, '../build/static'), {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+    if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  }
+}));
+
+// Serve other build files
+app.use(express.static(path.join(__dirname, '../build'), {
+  index: false // Don't serve index.html for directory requests
+}));
+
+// API Routes after static files
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
@@ -54,21 +72,6 @@ app.use('/api/social', socialRoutes);
 app.use('/api/admin/profile', profileRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/statistics', require('./routes/statistics'));
-
-// Serve static files from build directory with proper cache control
-app.use('/static', express.static(path.join(__dirname, '../build/static'), {
-  maxAge: '1y',
-  etag: false
-}));
-
-// Serve other static files from build with no cache
-app.use(express.static(path.join(__dirname, '../build'), {
-  etag: false,
-  lastModified: false,
-  setHeaders: (res) => {
-    res.setHeader('Cache-Control', 'no-store, must-revalidate');
-  }
-}));
 
 // Serve public files with proper content types
 app.use(express.static(path.join(__dirname, '../public'), {
