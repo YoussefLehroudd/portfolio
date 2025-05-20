@@ -2,35 +2,41 @@ services:
   - type: web
     name: portfolio
     env: node
-    buildCommand: npm install && npm run build  # Install dependencies and build React app
-    startCommand: npm run prod  # Use the prod script which runs node server/index.js
+    buildCommand: npm install && npm run build
+    startCommand: npm run prod
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 5001
-    staticPublishPath: ./build  # Directory containing your React build
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-store, must-revalidate
-      - path: /static/*
-        name: Cache-Control
-        value: public, max-age=31536000, immutable
+    staticPublishPath: ./build
     routes:
-      # Serve static files first
+      # Handle static files first
       - type: rewrite
         source: /static/*
-        destination: /static/*
+        destination: /static/$1
       # Handle API routes
       - type: rewrite
         source: /api/*
-        destination: /api/*
-      # Admin routes - ensure React handles these
+        destination: /api/$1
+      # Handle admin routes
       - type: rewrite
         source: /admin/*
         destination: /index.html
-      # All other routes to index.html for client-side routing
+      # Handle all other routes
       - type: rewrite
         source: /*
         destination: /index.html
+    headers:
+      - path: /static/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      - path: /static/*.js
+        name: Content-Type
+        value: application/javascript
+      - path: /static/*.css
+        name: Content-Type
+        value: text/css
+      - path: /*
+        name: Cache-Control
+        value: no-store, must-revalidate
