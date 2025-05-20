@@ -108,9 +108,9 @@ app.get('/api/messages', async (req, res) => {
 
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../build', 'index.html'));
+  const indexPath = path.resolve(__dirname, '..', 'build', 'index.html');
+  res.sendFile(indexPath);
 });
-
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
