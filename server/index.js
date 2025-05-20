@@ -44,6 +44,7 @@ app.use(express.json());
 connectMongo();
 
 // API Routes first to ensure they take precedence
+app.use('/api/admin/profile', profileRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
@@ -54,6 +55,11 @@ app.use('/api/social', socialRoutes);
 app.use('/api/admin/profile', profileRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/statistics', require('./routes/statistics'));
+
+
+
+
+
 
 // Then serve static files
 app.use(express.static(path.join(__dirname, '../build')));
