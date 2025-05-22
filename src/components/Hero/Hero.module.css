@@ -131,7 +131,15 @@
     align-items: center;
     justify-content: center;
   }
+}
 
+@media (max-width: 768px) {
+  .splineContainer {
+    display: none;
+  }
+}
+
+@media (max-width: 1037px) {
   .heroContent {
     padding: 2rem;
     margin: 0 auto;
