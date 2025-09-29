@@ -1,3 +1,5 @@
+require('dotenv').config({ path: '../.env' });
+
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { connectMongo } = require('./config/database');
@@ -7,22 +9,16 @@ const seedAdmin = async () => {
   try {
     await connectMongo();
     
-    // Check if admin already exists
-    const existingAdmin = await Admin.findOne();
-    if (existingAdmin) {
-      console.log('Admin already exists. Skipping seed.');
-      process.exit(0);
-    }
+    // Delete existing admin if any (to fix double hashing)
+    await Admin.deleteMany({});
 
-    // Create default admin
+    // Create default admin (plain password, model will hash)
     const defaultUsername = 'Youssef';
     const defaultPassword = 'Youssef2004@'; // Change this in production!
 
-    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
-
     const admin = new Admin({
       username: defaultUsername,
-      password: hashedPassword
+      password: defaultPassword
     });
 
     await admin.save();
