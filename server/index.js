@@ -33,7 +33,7 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://portfolio-production-0628.up.railway.app/', 'https://youssefhrd.com', 'https://yousseflehroud.com']
+    ? ['https://portfolio-production-0628.up.railway.app', 'https://youssefhrd.com', 'https://yousseflehroud.com']
     : ['http://localhost:3000', 'http://localhost:3001'],
   methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT'],
   credentials: true
