@@ -33,7 +33,7 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://portfolio-wbwj.onrender.com', 'https://youssefhrd.com']
+    ? (process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['https://portfolio-wbwj.onrender.com', 'https://youssefhrd.com'])
     : ['http://localhost:3000', 'http://localhost:3001'],
   methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT'],
   credentials: true
