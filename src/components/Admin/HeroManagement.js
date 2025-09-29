@@ -260,7 +260,6 @@ const HeroManagement = () => {
                       });
 
                       if (response.ok) {
-                        const data = await response.json();
                         // Fetch updated hero data to ensure we have the latest state
                         await fetchHeroData();
                         setSuccess('CV uploaded successfully');
