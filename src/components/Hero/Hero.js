@@ -89,41 +89,40 @@ const Hero = () => {
       });
     }
   };
-
-  const handleMouseMove = (e) => {
-    if (isDragging) {
-      const newX = ((e.clientX - dragStart.x) / window.innerWidth) * 100;
-      const newY = ((e.clientY - dragStart.y) / window.innerHeight) * 100;
-      
-      // Keep within bounds
-      const boundedX = Math.max(10, Math.min(90, newX));
-      const boundedY = Math.max(10, Math.min(90, newY));
-      
-      setAnimationPosition({ x: boundedX, y: boundedY });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
   useEffect(() => {
+    const handleMouseMoveEvent = (e) => {
+      if (isDragging) {
+        const newX = ((e.clientX - dragStart.x) / window.innerWidth) * 100;
+        const newY = ((e.clientY - dragStart.y) / window.innerHeight) * 100;
+        
+        // Keep within bounds
+        const boundedX = Math.max(10, Math.min(90, newX));
+        const boundedY = Math.max(10, Math.min(90, newY));
+        
+        setAnimationPosition({ x: boundedX, y: boundedY });
+      }
+    };
+
+    const handleMouseUpEvent = () => {
+      setIsDragging(false);
+    };
+
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('mousemove', handleMouseMoveEvent);
+      document.addEventListener('mouseup', handleMouseUpEvent);
       document.body.style.cursor = 'grabbing';
     } else {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMoveEvent);
+      document.removeEventListener('mouseup', handleMouseUpEvent);
       document.body.style.cursor = 'default';
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMoveEvent);
+      document.removeEventListener('mouseup', handleMouseUpEvent);
       document.body.style.cursor = 'default';
     };
-  }, [isDragging, dragStart, animationPosition]);
+  }, [isDragging, dragStart]);
 
   if (!data) return null;
 
