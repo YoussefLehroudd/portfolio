@@ -89,7 +89,6 @@ const Hero = () => {
       });
     }
   };
-
   useEffect(() => {
     const handleMouseMoveEvent = (e) => {
       if (isDragging) {
