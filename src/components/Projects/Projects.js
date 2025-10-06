@@ -96,7 +96,7 @@ const FilterButton = React.memo(({ filter, isActive, onClick }) => (
 
 const Projects = () => {
   const [activeFilter, setActiveFilter] = useState('All Projects');
-  const [isLoading, setIsLoading] = useState(true);
+  const [animationState, setAnimationState] = useState(''); // '', 'fadeOut', 'fadeIn'
   const [selectedProject, setSelectedProject] = useState(null);
   const [projects, setProjects] = useState([]);
   const [categories, setCategories] = useState(['All Projects']);
@@ -122,7 +122,6 @@ const Projects = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        setIsLoading(true);
         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects`);
         if (!response.ok) {
           throw new Error('Failed to fetch projects');
@@ -132,8 +131,6 @@ const Projects = () => {
       } catch (err) {
         setError(err.message);
         console.error('Error fetching projects:', err);
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -164,8 +161,16 @@ const Projects = () => {
   }, [projects]);
 
   const handleFilterClick = useCallback((filter) => {
-    setActiveFilter(filter);
-  }, []);
+    if (filter === activeFilter) return; // no change
+    setAnimationState('fadeOut');
+    setTimeout(() => {
+      setActiveFilter(filter);
+      setAnimationState('fadeIn');
+      setTimeout(() => {
+        setAnimationState('');
+      }, 500); // fadeIn duration
+    }, 500); // fadeOut duration
+  }, [activeFilter]);
 
   const filteredProjects = activeFilter === 'All Projects' 
     ? projects 
@@ -188,18 +193,14 @@ const Projects = () => {
             />
           ))}
         </div>
-        <div className={`${styles.grid} ${isLoading ? styles.loading : ''}`}>
-          {isLoading ? (
-            <div className={styles.loadingSpinner}>Loading projects...</div>
-          ) : (
-            filteredProjects.map((project) => (
-              <ProjectCard 
-                key={project._id}
-                project={project}
-                onMoreClick={setSelectedProject}
-              />
-            ))
-          )}
+        <div className={`${styles.grid} ${animationState ? styles[animationState] : ''}`}>
+          {filteredProjects.map((project) => (
+            <ProjectCard
+              key={project._id}
+              project={project}
+              onMoreClick={setSelectedProject}
+            />
+          ))}
         </div>
       </div>
       

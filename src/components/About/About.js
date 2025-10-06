@@ -3,7 +3,7 @@ import styles from './About.module.css';
 
 const About = () => {
   const [aboutData, setAboutData] = useState(null);
-  const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -21,14 +21,8 @@ const About = () => {
       }
     } catch (error) {
       setError('Error loading about data');
-    } finally {
-      setLoading(false);
     }
   };
-
-  if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
-  }
 
   if (error) {
     return <div className={styles.error}>{error}</div>;
