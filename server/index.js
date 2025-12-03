@@ -33,7 +33,7 @@ const app = express();
 // Middleware
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
 if (process.env.NODE_ENV === 'production') {
-  allowedOrigins.push(...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['https://portfolio-wbwj.onrender.com', 'https://youssefhrd.com']));
+  allowedOrigins.push(...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['https://portfolio-wbwj.onrender.com', 'https://youssefhrd.com','https://portfolio-one-iota-84.vercel.app']));
 }
 app.use(cors({
   origin: allowedOrigins,
