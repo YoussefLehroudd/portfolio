@@ -29,7 +29,15 @@ const projectSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['HTML & CSS', 'JavaScript', 'React & MUI', 'Node & Express']
+    validate: {
+      validator: async function(value) {
+        // Import Category model here to avoid circular dependency
+        const Category = mongoose.model('Category');
+        const category = await Category.findOne({ name: value });
+        return !!category;
+      },
+      message: 'Category "{VALUE}" does not exist. Please create the category first.'
+    }
   },
   technologies: [{
     type: String,

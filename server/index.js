@@ -31,10 +31,12 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 
 // Middleware
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
+if (process.env.NODE_ENV === 'production') {
+  allowedOrigins.push(...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['https://portfolio-wbwj.onrender.com', 'https://youssefhrd.com']));
+}
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://portfolio-production-168d.up.railway.app', 'https://youssefhrd.com', 'https://yousseflehroud.com']
-    : ['http://localhost:3000', 'http://localhost:3001'],
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT'],
   credentials: true
 }));

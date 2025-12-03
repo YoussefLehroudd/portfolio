@@ -1,13 +1,6 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Hero.module.css';
-import Spline from '@splinetool/react-spline';
 import TechSlider from './TechSlider';
-
-const SplineScene = React.memo(({ sceneUrl }) => (
-  <Suspense fallback={<div className={styles.splineFallback} />}>
-    <Spline scene={sceneUrl}/>
-  </Suspense>
-));
 
 const Hero = () => {
   const [text1, setText1] = useState('');
@@ -15,8 +8,10 @@ const Hero = () => {
   const [subtitleText, setSubtitleText] = useState('');
   const [descriptionText, setDescriptionText] = useState('');
   const [currentLine, setCurrentLine] = useState(1);
-  const [isSplineVisible, setIsSplineVisible] = useState(true);
   const [data, setData] = useState(null);
+  const [animationPosition, setAnimationPosition] = useState({ x: 75, y: 50 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     // Fetch hero data
@@ -33,18 +28,6 @@ const Hero = () => {
     };
 
     fetchHeroData();
-  }, []);
-
-  useEffect(() => {
-    // Scroll visibility control
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const threshold = window.innerHeight * 0.8;
-      setIsSplineVisible(scrollPosition < threshold);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -95,15 +78,126 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, [data]);
 
+  // Drag functionality
+  const handleMouseDown = (e) => {
+    if (e.button === 2) { // Right click
+      e.preventDefault();
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - (animationPosition.x * window.innerWidth / 100),
+        y: e.clientY - (animationPosition.y * window.innerHeight / 100)
+      });
+    }
+  };
+  useEffect(() => {
+    const handleMouseMoveEvent = (e) => {
+      if (isDragging) {
+        const newX = ((e.clientX - dragStart.x) / window.innerWidth) * 100;
+        const newY = ((e.clientY - dragStart.y) / window.innerHeight) * 100;
+        
+        // Keep within bounds
+        const boundedX = Math.max(10, Math.min(90, newX));
+        const boundedY = Math.max(10, Math.min(90, newY));
+        
+        setAnimationPosition({ x: boundedX, y: boundedY });
+      }
+    };
+
+    const handleMouseUpEvent = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMoveEvent);
+      document.addEventListener('mouseup', handleMouseUpEvent);
+      document.body.style.cursor = 'grabbing';
+    } else {
+      document.removeEventListener('mousemove', handleMouseMoveEvent);
+      document.removeEventListener('mouseup', handleMouseUpEvent);
+      document.body.style.cursor = 'default';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMoveEvent);
+      document.removeEventListener('mouseup', handleMouseUpEvent);
+      document.body.style.cursor = 'default';
+    };
+  }, [isDragging, dragStart]);
+
   if (!data) return null;
 
   return (
     <section id="hero" className={styles.hero}>
-      {isSplineVisible && (
-        <div className={styles.splineContainer}>
-          <SplineScene sceneUrl={data.splineUrl} />
+      <div className={styles.animationContainer}>
+        <div 
+          className={styles.superAnimation}
+          style={{
+            left: `${animationPosition.x}%`,
+            top: `${animationPosition.y}%`,
+            transform: 'translate(-50%, -50%)',
+            cursor: isDragging ? 'grabbing' : 'grab'
+          }}
+          onMouseDown={handleMouseDown}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          {/* Main pulsing core */}
+          <div className={styles.mainCore}></div>
+          
+          {/* Orbiting particles */}
+          <div className={styles.orbitRing1}>
+            <div className={styles.particle1}></div>
+            <div className={styles.particle2}></div>
+            <div className={styles.particle3}></div>
+          </div>
+          
+          <div className={styles.orbitRing2}>
+            <div className={styles.particle4}></div>
+            <div className={styles.particle5}></div>
+          </div>
+          
+          <div className={styles.orbitRing3}>
+            <div className={styles.particle6}></div>
+            <div className={styles.particle7}></div>
+            <div className={styles.particle8}></div>
+            <div className={styles.particle9}></div>
+          </div>
+          
+          {/* Floating sparkles */}
+          <div className={styles.sparkle1}></div>
+          <div className={styles.sparkle2}></div>
+          <div className={styles.sparkle3}></div>
+          <div className={styles.sparkle4}></div>
+          <div className={styles.sparkle5}></div>
+          <div className={styles.sparkle6}></div>
+          <div className={styles.sparkle7}></div>
+          <div className={styles.sparkle8}></div>
+          
+          {/* Energy waves */}
+          <div className={styles.energyWave1}></div>
+          <div className={styles.energyWave2}></div>
+          <div className={styles.energyWave3}></div>
+          
+          {/* Rotating rings */}
+          <div className={styles.rotatingRing1}></div>
+          <div className={styles.rotatingRing2}></div>
+          <div className={styles.rotatingRing3}></div>
+          
+          {/* Lightning effects */}
+          <div className={styles.lightning1}></div>
+          <div className={styles.lightning2}></div>
+          <div className={styles.lightning3}></div>
+          
+          {/* Motivational words */}
+          <div className={styles.motivationalWord1}>Success</div>
+          <div className={styles.motivationalWord2}>Dream</div>
+          <div className={styles.motivationalWord3}>Achieve</div>
+          <div className={styles.motivationalWord4}>Create</div>
+          <div className={styles.motivationalWord5}>Inspire</div>
+          <div className={styles.motivationalWord6}>Build</div>
+          <div className={styles.motivationalWord7}>Code</div>
+          <div className={styles.motivationalWord8}>Innovate</div>
         </div>
-      )}
+      </div>
       <div className={styles.heroContent}>
         <h1 className={styles.title}>
           <span>{text1}</span>
