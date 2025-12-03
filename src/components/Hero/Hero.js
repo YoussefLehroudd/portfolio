@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Hero.module.css';
 import TechSlider from './TechSlider';
+import { apiUrl } from '../../config/api';
 
 const Hero = () => {
   const [text1, setText1] = useState('');
@@ -17,7 +18,7 @@ const Hero = () => {
     // Fetch hero data
     const fetchHeroData = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/hero`);
+        const response = await fetch(apiUrl('/api/hero'));
         if (response.ok) {
           const heroData = await response.json();
           setData(heroData);

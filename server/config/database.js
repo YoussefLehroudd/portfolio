@@ -6,6 +6,12 @@ const connectMongo = async () => {
   // Ensure required directories exist
   await ensureDirectories();
   try {
+    if (mongoose.connection.readyState === 1) {
+      return;
+    }
+    if (mongoose.connection.readyState === 2) {
+      return;
+    }
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
   } catch (err) {

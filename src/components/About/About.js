@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './About.module.css';
+import { apiUrl } from '../../config/api';
 
 const About = () => {
   const [aboutData, setAboutData] = useState(null);
@@ -12,7 +13,7 @@ const About = () => {
 
   const fetchAboutData = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/about`);
+      const response = await fetch(apiUrl('/api/about'));
       if (response.ok) {
         const data = await response.json();
         setAboutData(data);

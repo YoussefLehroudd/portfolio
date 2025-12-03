@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './AboutManagement.module.css';
+import { apiUrl } from '../../config/api';
 
 const AboutManagement = () => {
   const [aboutData, setAboutData] = useState({
@@ -20,7 +21,7 @@ const AboutManagement = () => {
 
   const fetchAboutData = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/about`);
+      const response = await fetch(apiUrl('/api/about'));
       if (response.ok) {
         const data = await response.json();
         setAboutData(data);
@@ -82,7 +83,7 @@ const AboutManagement = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/about`, {
+      const response = await fetch(apiUrl('/api/about'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

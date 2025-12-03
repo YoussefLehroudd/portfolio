@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './CategoryManagement.module.css';
+import { apiUrl } from '../../config/api';
 
 const CategoryManagement = () => {
   const [categories, setCategories] = useState([]);
@@ -36,7 +37,7 @@ const CategoryManagement = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/categories`);
+      const response = await fetch(apiUrl('/api/categories'));
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
@@ -56,7 +57,7 @@ const CategoryManagement = () => {
 
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/categories`, {
+      const response = await fetch(apiUrl('/api/categories'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,7 +91,7 @@ const CategoryManagement = () => {
 
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/categories/${editingCategory._id}`, {
+      const response = await fetch(apiUrl(`/api/categories/${editingCategory._id}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -120,7 +121,7 @@ const CategoryManagement = () => {
   const handleDeleteCategory = async (category) => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/categories/${category._id}`, {
+      const response = await fetch(apiUrl(`/api/categories/${category._id}`), {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`

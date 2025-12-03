@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import styles from './Contact.module.css';
+import { apiUrl } from '../../config/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -106,7 +107,7 @@ const Contact = () => {
 
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/messages`, {
+      const response = await fetch(apiUrl('/api/messages'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

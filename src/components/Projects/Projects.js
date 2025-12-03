@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import styles from './Projects.module.css';
 import { FaGithub, FaLink } from 'react-icons/fa';
 import ProjectModal from './ProjectModal';
+import { apiUrl } from '../../config/api';
 
 const ProjectCard = React.memo(({ project, onMoreClick }) => {
   const recordProjectClick = async () => {
@@ -9,7 +10,7 @@ const ProjectCard = React.memo(({ project, onMoreClick }) => {
       // Only record clicks for non-admin pages
       const currentPath = window.location.pathname;
       if (!currentPath.includes('/admin')) {
-        await fetch(`${process.env.REACT_APP_API_URL}/api/statistics/project-click`, {
+        await fetch(apiUrl('/api/statistics/project-click'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -105,7 +106,7 @@ const Projects = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/categories`);
+        const response = await fetch(apiUrl('/api/categories'));
         if (!response.ok) {
           throw new Error('Failed to fetch categories');
         }
@@ -122,7 +123,7 @@ const Projects = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects`);
+        const response = await fetch(apiUrl('/api/projects'));
         if (!response.ok) {
           throw new Error('Failed to fetch projects');
         }

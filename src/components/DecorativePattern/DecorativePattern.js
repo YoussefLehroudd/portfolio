@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './DecorativePattern.module.css';
 import { FaGithub, FaWhatsapp, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import { apiUrl } from '../../config/api';
 
 const DecorativePattern = () => {
   const [socialLinks, setSocialLinks] = useState({
@@ -13,7 +14,7 @@ const DecorativePattern = () => {
   useEffect(() => {
     const fetchSocialLinks = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/social`);
+        const response = await fetch(apiUrl('/api/social'));
         if (response.ok) {
           const data = await response.json();
           setSocialLinks(data);

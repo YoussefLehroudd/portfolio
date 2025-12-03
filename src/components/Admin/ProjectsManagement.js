@@ -4,6 +4,7 @@ import ProjectForm from './ProjectForm';
 import DeleteModal from './DeleteModal';
 import CategoryManagement from './CategoryManagement';
 import ProjectDetailModal from './ProjectDetailModal';
+import { apiUrl } from '../../config/api';
 
 const ProjectsManagement = () => {
   const [projects, setProjects] = useState([]);
@@ -44,7 +45,7 @@ const ProjectsManagement = () => {
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects/admin`, {
+      const response = await fetch(apiUrl('/api/projects/admin'), {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -67,7 +68,7 @@ const ProjectsManagement = () => {
   const handleToggleVisibility = async (projectId) => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects/${projectId}/toggle-visibility`, {
+      const response = await fetch(apiUrl(`/api/projects/${projectId}/toggle-visibility`), {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`
@@ -101,7 +102,7 @@ const ProjectsManagement = () => {
   const handleDeleteConfirm = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects/${projectToDelete._id}`, {
+      const response = await fetch(apiUrl(`/api/projects/${projectToDelete._id}`), {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`
@@ -126,8 +127,8 @@ const ProjectsManagement = () => {
     try {
       const token = localStorage.getItem('adminToken');
       const url = editingProject 
-        ? `${process.env.REACT_APP_API_URL}/api/projects/${editingProject._id}`
-        : `${process.env.REACT_APP_API_URL}/api/projects`;
+        ? apiUrl(`/api/projects/${editingProject._id}`)
+        : apiUrl('/api/projects');
       
       const method = editingProject ? 'PATCH' : 'POST';
 

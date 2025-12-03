@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ProjectForm.module.css';
 import { useAuth } from '../../context/AuthContext';
+import { apiUrl } from '../../config/api';
 
 const ProjectForm = ({ project, onSubmit, onClose }) => {
   const [formData, setFormData] = useState({
@@ -36,7 +37,7 @@ const ProjectForm = ({ project, onSubmit, onClose }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/categories`);
+      const response = await fetch(apiUrl('/api/categories'));
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
@@ -73,7 +74,7 @@ const ProjectForm = ({ project, onSubmit, onClose }) => {
             throw new Error('Authentication token not found');
           }
 
-          const response = await fetch(`${process.env.REACT_APP_API_URL}/api/upload/image`, {
+          const response = await fetch(apiUrl('/api/upload/image'), {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`

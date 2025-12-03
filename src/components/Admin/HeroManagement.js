@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './HeroManagement.module.css';
+import { apiUrl } from '../../config/api';
 
 const HeroManagement = () => {
   const [heroData, setHeroData] = useState({
@@ -33,7 +34,7 @@ const HeroManagement = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/hero`, {
+      const response = await fetch(apiUrl('/api/hero'), {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -57,7 +58,7 @@ const HeroManagement = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/hero`, {
+      const response = await fetch(apiUrl('/api/hero'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -251,7 +252,7 @@ const HeroManagement = () => {
                     try {
                       setLoading(true);
                       const token = localStorage.getItem('adminToken');
-                      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/upload/cv`, {
+                      const response = await fetch(apiUrl('/api/upload/cv'), {
                         method: 'POST',
                         headers: {
                           Authorization: `Bearer ${token}`

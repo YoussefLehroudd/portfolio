@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './SocialManagement.module.css';
 import { FaGithub, FaWhatsapp, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import { apiUrl } from '../../config/api';
 
 const SocialManagement = () => {
   const [socialData, setSocialData] = useState({
@@ -20,7 +21,7 @@ const SocialManagement = () => {
   const fetchSocialData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/social`);
+      const response = await fetch(apiUrl('/api/social'));
       if (response.ok) {
         const data = await response.json();
         setSocialData(data);
@@ -39,7 +40,7 @@ const SocialManagement = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/social`, {
+      const response = await fetch(apiUrl('/api/social'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

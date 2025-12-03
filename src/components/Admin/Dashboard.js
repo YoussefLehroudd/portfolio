@@ -9,6 +9,7 @@ import AboutManagement from './AboutManagement';
 import HeroManagement from './HeroManagement';
 import SocialManagement from './SocialManagement';
 import ProfileManagement from './ProfileManagement';
+import { apiUrl } from '../../config/api';
 
 const StatisticsSection = ({ stats }) => {
   const [projects, setProjects] = useState([]);
@@ -16,7 +17,7 @@ const StatisticsSection = ({ stats }) => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects`);
+        const response = await fetch(apiUrl('/api/projects'));
         if (response.ok) {
           const data = await response.json();
           setProjects(data);
@@ -159,7 +160,7 @@ const Dashboard = () => {
   const fetchStatistics = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/statistics`, {
+      const response = await fetch(apiUrl('/api/statistics'), {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -179,7 +180,7 @@ const Dashboard = () => {
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/messages`, {
+      const response = await fetch(apiUrl('/api/admin/messages'), {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -206,7 +207,7 @@ const Dashboard = () => {
   const handleDeleteConfirm = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/messages/${messageToDelete._id}`, {
+      const response = await fetch(apiUrl(`/api/admin/messages/${messageToDelete._id}`), {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ProfileManagement.module.css';
+import { apiUrl } from '../../config/api';
 
 const ProfileManagement = () => {
   const [profileData, setProfileData] = useState({
@@ -21,7 +22,7 @@ const ProfileManagement = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/profile`, {
+      const response = await fetch(apiUrl('/api/admin/profile'), {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -50,7 +51,7 @@ const ProfileManagement = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/profile`, {
+      const response = await fetch(apiUrl('/api/admin/profile'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

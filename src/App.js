@@ -11,6 +11,7 @@ import Loading from './components/Loading/Loading';
 import DecorativePattern from './components/DecorativePattern/DecorativePattern';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
+import { apiUrl } from './config/api';
 
 const PrivateRoute = ({ children }) => {
   const { admin } = useAuth();
@@ -33,7 +34,7 @@ function App() {
     
     if (!currentPath.includes('/admin') && lastVisitDate !== today) {
       localStorage.setItem('lastVisitDate', today);
-      fetch(`${process.env.REACT_APP_API_URL}/api/statistics/visit`, {
+      fetch(apiUrl('/api/statistics/visit'), {
         method: 'POST'
       }).catch(error => console.error('Error recording visit:', error));
     }
