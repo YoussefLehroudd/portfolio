@@ -1,6 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import styles from './HeroManagement.module.css';
 
+const parseMaybeJson = (value) => {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return undefined;
+    }
+  }
+  return value;
+};
+
+const normalizeHeroData = (data = {}) => {
+  const safeString = (val, fallback = '') => (typeof val === 'string' ? val : fallback);
+  const normalizeButton = (btn = {}, defaults) => {
+    const parsed = parseMaybeJson(btn) || btn;
+    return {
+      text: safeString(parsed?.text, defaults.text),
+      link: safeString(parsed?.link, defaults.link)
+    };
+  };
+
+  const defaultButtons = {
+    primary: { text: 'View My Work', link: '#projects' },
+    secondary: { text: 'Get in Touch', link: '#contact' },
+    cv: { text: 'Download CV', link: '/youssef_cv.pdf' }
+  };
+
+  return {
+    firstName: safeString(data.firstName, "Hi, I'm"),
+    lastName: safeString(data.lastName, 'Youssef'),
+    title: safeString(data.title, 'Full Stack Developer'),
+    description: safeString(data.description, 'I create engaging web experiences with modern technologies'),
+    splineUrl: safeString(data.splineUrl, 'https://prod.spline.design/daHslO6sl8nd7EVW/scene.splinecode'),
+    primaryButton: normalizeButton(data.primaryButton, defaultButtons.primary),
+    secondaryButton: normalizeButton(data.secondaryButton, defaultButtons.secondary),
+    cvButton: normalizeButton(data.cvButton, defaultButtons.cv)
+  };
+};
+
+const getFileName = (url = '') => {
+  if (typeof url !== 'string') return '';
+  const parts = url.split('/');
+  const last = parts[parts.length - 1] || '';
+  // Preserve extension if present, default to png otherwise
+  const match = last.match(/\\.([^.]+)$/);
+  if (!match) return last || '';
+  return last;
+};
+
 const HeroManagement = () => {
   const [heroData, setHeroData] = useState({
     firstName: "Hi, I'm",
@@ -41,7 +90,7 @@ const HeroManagement = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setHeroData(data);
+        setHeroData(normalizeHeroData(data));
       } else {
         setError('Failed to fetch hero data');
       }
@@ -241,7 +290,7 @@ const HeroManagement = () => {
             <div className={styles.fileUploadContainer}>
               <input
                 type="file"
-                accept=".png,.jpg,.jpeg,.svg"
+                accept=".png,.jpg,.jpeg,.svg,.pdf"
                 onChange={async (e) => {
                   const file = e.target.files[0];
                   if (file) {
@@ -276,7 +325,7 @@ const HeroManagement = () => {
               />
               <span className={styles.currentFile}>
                 {heroData.cvButton.link ? 
-                  'Current CV: ' + heroData.cvButton.link.split('/').pop().replace(/\.[^/.]+$/, '.png') :
+                  'Current CV: ' + getFileName(heroData.cvButton.link) :
                   'No CV uploaded yet'
                 }
               </span>

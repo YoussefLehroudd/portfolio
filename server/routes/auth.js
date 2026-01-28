@@ -43,11 +43,13 @@ router.post('/login', async (req, res) => {
 // Verify token route
 router.get('/verify', auth, async (req, res) => {
   try {
-    const admin = await Admin.findById(req.admin.id).select('-password');
+    const admin = await Admin.findById(req.admin.id);
     if (!admin) {
       return res.status(400).json({ message: 'Admin not found' });
     }
-    res.json(admin);
+    const adminData = admin.toJSON ? admin.toJSON() : admin;
+    delete adminData.password;
+    res.json(adminData);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }

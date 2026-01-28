@@ -3,6 +3,26 @@ const router = express.Router();
 const About = require('../models/About');
 const auth = require('../middleware/auth');
 
+const normalizeAbout = (about) => {
+  const aboutData = about?.toJSON ? about.toJSON() : about || {};
+  let skillCategories = aboutData.skillCategories;
+
+  if (typeof skillCategories === 'string') {
+    try {
+      skillCategories = JSON.parse(skillCategories);
+    } catch (e) {
+      skillCategories = [];
+    }
+  }
+
+  if (!Array.isArray(skillCategories)) {
+    skillCategories = [];
+  }
+
+  aboutData.skillCategories = skillCategories;
+  return aboutData;
+};
+
 // Get about data
 router.get('/', async (req, res) => {
   try {
@@ -27,7 +47,7 @@ router.get('/', async (req, res) => {
         ]
       });
     }
-    res.json(about);
+    res.json(normalizeAbout(about));
   } catch (error) {
     console.error('Error fetching about data:', error);
     res.status(500).json({ message: 'Error fetching about data' });
@@ -45,10 +65,12 @@ router.put('/', auth, async (req, res) => {
     }
 
     about.description = description;
-    about.skillCategories = skillCategories;
+
+    // Ensure skillCategories is always an array
+    about.skillCategories = Array.isArray(skillCategories) ? skillCategories : [];
 
     await about.save();
-    res.json(about);
+    res.json(normalizeAbout(about));
   } catch (error) {
     console.error('Error updating about data:', error);
     res.status(500).json({ message: 'Error updating about data' });

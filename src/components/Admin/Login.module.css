@@ -179,6 +179,36 @@
   opacity: 1;
 }
 
+.toggleVisibility {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.toggleVisibility svg {
+  width: 20px;
+  height: 20px;
+}
+
+.toggleVisibility:hover {
+  color: var(--accent-primary);
+  transform: scale(1.05);
+}
+
+.toggleVisibility:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 .loginButton {
   width: 100%;
   padding: 1.25rem;

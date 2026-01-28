@@ -180,6 +180,87 @@
   }
 }
 
+/* Magic theme makeover */
+:global(.magic-theme) .projects {
+  background: transparent;
+  padding: 6rem 1.5rem;
+}
+
+:global(.magic-theme) .filters {
+  gap: 0.75rem;
+  justify-content: flex-start;
+  margin-bottom: 2.5rem;
+}
+
+:global(.magic-theme) .filterBtn {
+  background: linear-gradient(135deg, rgba(122, 214, 255, 0.16), rgba(124, 247, 212, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #e8f1ff;
+  border-radius: 999px;
+  padding: 0.65rem 1.4rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+:global(.magic-theme) .filterBtn.active,
+:global(.magic-theme) .filterBtn:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+  transform: translateY(-3px);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.48), 0 0 12px rgba(122, 214, 255, 0.22);
+}
+
+:global(.magic-theme) .grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+:global(.magic-theme) .projectCard {
+  background: linear-gradient(150deg, rgba(8, 12, 20, 0.92), rgba(5, 9, 16, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  border-radius: 18px;
+  overflow: hidden;
+  transform: translateY(0);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+:global(.magic-theme) .projectCard:hover {
+  transform: translateY(-8px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 28px 76px rgba(0, 0, 0, 0.6);
+  filter: brightness(1.02);
+}
+
+:global(.magic-theme) .imageContainer {
+  height: 220px;
+}
+
+:global(.magic-theme) .overlay {
+  background: linear-gradient(135deg, rgba(122, 214, 255, 0.16), rgba(5, 9, 16, 0.8));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+}
+
+:global(.magic-theme) .content {
+  padding: 1.75rem;
+}
+
+:global(.magic-theme) .content h3 {
+  color: #e8f1ff;
+}
+
+:global(.magic-theme) .content p {
+  color: rgba(232, 241, 255, 0.78);
+}
+
+:global(.magic-theme) .links a {
+  color: rgba(232, 241, 255, 0.85);
+}
+
+:global(.magic-theme) .more {
+  color: #7cf7d4;
+}
+
 /* Animation keyframes */
 @keyframes fadeOut {
   from {

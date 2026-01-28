@@ -22,6 +22,17 @@ const bufferToStream = (buffer) => {
   return readable;
 };
 
+const buildPublicId = (filename) => {
+  if (!filename) return 'youssef_cv';
+  const ext = path.extname(filename).replace('.', '').toLowerCase();
+  const base = path.basename(filename, path.extname(filename));
+  const safeBase = base
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'youssef_cv';
+  return safeBase;
+};
+
 // Upload CV route
 router.post('/cv', auth, upload.single('cv'), async (req, res) => {
   try {
@@ -29,21 +40,25 @@ router.post('/cv', auth, upload.single('cv'), async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const allowedMimes = ['image/png', 'image/jpeg', 'image/svg+xml'];
+    const allowedMimes = ['image/png', 'image/jpeg', 'image/svg+xml', 'application/pdf'];
     if (!allowedMimes.includes(req.file.mimetype)) {
-      return res.status(400).json({ error: 'File must be PNG, JPG or SVG' });
+      return res.status(400).json({ error: 'File must be PNG, JPG, SVG or PDF' });
     }
+
+    const isPdf = req.file.mimetype === 'application/pdf';
+    const originalName = req.file.originalname || 'youssef_cv';
+    const publicId = buildPublicId(originalName);
 
     // Always use fixed filename youssef_cv
     const uploadPromise = new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: 'portfolio/cv',
-          resource_type: 'image',
-          public_id: 'youssef_cv',
+          public_id: publicId,
           overwrite: true,
-          format: 'png',
-          transformation: [
+          resource_type: isPdf ? 'image' : 'auto', // PDFs need image type for previews
+          format: isPdf ? 'pdf' : undefined,
+          transformation: isPdf ? undefined : [
             { width: 1200, crop: 'scale', quality: 100 }
           ]
         },
@@ -58,16 +73,30 @@ router.post('/cv', auth, upload.single('cv'), async (req, res) => {
 
     const result = await uploadPromise;
     const fileUrl = result.secure_url;
+    const fileNameWithExt = `${publicId}${isPdf ? '.pdf' : path.extname(originalName) || '.png'}`;
 
     // Update Hero document with new CV URL
     const hero = await Hero.findOne();
     if (hero) {
-      hero.cvButton.link = fileUrl;
+      let currentCv = hero.cvButton;
+      if (typeof currentCv === 'string') {
+        try {
+          currentCv = JSON.parse(currentCv);
+        } catch {
+          currentCv = {};
+        }
+      }
+
+      hero.cvButton = {
+        text: typeof currentCv?.text === 'string' ? currentCv.text : 'Download CV',
+        link: fileUrl
+      };
       await hero.save();
     }
 
     res.json({
       fileUrl,
+      fileName: fileNameWithExt,
       message: 'CV uploaded successfully'
     });
 

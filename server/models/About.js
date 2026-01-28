@@ -1,22 +1,55 @@
-const mongoose = require('mongoose');
+const { mongoose, sequelize, DataTypes, dbType } = require('../config/database');
+const { attachMySQLHelpers } = require('../utils/dbHelpers');
 
-const SkillCategory = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true
-  },
-  skills: [{
-    type: String,
-    required: true
-  }]
-});
+let About;
 
-const AboutSchema = new mongoose.Schema({
-  description: {
-    type: String,
-    required: true
-  },
-  skillCategories: [SkillCategory]
-}, { timestamps: true });
+if (dbType === 'mysql') {
+  About = sequelize.define(
+    'About',
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+      },
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: false
+      },
+      skillCategories: {
+        type: DataTypes.JSON,
+        allowNull: false,
+        defaultValue: []
+      }
+    },
+    {
+      tableName: 'about',
+      timestamps: true
+    }
+  );
 
-module.exports = mongoose.model('About', AboutSchema);
+  attachMySQLHelpers(About);
+} else {
+  const SkillCategory = new mongoose.Schema({
+    title: {
+      type: String,
+      required: true
+    },
+    skills: [{
+      type: String,
+      required: true
+    }]
+  });
+
+  const AboutSchema = new mongoose.Schema({
+    description: {
+      type: String,
+      required: true
+    },
+    skillCategories: [SkillCategory]
+  }, { timestamps: true });
+
+  About = mongoose.model('About', AboutSchema);
+}
+
+module.exports = About;

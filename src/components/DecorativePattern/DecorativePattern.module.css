@@ -144,6 +144,7 @@
   gap: 2rem;
   position: relative;
   z-index: 10;
+  pointer-events: auto;
 }
 
 .socialLink {
@@ -233,3 +234,159 @@
     padding: 0.75rem;
   }
 }
+
+/* Magic theme refresh */
+:global(.magic-theme) .pattern {
+  background: transparent;
+}
+
+:global(.magic-theme) .dot {
+  background: rgba(122, 214, 255, 0.25);
+}
+
+:global(.magic-theme) .wave {
+  background: linear-gradient(45deg, #7cf7d4, transparent);
+  opacity: 0.08;
+}
+
+:global(.magic-theme) .socialLink {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #e8f1ff;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.4);
+}
+
+:global(.magic-theme) .socialLink:hover {
+  color: #7cf7d4;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+:global(.magic-theme) .socialLinks {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  gap: 0.75rem;
+  z-index: 1200;
+  pointer-events: auto;
+}
+
+/* Magic side nav (left) */
+.magicNav {
+  display: none;
+}
+
+:global(.magic-theme) .magicNav {
+  display: flex !important;
+  flex-direction: column;
+  position: fixed;
+  left: 4.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  gap: 0.5rem;
+  z-index: 1400;
+  pointer-events: auto;
+}
+
+:global(.magic-theme) .magicNav a {
+  min-width: 120px;
+  height: 48px;
+  padding: 0 0.9rem;
+  background: radial-gradient(circle at 30% 30%, rgba(124, 247, 212, 0.18), rgba(14, 25, 35, 0.82));
+  border: 1px solid rgba(100, 255, 218, 0.38);
+  color: #eaf8ff;
+  border-radius: 16px;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: none;
+  font-size: 0.95rem;
+}
+
+:global(.magic-theme) .magicSwitch {
+  min-width: 140px;
+  height: 48px;
+  padding: 0 1rem;
+  margin-top: 0.35rem;
+  background: linear-gradient(135deg, rgba(124, 247, 212, 0.95), rgba(122, 214, 255, 0.9));
+  color: #041019;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), 0 0 0 3px rgba(122, 214, 255, 0.18);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease;
+}
+
+:global(.magic-theme) .magicSwitch:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.48), 0 0 0 4px rgba(100, 255, 218, 0.2);
+  filter: brightness(1.03);
+}
+
+:global(.magic-theme) .magicSwitch:active {
+  transform: translateY(0);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.38), 0 0 0 2px rgba(100, 255, 218, 0.18);
+}
+
+@media (max-width: 768px) {
+  :global(.magic-theme) .socialLinks {
+    display: none;
+  }
+
+  :global(.magic-theme) .magicNav {
+    flex-direction: row;
+    left: 50%;
+    top: auto;
+    bottom: 12px;
+    transform: translateX(-50%);
+    gap: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    background: rgba(12, 20, 28, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.5);
+    width: calc(100% - 1.5rem);
+    max-width: 680px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  :global(.magic-theme) .magicNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  :global(.magic-theme) .magicNav a,
+  :global(.magic-theme) .magicSwitch {
+    min-width: auto;
+    height: 40px;
+    padding: 0 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    margin-top: 0;
+    flex: 0 0 auto;
+  }
+
+  :global(.magic-theme) .magicSwitch {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+    min-width: max-content;
+  }
+}
+:global(.magic-theme) .magicNav a:hover {
+  transform: translateX(4px);
+  border-color: rgba(100, 255, 218, 0.65);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.55);
+}
+
+/* Right-side nav mirroring social icons */

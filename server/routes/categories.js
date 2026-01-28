@@ -3,6 +3,9 @@ const router = express.Router();
 const Category = require('../models/Category');
 const Project = require('../models/Project');
 const auth = require('../middleware/auth');
+const { dbType, Sequelize } = require('../config/database');
+
+const Op = Sequelize?.Op;
 
 // Get all categories (public route)
 router.get('/', async (req, res) => {
@@ -46,14 +49,27 @@ router.patch('/:id', auth, async (req, res) => {
 
     // Check if new name already exists
     if (req.body.name) {
-      const existingCategory = await Category.findOne({ 
-        name: req.body.name.trim(),
-        _id: { $ne: category._id }
-      });
+      const trimmedName = req.body.name.trim();
+      let existingCategory;
+
+      if (dbType === 'mysql') {
+        existingCategory = await Category.findOne({
+          where: {
+            name: trimmedName,
+            id: { [Op.ne]: category.id }
+          }
+        });
+      } else {
+        existingCategory = await Category.findOne({ 
+          name: trimmedName,
+          _id: { $ne: category._id }
+        });
+      }
+
       if (existingCategory) {
         return res.status(400).json({ message: 'Category name already exists' });
       }
-      category.name = req.body.name.trim();
+      category.name = trimmedName;
     }
 
     const updatedCategory = await category.save();
@@ -79,7 +95,17 @@ router.delete('/:id', auth, async (req, res) => {
       });
     }
 
-    await Category.deleteOne({ _id: category._id });
+    // Support both Mongoose and Sequelize models
+    if (typeof category.deleteOne === 'function') {
+      await category.deleteOne();
+    } else if (typeof Category.findByIdAndDelete === 'function') {
+      await Category.findByIdAndDelete(category._id);
+    } else if (typeof Category.destroy === 'function') {
+      await Category.destroy({ where: { id: category._id || category.id } });
+    } else {
+      throw new Error('Delete method not supported for Category model');
+    }
+
     res.json({ message: 'Category deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });

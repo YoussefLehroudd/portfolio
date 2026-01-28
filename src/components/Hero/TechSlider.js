@@ -19,8 +19,8 @@ const TechSlider = () => {
     { icon: <FaPython className={styles.python} />, name: 'Python' }
   ];
 
-  // Create multiple copies for smoother infinite scroll
-  const repeatedTechnologies = [...technologies, ...technologies, ...technologies, ...technologies];
+  // Duplicate once to allow a seamless marquee loop
+  const repeatedTechnologies = [...technologies, ...technologies];
 
   return (
     <div className={styles.slider}>

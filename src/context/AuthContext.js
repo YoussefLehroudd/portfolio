@@ -9,6 +9,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Check if admin is logged in on page load
     const token = localStorage.getItem('adminToken');
+    const storedAdmin = localStorage.getItem('adminData');
+
+    if (token && storedAdmin) {
+      try {
+        setAdmin(JSON.parse(storedAdmin));
+      } catch (e) {
+        localStorage.removeItem('adminData');
+      }
+    }
+
     if (token) {
       verifyToken(token);
     } else {
@@ -23,16 +33,23 @@ export const AuthProvider = ({ children }) => {
           Authorization: `Bearer ${token}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setAdmin(data);
-      } else {
+        localStorage.setItem('adminData', JSON.stringify(data));
+      } else if (response.status === 401) {
+        // Token is invalid or expired, logout
         localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminData');
+        setAdmin(null);
+      } else {
+        // Other server errors, keep the user logged in with cached data
+        console.warn('Token verification failed with status:', response.status);
       }
     } catch (error) {
       console.error('Error verifying token:', error);
-      localStorage.removeItem('adminToken');
+      // Network or other error: keep token and any cached admin data
     }
     setLoading(false);
   };
@@ -51,6 +68,7 @@ export const AuthProvider = ({ children }) => {
       
       if (response.ok) {
         localStorage.setItem('adminToken', data.token);
+        localStorage.setItem('adminData', JSON.stringify(data.admin));
         setAdmin(data.admin);
         return { success: true };
       } else {
@@ -64,6 +82,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminData');
     setAdmin(null);
   };
 

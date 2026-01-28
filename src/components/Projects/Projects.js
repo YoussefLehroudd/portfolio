@@ -77,7 +77,7 @@ const ProjectCard = React.memo(({ project, onMoreClick }) => {
             onClick={handleMoreClick}
             aria-label="View More Details"
           >
-            more→
+            More →
           </span>
         </div>
       </div>

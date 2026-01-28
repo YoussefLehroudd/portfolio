@@ -95,12 +95,12 @@ const StatisticsSection = ({ stats }) => {
   );
 };
 
-const MessagesSection = ({ messages, error, onDeleteClick }) => (
+const MessagesSection = ({ messages, error, onDeleteClick, isLoading }) => (
   <section className={styles.messagesSection}>
     {error && <div className={styles.error}>{error}</div>}
     <div className={styles.messagesList}>
       {messages.length === 0 ? (
-        <p>No messages found.</p>
+        isLoading ? null : <p>No messages found.</p>
       ) : (
         messages.map(message => (
           <div key={message._id} className={styles.messageCard}>
@@ -127,7 +127,7 @@ const MessagesSection = ({ messages, error, onDeleteClick }) => (
 
 const Dashboard = () => {
   const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(true);
   const [error, setError] = useState('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState(null);
@@ -140,20 +140,8 @@ const Dashboard = () => {
   useEffect(() => {
     fetchMessages();
     fetchStatistics();
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'class') {
-          setIsSidebarCollapsed(document.body.classList.contains('sidebar-collapsed'));
-        }
-      });
-    });
-
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    return () => observer.disconnect();
+    // Check initial sidebar state
+    setIsSidebarCollapsed(document.body.classList.contains('sidebar-collapsed'));
   }, []);
 
   const fetchStatistics = async () => {
@@ -177,6 +165,7 @@ const Dashboard = () => {
   };
 
   const fetchMessages = async () => {
+    setMessagesLoading(true);
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/messages`, {
@@ -193,9 +182,8 @@ const Dashboard = () => {
       }
     } catch (error) {
       setError('Error loading messages');
-    } finally {
-      setLoading(false);
     }
+    setMessagesLoading(false);
   };
 
   const handleDeleteClick = (message) => {
@@ -229,10 +217,6 @@ const Dashboard = () => {
     logout();
     navigate('/admin');
   };
-
-  if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
-  }
 
   const getPageTitle = () => {
     const path = location.pathname;
@@ -288,6 +272,7 @@ const Dashboard = () => {
               element={
                 <MessagesSection 
                   messages={messages}
+                  isLoading={messagesLoading}
                   error={error}
                   onDeleteClick={handleDeleteClick}
                 />

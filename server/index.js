@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
-const { connectMongo } = require('./config/database');
+const { connectDatabase, dbType } = require('./config/database');
+const runInitialSeed = require('./seeders/initialSeed');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const projectRoutes = require('./routes/projects');
@@ -42,8 +43,8 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Connect to MongoDB
-connectMongo();
+// Connect to the configured database
+const dbReady = connectDatabase();
 
 // API Routes first to ensure they take precedence
 app.use('/api/admin/profile', profileRoutes);
@@ -88,7 +89,7 @@ app.get('/health', (req, res) => {
 });
 
 app.get('/api', (req, res) => {
-  res.json({ message: 'Welcome to the Portfolio API' });
+  res.json({ message: 'Welcome to the Portfolio API', dbType });
 });
 
 // Message endpointss
@@ -119,6 +120,15 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+dbReady
+  .then(() => runInitialSeed())
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to start server after DB connection error:', err);
+    process.exit(1);
+  });

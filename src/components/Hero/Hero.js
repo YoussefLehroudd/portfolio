@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './Hero.module.css';
 import TechSlider from './TechSlider';
 
-const Hero = () => {
+const Hero = ({ isMagicTheme = false }) => {
   const [text1, setText1] = useState('');
   const [text2, setText2] = useState('');
   const [subtitleText, setSubtitleText] = useState('');
@@ -20,7 +20,23 @@ const Hero = () => {
         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/hero`);
         if (response.ok) {
           const heroData = await response.json();
-          setData(heroData);
+          const parseMaybeJson = (value) => {
+            if (typeof value === 'string') {
+              try {
+                return JSON.parse(value);
+              } catch {
+                return undefined;
+              }
+            }
+            return value;
+          };
+
+          setData({
+            ...heroData,
+            primaryButton: parseMaybeJson(heroData.primaryButton) || heroData.primaryButton,
+            secondaryButton: parseMaybeJson(heroData.secondaryButton) || heroData.secondaryButton,
+            cvButton: parseMaybeJson(heroData.cvButton) || heroData.cvButton
+          });
         }
       } catch (error) {
         console.error('Error fetching hero data:', error);
@@ -126,6 +142,25 @@ const Hero = () => {
 
   if (!data) return null;
 
+  const resolveBtn = (btnData = {}, defaults) => {
+    const text = typeof btnData.text === 'string' ? btnData.text.trim() : '';
+    const link = typeof btnData.link === 'string' ? btnData.link.trim() : '';
+    return {
+      text: text || defaults.text,
+      link: link || defaults.link
+    };
+  };
+
+  const primaryBtn = resolveBtn(data?.primaryButton, { text: 'View My Work', link: '#projects' });
+  const secondaryBtn = resolveBtn(data?.secondaryButton, { text: 'Get in Touch', link: '#contact' });
+  const cvBtn = resolveBtn(data?.cvButton, { text: 'Download CV', link: '/youssef_cv.pdf' });
+  const isCvPdf = cvBtn.link?.toLowerCase().includes('.pdf');
+  const cvDownloadName = (() => {
+    if (typeof cvBtn.link !== 'string') return 'youssef_cv';
+    const parts = cvBtn.link.split('/').pop() || 'youssef_cv';
+    return parts.includes('.') ? parts : `${parts}.png`;
+  })();
+
   return (
     <section id="hero" className={styles.hero}>
       <div className={styles.animationContainer}>
@@ -205,6 +240,14 @@ const Hero = () => {
           <span>{text2}</span>
           {currentLine === 1 && <span className={styles.cursor}>|</span>}
         </h1>
+        <div className={`${styles.heroRibbon} md:gap-3 gap-2`}>
+          <span className={`${styles.ribbonBadge} rounded-full bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.2em]`}>
+            Magic 2026
+          </span>
+          <span className={`${styles.ribbonNote} text-sm text-white/80`}>
+            Product-led full stack experiences with motion, 3D and intent.
+          </span>
+        </div>
         <h2 className={styles.subtitle}>
           {subtitleText}
           {currentLine === 2 && <span className={styles.cursor}>|</span>}
@@ -214,29 +257,62 @@ const Hero = () => {
           {currentLine === 3 && <span className={styles.cursor}>|</span>}
         </p>
         <div className={styles.buttonContainer}>
-          <a href={data.primaryButton.link} className={styles.primaryBtn}>
-            {data.primaryButton.text}
+          <a href={primaryBtn.link} className={styles.primaryBtn}>
+            {primaryBtn.text}
           </a>
-          <a href={data.secondaryButton.link} className={styles.secondaryBtn}>
-            {data.secondaryButton.text}
+          <a href={secondaryBtn.link} className={styles.secondaryBtn}>
+            {secondaryBtn.text}
           </a>
-          {data.cvButton.link && (
+          {cvBtn.link && (
             <a 
-              href={data.cvButton.link} 
+              href={cvBtn.link} 
               className={styles.secondaryBtn}
               target="_blank" 
               rel="noopener noreferrer"
               onClick={(e) => {
                 e.preventDefault();
+                if (isCvPdf) {
+                  // Direct download for PDFs (handles CORS by fetching first)
+                  fetch(cvBtn.link)
+                    .then(resp => {
+                      if (!resp.ok) throw new Error('Download failed');
+                      return resp.blob();
+                    })
+                    .then(blob => {
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = cvDownloadName.endsWith('.pdf') ? cvDownloadName : `${cvDownloadName}.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      window.URL.revokeObjectURL(url);
+                    })
+                    .catch(() => {
+                      // Fallback to opening in new tab if download fails
+                      window.open(cvBtn.link, '_blank', 'noopener');
+                    });
+                  return;
+                }
+
                 const win = window.open('', 'CV Preview');
                 win.document.write(`<!DOCTYPE html>
                   <html>
                     <head>
                       <title>Youssef Lehroud - CV</title>
                       <style>
-                        body { margin: 0; background: #1a1a1a; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; }
-                        .container { position: relative; max-width: 100%; margin: 20px; }
-                        img { max-width: 100%; height: auto; box-shadow: 0 0 20px rgba(0,0,0,0.3); }
+                        html, body { margin: 0; padding: 0; height: 100%; }
+                        body { 
+                          background: #0e0e0e; 
+                          display: flex; 
+                          flex-direction: column; 
+                          align-items: center; 
+                          padding: 32px 16px 140px;
+                          box-sizing: border-box;
+                          overflow-y: auto;
+                        }
+                        .container { width: min(1200px, 100%); display: flex; justify-content: center; }
+                        img { width: 100%; height: auto; display: block; box-shadow: 0 0 20px rgba(0,0,0,0.3); }
                         .actions { 
                           position: fixed;
                           bottom: 20px;
@@ -245,23 +321,24 @@ const Hero = () => {
                           display: flex;
                           gap: 10px;
                           z-index: 1000;
-                          background: rgba(0,0,0,0.8);
-                          padding: 10px 20px;
-                          border-radius: 10px;
+                          background: rgba(0,0,0,0.85);
+                          padding: 10px 18px;
+                          border-radius: 12px;
+                          box-shadow: 0 10px 30px rgba(0,0,0,0.35);
                         }
                         .btn { 
                           background: #00ff9d; 
-                          color: #1a1a1a; 
-                          padding: 12px 24px; 
+                          color: #0e0e0e; 
+                          padding: 12px 20px; 
                           border: none; 
-                          border-radius: 5px; 
+                          border-radius: 8px; 
                           cursor: pointer;
-                          font-size: 16px;
-                          font-weight: bold;
+                          font-size: 15px;
+                          font-weight: 700;
                           text-decoration: none;
                           display: inline-flex;
                           align-items: center;
-                          transition: all 0.3s ease;
+                          transition: all 0.25s ease;
                         }
                         .btn:hover {
                           background: #00cc7d;
@@ -269,17 +346,17 @@ const Hero = () => {
                         }
                         @media print {
                           .actions { display: none; }
-                          body { background: white; }
+                          body { background: white; padding: 0; }
                           img { box-shadow: none; }
                         }
                       </style>
                     </head>
                     <body>
                       <div class="container">
-                        <img src="${data.cvButton.link}" alt="CV" />
+                        <img src="${cvBtn.link}" alt="CV" />
                       </div>
                       <div class="actions">
-                        <a href="${data.cvButton.link}" download="youssef_cv.png" class="btn">Download</a>
+                        <a href="${cvBtn.link}" download="${cvDownloadName}" class="btn">Download</a>
                         <button class="btn" onclick="window.print(); return false;">Print</button>
                       </div>
                       <script>
@@ -293,7 +370,7 @@ const Hero = () => {
                               const a = document.createElement('a');
                               a.style.display = 'none';
                               a.href = url;
-                              a.download = 'youssef_cv.png';
+                              a.download = '${cvDownloadName}';
                               document.body.appendChild(a);
                               a.click();
                               window.URL.revokeObjectURL(url);

@@ -57,7 +57,7 @@ router.put('/', auth, async (req, res) => {
     res.json(profile);
   } catch (error) {
     console.error('Error updating profile:', error);
-    if (error.code === 11000) {
+    if (error.code === 11000 || error.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({ message: 'Email already exists' });
     }
     res.status(500).json({ message: 'Server error' });

@@ -80,8 +80,8 @@ router.patch('/:id', auth, upload.single('image'), async (req, res) => {
 
     // Handle image update
     if (req.file) {
-      // Delete old image if it exists
-      if (project.image) {
+      // Delete old image if it exists and is stored locally
+      if (project.image && !project.image.startsWith('http')) {
         try {
           const oldImagePath = path.join(__dirname, '..', '..', 'public', project.image);
           await fs.unlink(oldImagePath);
@@ -111,8 +111,8 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    // Delete project image if it exists
-    if (project.image) {
+    // Delete project image if it exists and is stored locally
+    if (project.image && !project.image.startsWith('http')) {
       try {
         const imagePath = path.join(__dirname, '..', '..', 'public', project.image);
         await fs.unlink(imagePath);
@@ -122,7 +122,14 @@ router.delete('/:id', auth, async (req, res) => {
       }
     }
 
-    await Project.deleteOne({ _id: project._id });
+    // Remove project record
+    if (typeof project.deleteOne === 'function') {
+      await project.deleteOne();
+    } else if (typeof Project.findByIdAndDelete === 'function') {
+      await Project.findByIdAndDelete(project._id);
+    } else {
+      await Project.destroy({ where: { id: project._id || project.id } });
+    }
     res.json({ message: 'Project deleted successfully' });
   } catch (error) {
     console.error('Error deleting project:', error);

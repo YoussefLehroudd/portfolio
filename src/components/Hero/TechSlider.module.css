@@ -2,9 +2,10 @@
   width: 100%;
   height: 100px;
   position: absolute;
-  bottom: 20px;
+  bottom: 0;
   left: 0;
   overflow: hidden;
+  padding: 0.9rem 1.5rem;
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(10px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -14,10 +15,10 @@
 
 .track {
   display: flex;
-  width: fit-content;
-  animation: infiniteScroll 50s linear infinite;
-  gap: 4rem;
-  padding: 1rem;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+  gap: 3.5rem;
+  padding: 0;
   align-items: center;
   will-change: transform;
   transform: translate3d(0, 0, 0);
@@ -65,12 +66,12 @@
 .javascript:hover { color: #F7DF1E; }
 .python:hover { color: #3776AB; }
 
-@keyframes infiniteScroll {
+@keyframes marquee {
   0% {
     transform: translate3d(0, 0, 0);
   }
   100% {
-    transform: translate3d(-25%, 0, 0);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
@@ -78,10 +79,32 @@
   animation-play-state: paused;
 }
 
+/* Magic theme makeover */
+:global(.magic-theme) .slider {
+  background: linear-gradient(90deg, rgba(122, 232, 255, 0.08), rgba(140, 124, 255, 0.08));
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+}
+
+:global(.magic-theme) .techItem {
+  color: rgba(244, 248, 255, 0.9);
+}
+
+:global(.magic-theme) .name {
+  text-shadow: 0 0 12px rgba(122, 232, 255, 0.35);
+}
+
+:global(.gpu-lite) .track {
+  animation-duration: 0s !important;
+  transform: translate3d(0, 0, 0) !important;
+}
+
 @media (max-width: 768px) {
   .slider {
     height: 80px;
     bottom: 15px;
+    padding: 0.65rem 1rem;
   }
   
   .icon {
@@ -91,7 +114,7 @@
   
   .track {
     gap: 2.5rem;
-    padding: 0.5rem;
+    animation-duration: 28s;
   }
 
   .name {
@@ -107,6 +130,7 @@
   .slider {
     height: 70px;
     bottom: 10px;
+    padding: 0.5rem 0.85rem;
   }
   
   .icon {
@@ -115,6 +139,7 @@
   
   .track {
     gap: 2rem;
+    animation-duration: 26s;
   }
 
   .techItem {

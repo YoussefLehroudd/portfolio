@@ -1,30 +1,71 @@
-const mongoose = require('mongoose');
+const { mongoose, sequelize, DataTypes, dbType } = require('../config/database');
+const { attachMySQLHelpers } = require('../utils/dbHelpers');
 
-const profileSchema = new mongoose.Schema({
-  firstName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  lastName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true
-  },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Admin',
-    required: true
-  }
-}, {
-  timestamps: true
-});
+let Profile;
 
-module.exports = mongoose.model('Profile', profileSchema);
+if (dbType === 'mysql') {
+  Profile = sequelize.define(
+    'Profile',
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+      },
+      firstName: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
+      lastName: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+      },
+      userId: {
+        type: DataTypes.UUID,
+        allowNull: false
+      }
+    },
+    {
+      tableName: 'profiles',
+      timestamps: true
+    }
+  );
+
+  attachMySQLHelpers(Profile);
+} else {
+  const profileSchema = new mongoose.Schema({
+    firstName: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Admin',
+      required: true
+    }
+  }, {
+    timestamps: true
+  });
+
+  Profile = mongoose.model('Profile', profileSchema);
+}
+
+module.exports = Profile;

@@ -21,6 +21,9 @@
   animation: fadeIn 0.8s ease-out;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .content::before,
@@ -30,6 +33,17 @@
   content: '';
   position: absolute;
   background: linear-gradient(90deg, transparent, #64ffda, transparent);
+}
+
+.aboutColumn,
+.skillsColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skillsColumn h3 {
+  margin-bottom: 0.5rem;
 }
 
 .content::before {
@@ -280,5 +294,339 @@
 
   .skillGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Magic theme makeover */
+:global(.magic-theme) .about {
+  background: transparent;
+  padding: 3rem 1.5rem;
+}
+
+:global(.magic-theme) .content {
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  display: grid;
+  grid-template-columns: minmax(340px, 1fr) minmax(420px, 1.2fr);
+  gap: 2.5rem;
+  padding: 3.5rem;
+  align-items: start;
+}
+
+:global(.magic-theme) .title {
+  background: linear-gradient(120deg, #9ffcff 0%, #bcb6ff 55%, #7ae8ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.5px;
+  margin-bottom: 1.25rem;
+}
+
+:global(.magic-theme) .description {
+  color: rgba(244, 248, 255, 0.86);
+  line-height: 1.75;
+  max-width: 50ch;
+  font-size: 1.05rem;
+}
+
+:global(.magic-theme) .skills h3 {
+  color: rgba(244, 248, 255, 0.9);
+}
+
+:global(.magic-theme) .skillGrid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+:global(.magic-theme) .skillCategory {
+  background: radial-gradient(circle at 20% 20%, rgba(122, 232, 255, 0.08), transparent 60%),
+              radial-gradient(circle at 80% 10%, rgba(140, 124, 255, 0.08), transparent 60%),
+              rgba(8, 12, 20, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+  transform: translateY(0);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+:global(.magic-theme) .skillCategory:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.55);
+}
+
+:global(.magic-theme) .skillCategory h4 {
+  color: #f4f8ff;
+  letter-spacing: 0.3px;
+}
+
+:global(.magic-theme) .skillCategory li:before {
+  color: #6be26f;
+}
+
+:global(.magic-theme) .skillCategory ul li {
+  color: rgba(244, 248, 255, 0.8);
+}
+
+:global(.magic-theme) .content::before,
+:global(.magic-theme) .content::after,
+:global(.magic-theme) .content span::before,
+:global(.magic-theme) .content span::after,
+:global(.magic-theme) .skillCategory::before,
+:global(.magic-theme) .skillCategory::after,
+:global(.magic-theme) .skillCategory span::before,
+:global(.magic-theme) .skillCategory span::after {
+  display: none;
+}
+
+@media (max-width: 992px) {
+  :global(.magic-theme) .content {
+    grid-template-columns: 1fr;
+    padding: 2.5rem;
+  }
+}
+
+/* Magic 2026 layout */
+.magicAbout {
+  padding: clamp(3.25rem, 5vw, 5rem) clamp(1.25rem, 3vw, 2.75rem);
+  background: transparent;
+  min-height: auto;
+  display: block;
+}
+
+.magicShell {
+  position: relative;
+  max-width: 1280px;
+  margin: 0 auto;
+  isolation: isolate;
+}
+
+.gridBackdrop {
+  position: absolute;
+  inset: clamp(0.5rem, 1vw, 0.9rem);
+  background:
+    radial-gradient(circle at 15% 20%, rgba(125, 249, 255, 0.16), transparent 40%),
+    radial-gradient(circle at 82% 12%, rgba(124, 182, 255, 0.14), transparent 36%),
+    linear-gradient(135deg, rgba(9, 18, 30, 0.9), rgba(5, 10, 20, 0.92));
+  border-radius: 30px;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.gridBackdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+  opacity: 0.35;
+  mix-blend-mode: screen;
+}
+
+.electricFrame {
+  position: relative;
+  z-index: 1;
+  display: block;
+}
+
+.magicGlass {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(150deg, rgba(12, 24, 38, 0.92), rgba(8, 12, 20, 0.94));
+  border-radius: 28px;
+  padding: clamp(2.5rem, 4vw, 3.75rem);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.magicGlass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(125, 249, 255, 0.12), transparent 40%),
+    radial-gradient(circle at 82% 10%, rgba(124, 182, 255, 0.12), transparent 38%),
+    radial-gradient(circle at 52% 88%, rgba(102, 126, 234, 0.08), transparent 35%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.glowSoft {
+  position: absolute;
+  inset: -16%;
+  background: radial-gradient(circle at 30% 20%, rgba(124, 249, 255, 0.24), transparent 42%),
+              radial-gradient(circle at 80% 16%, rgba(128, 196, 255, 0.2), transparent 46%);
+  filter: blur(44px);
+  opacity: 0.35;
+  z-index: 0;
+}
+
+.magicContent {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.95fr) minmax(420px, 1.05fr);
+  gap: clamp(1.75rem, 3vw, 3rem);
+  align-items: start;
+}
+
+.magicIntro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.eyebrow {
+  color: rgba(227, 239, 255, 0.72);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.magicTitle {
+  font-size: clamp(2.4rem, 3vw, 3.4rem);
+  color: #e8f1ff;
+  letter-spacing: 0.6px;
+}
+
+.magicTitle span {
+  background: linear-gradient(120deg, #b5e6ff 0%, #7df9ff 50%, #cbbdff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.magicDescription {
+  color: rgba(244, 248, 255, 0.86);
+  line-height: 1.75;
+  max-width: 52ch;
+  font-size: 1.05rem;
+}
+
+.magicSkills {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.magicSkillGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.1rem;
+}
+
+.magicSkillCard {
+  background: radial-gradient(circle at 20% 20%, rgba(122, 232, 255, 0.08), transparent 60%),
+              radial-gradient(circle at 78% 12%, rgba(140, 124, 255, 0.07), transparent 60%),
+              rgba(8, 12, 20, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+  border-radius: 18px;
+  padding: 1.25rem 1.4rem;
+  backdrop-filter: blur(6px);
+}
+
+.magicSkillCard h4 {
+  color: #f4f8ff;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.6rem;
+  font-size: 1.05rem;
+}
+
+.magicSkillCard ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.magicSkillCard li {
+  color: rgba(244, 248, 255, 0.84);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.magicSkillCard li::before {
+  content: '>';
+  color: #6be26f;
+  font-size: 0.85rem;
+}
+
+.scrollReveal {
+  position: relative;
+  --reveal-progress: 0;
+  isolation: isolate;
+  display: block;
+  width: 100%;
+  line-height: 1.75;
+  min-height: 6.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word {
+    transition: none;
+  }
+}
+
+.word {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.48);
+  transition: color 0.22s ease, text-shadow 0.22s ease, opacity 0.22s ease;
+  opacity: 0.55;
+}
+
+.lit {
+  color: #f4fbff;
+  background: linear-gradient(115deg, #7df9ff 0%, #9fb8ff 50%, #bcd7ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 10px rgba(125, 249, 255, 0.35);
+  opacity: 1;
+}
+
+:global(.magic-theme) .word {
+  color: rgba(244, 248, 255, 0.46);
+}
+
+:global(.magic-theme) .lit {
+  color: #c9e7ff;
+  background: linear-gradient(120deg, #c6e8ff 0%, #7df9ff 50%, #d7cffd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 12px rgba(125, 249, 255, 0.45);
+}
+
+:global(.magic-theme) .magicAbout {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: clamp(3.25rem, 5vw, 5rem) clamp(1.25rem, 3vw, 2.75rem) !important;
+}
+
+@media (max-width: 900px) {
+  .magicContent {
+    grid-template-columns: 1fr;
+  }
+
+  .magicAbout {
+    padding: 3rem 1.25rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .magicSkillGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .magicGlass {
+    padding: 2.25rem 1.75rem;
   }
 }
