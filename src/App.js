@@ -10,6 +10,7 @@ import Dashboard from './components/Admin/Dashboard';
 import Loading from './components/Loading/Loading';
 import DecorativePattern from './components/DecorativePattern/DecorativePattern';
 import MagicNav from './components/DecorativePattern/MagicNav';
+import TechSlider from './components/Hero/TechSlider';
 import GradientBackground from './components/Background/GradientBackground';
 import Ribbons from './components/Background/Ribbons';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -29,6 +30,7 @@ function App() {
   const initialPath = window.location.pathname;
   const [isLoading, setIsLoading] = useState(!initialPath.startsWith('/admin'));
   const [isMagicTheme, setIsMagicTheme] = useState(false);
+  const [isSwitchingTheme, setIsSwitchingTheme] = useState(false);
   const [isSectionActive, setIsSectionActive] = useState(false);
   const [isSectionInView, setIsSectionInView] = useState(false);
   const [isCursorInSection, setIsCursorInSection] = useState(false);
@@ -109,6 +111,13 @@ function App() {
     setIsSectionActive(isSectionInView || isCursorInSection);
   }, [isSectionInView, isCursorInSection]);
 
+  const triggerThemeSwitch = (nextIsMagic) => {
+    if (nextIsMagic === isMagicTheme) return;
+    setIsSwitchingTheme(true);
+    setIsMagicTheme(nextIsMagic);
+    setTimeout(() => setIsSwitchingTheme(false), 1200);
+  };
+
   useEffect(() => {
     const currentPath = window.location.pathname;
     const isAdminRoute = currentPath.startsWith('/admin');
@@ -144,7 +153,12 @@ function App() {
   return (
     <AuthProvider>
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <div className={`app-shell ${isMagicTheme ? 'magic-app-shell' : ''}`}>
+        <div className={`app-shell ${isMagicTheme ? 'magic-app-shell' : ''} ${isSwitchingTheme ? 'theme-switching' : ''}`}>
+          {isSwitchingTheme && (
+            <div className="theme-transition-overlay" aria-hidden="true">
+              <div className="burst"></div>
+            </div>
+          )}
           {isMagicTheme && <GradientBackground />}
           {isMagicTheme && (
             <div className="magic-ribbons-layer" aria-hidden="true">
@@ -163,7 +177,7 @@ function App() {
             <button
               className="bgToggle"
               type="button"
-              onClick={() => setIsMagicTheme(prev => !prev)}
+              onClick={() => triggerThemeSwitch(true)}
             >
               Switch to magic
             </button>
@@ -177,10 +191,11 @@ function App() {
                   <Header />
                   <main className={isMagicTheme ? 'magic-main' : ''}>
                     <Hero isMagicTheme={isMagicTheme} />
+                    <TechSlider />
                     <About isMagicTheme={isMagicTheme} />
                     <Projects />
                     {!isMagicTheme && <DecorativePattern />}
-                    {isMagicTheme && <MagicNav onToggleTheme={() => setIsMagicTheme(false)} />}
+                    {isMagicTheme && <MagicNav onToggleTheme={() => triggerThemeSwitch(false)} />}
                     <Contact />
                   </main>
                 </>

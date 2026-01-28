@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Hero.module.css';
-import TechSlider from './TechSlider';
 
 const Hero = ({ isMagicTheme = false }) => {
   const [text1, setText1] = useState('');
@@ -233,13 +232,16 @@ const Hero = ({ isMagicTheme = false }) => {
           <div className={styles.motivationalWord8}>Innovate</div>
         </div>
       </div>
+      {isMagicTheme && (
+        <div className={styles.wordOrbit}>
+          {['Dream', 'Build', 'Create', 'Inspire', 'Achieve', 'Innovate', 'Lead', 'Imagine'].map((word, idx) => (
+            <span key={word} className={`${styles.orbitWord} ${styles[`orbitWord${idx + 1}`]}`}>
+              {word}
+            </span>
+          ))}
+        </div>
+      )}
       <div className={styles.heroContent}>
-        <h1 className={styles.title}>
-          <span>{text1}</span>
-          {text1.length === data?.firstName?.length && <span>&nbsp;</span>}
-          <span>{text2}</span>
-          {currentLine === 1 && <span className={styles.cursor}>|</span>}
-        </h1>
         <div className={`${styles.heroRibbon} md:gap-3 gap-2`}>
           <span className={`${styles.ribbonBadge} rounded-full bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.2em]`}>
             Magic 2026
@@ -248,6 +250,11 @@ const Hero = ({ isMagicTheme = false }) => {
             Product-led full stack experiences with motion, 3D and intent.
           </span>
         </div>
+        <h1 className={styles.title}>
+          <span>{text1}</span>
+          <span className={styles.nameRotate}>{text2}</span>
+          {currentLine === 1 && <span className={styles.cursor}>|</span>}
+        </h1>
         <h2 className={styles.subtitle}>
           {subtitleText}
           {currentLine === 2 && <span className={styles.cursor}>|</span>}
@@ -387,7 +394,6 @@ const Hero = ({ isMagicTheme = false }) => {
           )}
         </div>
       </div>
-      <TechSlider />
     </section>
   );
 };
