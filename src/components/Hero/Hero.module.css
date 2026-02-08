@@ -18,6 +18,7 @@
   display: flex;
   justify-content: center;
   align-items: stretch;
+  margin-top: clamp(-2.2rem, -3vw, -1.5rem);
   background: linear-gradient(150deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
   backdrop-filter: blur(16px);
   border-radius: 28px;

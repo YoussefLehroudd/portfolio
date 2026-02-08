@@ -29,7 +29,10 @@ const PrivateRoute = ({ children }) => {
 function App() {
   const initialPath = window.location.pathname;
   const [isLoading, setIsLoading] = useState(!initialPath.startsWith('/admin'));
-  const [isMagicTheme, setIsMagicTheme] = useState(false);
+  const [isMagicTheme, setIsMagicTheme] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('mode') === 'magic';
+  });
   const [isSwitchingTheme, setIsSwitchingTheme] = useState(false);
   const [isSectionActive, setIsSectionActive] = useState(false);
   const [isSectionInView, setIsSectionInView] = useState(false);
@@ -110,6 +113,11 @@ function App() {
   useEffect(() => {
     setIsSectionActive(isSectionInView || isCursorInSection);
   }, [isSectionInView, isCursorInSection]);
+
+  // Persist magic/simple mode across refresh
+  useEffect(() => {
+    localStorage.setItem('mode', isMagicTheme ? 'magic' : 'simple');
+  }, [isMagicTheme]);
 
   const triggerThemeSwitch = (nextIsMagic) => {
     if (nextIsMagic === isMagicTheme) return;

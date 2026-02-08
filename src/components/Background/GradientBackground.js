@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FaGithub, FaWhatsapp, FaInstagram, FaLinkedin } from 'react-icons/fa';
 import './GradientBackground.css';
 
 const GradientBackground = () => {
+  const location = useLocation();
+  const hideSocial = location.pathname.startsWith('/admin');
   const [socialLinks, setSocialLinks] = useState({
     github: 'https://github.com',
     whatsapp: 'https://wa.me',
@@ -112,6 +115,7 @@ const GradientBackground = () => {
           <div className="particles"></div>
         </div>
       </div>
+      {!hideSocial && (
       <div className="floating-icons">
         <a
           className="floating-icon"
@@ -174,6 +178,8 @@ const GradientBackground = () => {
           {hoveredIcon === 'linkedin' && <span className="icon-label">{scrambledLabels.linkedin}</span>}
         </a>
       </div>
+      )}
+      {!hideSocial && (
       <div className="mobile-social">
         <a href={socialLinks.github} target="_blank" rel="noreferrer" aria-label="GitHub">
           <FaGithub />
@@ -188,6 +194,7 @@ const GradientBackground = () => {
           <FaLinkedin />
         </a>
       </div>
+      )}
     </>
   );
 };

@@ -12,6 +12,7 @@ import ProfileManagement from './ProfileManagement';
 
 const StatisticsSection = ({ stats }) => {
   const [projects, setProjects] = useState([]);
+  const safeStats = Array.isArray(stats) ? stats : [];
   
   useEffect(() => {
     const fetchProjects = async () => {
@@ -35,14 +36,15 @@ const StatisticsSection = ({ stats }) => {
           <div className={styles.messageCard}>
             <h3>Total Visits</h3>
             <p className={styles.statsNumber}>
-              {stats.reduce((total, stat) => total + stat.visits, 0)}
+              {safeStats.reduce((total, stat) => total + (stat.visits || 0), 0)}
             </p>
           </div>
           <div className={styles.messageCard}>
             <h3>Total Project Clicks</h3>
             <p className={styles.statsNumber}>
-              {stats.reduce((total, stat) => {
-                const dailyClicks = stat.project_details?.reduce((sum, project) => sum + project.clicks, 0) || 0;
+              {safeStats.reduce((total, stat) => {
+                const projectDetails = Array.isArray(stat.project_details) ? stat.project_details : [];
+                const dailyClicks = projectDetails.reduce((sum, project) => sum + (project.clicks || 0), 0);
                 return total + dailyClicks;
               }, 0)}
             </p>
@@ -59,13 +61,17 @@ const StatisticsSection = ({ stats }) => {
               </tr>
             </thead>
             <tbody>
-              {stats.map((stat) => (
+              {safeStats.map((stat) => {
+                const projectDetails = Array.isArray(stat.project_details) ? stat.project_details : [];
+                const clicks = projectDetails.reduce((sum, project) => sum + (project.clicks || 0), 0);
+                return (
                 <tr key={stat.date}>
                   <td>{new Date(stat.date).toLocaleDateString()}</td>
                   <td>{stat.visits}</td>
-                  <td>{stat.project_details?.reduce((sum, project) => sum + project.clicks, 0) || 0}</td>
+                  <td>{clicks}</td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -73,8 +79,9 @@ const StatisticsSection = ({ stats }) => {
           <h3>Most Clicked Projects</h3>
           <div className={styles.projectGrid}>
             {projects.map(project => {
-              const totalClicks = stats.reduce((total, stat) => {
-                const projectStat = stat.project_details?.find(p => p.project_id.toString() === project._id.toString());
+              const totalClicks = safeStats.reduce((total, stat) => {
+                const projectDetails = Array.isArray(stat.project_details) ? stat.project_details : [];
+                const projectStat = projectDetails.find(p => p.project_id?.toString?.() === project._id?.toString?.());
                 return total + (projectStat?.clicks || 0);
               }, 0);
               
