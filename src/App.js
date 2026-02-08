@@ -34,9 +34,6 @@ function App() {
     return localStorage.getItem('mode') === 'magic';
   });
   const [isSwitchingTheme, setIsSwitchingTheme] = useState(false);
-  const [isSectionActive, setIsSectionActive] = useState(false);
-  const [isSectionInView, setIsSectionInView] = useState(false);
-  const [isCursorInSection, setIsCursorInSection] = useState(false);
   const [isGpuLite, setIsGpuLite] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -60,59 +57,6 @@ function App() {
     mql.addEventListener('change', handleChange);
     return () => mql.removeEventListener('change', handleChange);
   }, []);
-
-  useEffect(() => {
-    if (!isMagicTheme) {
-      setIsSectionActive(false);
-      setIsSectionInView(false);
-      setIsCursorInSection(false);
-      return;
-    }
-
-    const sections = Array.from(document.querySelectorAll('main section'));
-    if (!sections.length) return undefined;
-
-    const observer = new IntersectionObserver(
-      entries => {
-        const active = entries.some(entry => entry.isIntersecting);
-        setIsSectionInView(active);
-      },
-      { threshold: [0, 0.15, 0.3, 0.6, 0.9], rootMargin: '0px 0px -10% 0px' }
-    );
-
-    sections.forEach(section => observer.observe(section));
-
-    return () => observer.disconnect();
-  }, [isMagicTheme]);
-
-  useEffect(() => {
-    if (!isMagicTheme) {
-      setIsCursorInSection(false);
-      return;
-    }
-
-    const sections = Array.from(document.querySelectorAll('main section'));
-    if (!sections.length) return undefined;
-
-    const handleEnter = () => setIsCursorInSection(true);
-    const handleLeave = () => setIsCursorInSection(false);
-
-    sections.forEach(section => {
-      section.addEventListener('pointerenter', handleEnter);
-      section.addEventListener('pointerleave', handleLeave);
-    });
-
-    return () => {
-      sections.forEach(section => {
-        section.removeEventListener('pointerenter', handleEnter);
-        section.removeEventListener('pointerleave', handleLeave);
-      });
-    };
-  }, [isMagicTheme]);
-
-  useEffect(() => {
-    setIsSectionActive(isSectionInView || isCursorInSection);
-  }, [isSectionInView, isCursorInSection]);
 
   // Persist magic/simple mode across refresh
   useEffect(() => {
