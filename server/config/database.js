@@ -8,14 +8,15 @@ const dbType = (process.env.DB_TYPE || 'mongodb').toLowerCase();
 // Initialize Sequelize instance early so models can import it
 let sequelize = null;
 if (dbType === 'mysql') {
+  const dbName = process.env.MYSQL_DATABASE || process.env.MYSQL_DB || process.env.DB_NAME;
   sequelize = new Sequelize(
-    process.env.MYSQL_DATABASE,
+    dbName,
     process.env.MYSQL_USER,
     process.env.MYSQL_PASSWORD,
     {
       host: process.env.MYSQL_HOST,
       dialect: 'mysql',
-      logging: false
+      logging: false,
     }
   );
 }
