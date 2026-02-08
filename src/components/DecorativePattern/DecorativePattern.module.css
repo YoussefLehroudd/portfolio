@@ -311,6 +311,12 @@
   font-size: 0.95rem;
 }
 
+:global(.magic-theme) .magicNav a:hover {
+  transform: translateX(4px);
+  border-color: rgba(100, 255, 218, 0.65);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.55);
+}
+
 :global(.magic-theme) .magicSwitch {
   min-width: 140px;
   height: 48px;
@@ -336,6 +342,83 @@
 :global(.magic-theme) .magicSwitch:active {
   transform: translateY(0);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.38), 0 0 0 2px rgba(100, 255, 218, 0.18);
+}
+
+/* Only show first letter until hover (desktop/hover devices) */
+.navInitial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  transition: transform 0.18s ease;
+  pointer-events: none;
+}
+
+.navFull {
+  margin-left: 0.35rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navFull {
+    display: inline-flex;
+    opacity: 0;
+    transform: translateX(6px);
+    width: 0;
+    margin-left: 0;
+    overflow: hidden;
+  }
+
+  :global(.magic-theme) .magicNav a,
+  :global(.magic-theme) .magicSwitch {
+    position: relative;
+    width: 52px;
+    min-width: 52px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+    overflow: hidden;
+    text-indent: 0;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, width 0.24s ease, padding 0.24s ease;
+  }
+
+  :global(.magic-theme) .magicNav a:hover,
+  :global(.magic-theme) .magicSwitch:hover {
+    width: max-content;
+    min-width: 52px;
+    padding: 0 0.7rem;
+    justify-content: center;
+    overflow: visible;
+    gap: 0.35rem;
+  }
+
+  :global(.magic-theme) .magicNav a:hover .navInitial,
+  :global(.magic-theme) .magicSwitch:hover .navInitial {
+    transform: scale(0.4);
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+  }
+
+  :global(.magic-theme) .magicNav a:hover .navFull,
+  :global(.magic-theme) .magicSwitch:hover .navFull {
+    opacity: 1;
+    transform: translateX(0);
+    position: relative;
+    z-index: 1;
+    width: auto;
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 768px) {
@@ -383,10 +466,4 @@
     min-width: max-content;
   }
 }
-:global(.magic-theme) .magicNav a:hover {
-  transform: translateX(4px);
-  border-color: rgba(100, 255, 218, 0.65);
-  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.55);
-}
-
 /* Right-side nav mirroring social icons */
