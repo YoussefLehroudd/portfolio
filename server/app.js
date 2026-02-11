@@ -45,6 +45,7 @@ if (process.env.NODE_ENV === 'production') {
           'https://portfolio-56vu.vercel.app',
           'https://portfolio-one-iota-84.vercel.app',
           'portfolio-rho-gold-83.vercel.app',
+          'https://portfolio-git-main-bots-projects-2568c239.vercel.app',
           'https://portfolio-wbwj.onrender.com',
           'https://youssefhrd.com',
         ])
