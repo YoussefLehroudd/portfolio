@@ -21,6 +21,8 @@ if (dbType === 'mysql') {
   );
 }
 
+const shouldExit = () => !process.env.VERCEL; // avoid process.exit in serverless
+
 const connectDatabase = async () => {
   // Ensure required directories exist for file uploads
   await ensureDirectories();
@@ -33,14 +35,17 @@ const connectDatabase = async () => {
       console.log('Connected to MySQL');
     } catch (err) {
       console.error('MySQL connection error:', err);
-      process.exit(1);
+      if (shouldExit()) process.exit(1);
+      throw err;
     }
     return;
   }
 
   if (!process.env.MONGODB_URI) {
-    console.error('FATAL ERROR: MONGODB_URI is not defined.');
-    process.exit(1);
+    const msg = 'FATAL ERROR: MONGODB_URI is not defined.';
+    console.error(msg);
+    if (shouldExit()) process.exit(1);
+    throw new Error(msg);
   }
 
   try {
@@ -48,7 +53,8 @@ const connectDatabase = async () => {
     console.log('Connected to MongoDB');
   } catch (err) {
     console.error('MongoDB connection error:', err);
-    process.exit(1);
+    if (shouldExit()) process.exit(1);
+    throw err;
   }
 };
 
