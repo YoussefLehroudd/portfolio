@@ -1,10 +1,10 @@
-const { mongoose, sequelize, DataTypes, dbType } = require('../config/database');
+const { mongoose, sequelize, DataTypes, isSQL } = require('../config/database');
 const { attachMySQLHelpers } = require('../utils/dbHelpers');
 const bcrypt = require('bcryptjs');
 
 let Admin;
 
-if (dbType === 'mysql') {
+if (isSQL) {
   Admin = sequelize.define(
     'Admin',
     {

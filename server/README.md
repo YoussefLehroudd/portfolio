@@ -1,6 +1,6 @@
 # Portfolio Server
 
-This server supports both MongoDB and MySQL databases. You can switch between them using environment variables.
+This server supports MongoDB, MySQL and PostgreSQL (e.g., Neon). You can switch between them using environment variables.
 
 ## Setup
 
@@ -17,11 +17,20 @@ cp .env.example .env
 3. Configure your environment variables in `.env`:
 
 ```env
-# Choose your database: 'mongodb' or 'mysql'
+# Choose your database: mongodb | mysql | postgres/postgresql/pg
 DB_TYPE=mongodb
 
 # MongoDB Configuration
 MONGODB_URI=mongodb://localhost:27017/portfolio
+
+# PostgreSQL (example Neon) - prefer full URI
+# POSTGRES_URI=postgresql://user:pass@host/dbname?sslmode=require
+# or discrete settings if you don't have a URI
+# POSTGRES_HOST=localhost
+# POSTGRES_USER=postgres
+# POSTGRES_PASSWORD=your_password
+# POSTGRES_DB=portfolio
+# POSTGRES_PORT=5432
 
 # MySQL Configuration
 MYSQL_HOST=localhost
@@ -45,6 +54,11 @@ PORT=5001
 ```bash
 mysql -u your_username -p < database/init.sql
 ```
+
+### PostgreSQL / Neon
+1. Make sure Postgres is reachable (Neon provides a pooled URI)
+2. Set `DB_TYPE=postgresql` and `POSTGRES_URI=your_connection_string`
+3. Tables are created automatically by Sequelize on startup (`sequelize.sync()`), so no manual SQL needed
 
 ## Running the Server
 

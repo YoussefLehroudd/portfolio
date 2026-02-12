@@ -3,7 +3,7 @@ const router = express.Router();
 const Category = require('../models/Category');
 const Project = require('../models/Project');
 const auth = require('../middleware/auth');
-const { dbType, Sequelize } = require('../config/database');
+const { isSQL, Sequelize } = require('../config/database');
 
 const Op = Sequelize?.Op;
 
@@ -52,7 +52,7 @@ router.patch('/:id', auth, async (req, res) => {
       const trimmedName = req.body.name.trim();
       let existingCategory;
 
-      if (dbType === 'mysql') {
+      if (isSQL) {
         existingCategory = await Category.findOne({
           where: {
             name: trimmedName,

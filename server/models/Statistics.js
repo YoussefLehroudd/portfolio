@@ -1,9 +1,9 @@
-const { mongoose, sequelize, DataTypes, dbType } = require('../config/database');
+const { mongoose, sequelize, DataTypes, isSQL } = require('../config/database');
 const { attachMySQLHelpers, parseSort } = require('../utils/dbHelpers');
 
 let Statistics;
 
-if (dbType === 'mysql') {
+if (isSQL) {
     Statistics = sequelize.define(
         'Statistics',
         {

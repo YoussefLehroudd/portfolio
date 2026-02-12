@@ -1,6 +1,5 @@
-const { dbType, Sequelize } = require('../config/database');
+const { Sequelize, isSQL, isMySQL, isPostgres } = require('../config/database');
 
-const isMySQL = dbType === 'mysql';
 const Op = Sequelize?.Op;
 
 const normalizeWhere = (where = {}) => {
@@ -9,7 +8,7 @@ const normalizeWhere = (where = {}) => {
   Object.entries(where).forEach(([key, value]) => {
     const targetKey = key === '_id' ? 'id' : key;
 
-    if (isMySQL && value && typeof value === 'object' && !Array.isArray(value)) {
+    if (isSQL && value && typeof value === 'object' && !Array.isArray(value)) {
       const translated = {};
       Object.entries(value).forEach(([opKey, opVal]) => {
         if (opKey === '$ne' && Op) {
@@ -150,6 +149,8 @@ const attachMySQLHelpers = (model) => {
 
 module.exports = {
   isMySQL,
+  isSQL,
+  isPostgres,
   normalizeWhere,
   parseSort,
   attachMySQLHelpers
