@@ -1,0 +1,156 @@
+.ribbonSection {
+  --ribbon-line: rgba(124, 247, 212, 0.65);
+  --ribbon-dot: rgba(124, 247, 212, 0.9);
+  --ribbon-text: rgba(240, 248, 255, 0.92);
+  --ribbon-tilt: 3.2deg;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: transparent;
+  padding: 1rem 0;
+  min-height: 150px;
+}
+
+.ribbonStrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 160%;
+  transform-origin: center;
+  overflow: hidden;
+}
+
+.strapOne {
+  transform: translate(-50%, -50%) rotate(calc(var(--ribbon-tilt) * -1));
+}
+
+.strapTwo {
+  transform: translate(-50%, -50%) rotate(var(--ribbon-tilt));
+}
+
+.ribbonStrap::before,
+.ribbonStrap::after {
+  content: '';
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  height: 5px;
+  background: linear-gradient(90deg, transparent, var(--ribbon-line), transparent);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.ribbonStrap::before {
+  top: 6px;
+}
+
+.ribbonStrap::after {
+  bottom: 6px;
+}
+
+.ribbonContent {
+  overflow: hidden;
+  padding: 0.35rem 0;
+}
+
+.ribbonTrack {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  gap: 2.2rem;
+  animation: ribbonMove 28s linear infinite;
+  will-change: transform;
+  padding: 0.25rem 1.35rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(6, 12, 18, 0) 0%,
+    rgba(6, 12, 18, 0.62) 12%,
+    rgba(6, 12, 18, 0.62) 88%,
+    rgba(6, 12, 18, 0) 100%
+  );
+}
+
+.reverse {
+  animation-direction: reverse;
+  animation-duration: 30s;
+  background: linear-gradient(
+    90deg,
+    rgba(10, 16, 24, 0) 0%,
+    rgba(10, 16, 24, 0.62) 12%,
+    rgba(10, 16, 24, 0.62) 88%,
+    rgba(10, 16, 24, 0) 100%
+  );
+}
+
+.ribbonText {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ribbon-text);
+  white-space: nowrap;
+}
+
+.separator {
+  font-size: 1.2rem;
+  color: var(--ribbon-dot);
+  text-shadow: 0 0 10px rgba(124, 247, 212, 0.7);
+}
+
+@keyframes ribbonMove {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+@media (max-width: 1024px) {
+  .ribbonTrack {
+    gap: 1.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .ribbonSection {
+    --ribbon-tilt: 2.4deg;
+    padding: 0.5rem 0;
+    min-height: 120px;
+  }
+
+  .ribbonText {
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+  }
+}
+
+@media (max-width: 480px) {
+  .ribbonText {
+    font-size: 0.72rem;
+  }
+}
+
+:global(.magic-theme) .ribbonSection {
+  --ribbon-line: rgba(124, 247, 212, 0.8);
+  --ribbon-dot: rgba(122, 214, 255, 0.95);
+  --ribbon-text: rgba(236, 250, 255, 0.96);
+  --ribbon-tilt: 3.8deg;
+}
+
+:global(.magic-theme) .ribbonTrack {
+  background: linear-gradient(
+    90deg,
+    rgba(6, 14, 20, 0) 0%,
+    rgba(6, 14, 20, 0.66) 12%,
+    rgba(6, 14, 20, 0.66) 88%,
+    rgba(6, 14, 20, 0) 100%
+  );
+}
+
+:global(.magic-theme) .reverse {
+  background: linear-gradient(
+    90deg,
+    rgba(7, 18, 26, 0) 0%,
+    rgba(7, 18, 26, 0.66) 12%,
+    rgba(7, 18, 26, 0.66) 88%,
+    rgba(7, 18, 26, 0) 100%
+  );
+}

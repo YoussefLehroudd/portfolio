@@ -28,8 +28,8 @@
 
 .content::before,
 .content::after,
-.content span::before,
-.content span::after {
+.content .borderFx::before,
+.content .borderFx::after {
   content: '';
   position: absolute;
   background: linear-gradient(90deg, transparent, #64ffda, transparent);
@@ -63,13 +63,13 @@
   background: linear-gradient(180deg, transparent, #64ffda, transparent);
 }
 
-.content span {
+.content .borderFx {
   position: absolute;
   inset: 0;
   display: block;
 }
 
-.content span::before {
+.content .borderFx::before {
   bottom: 0;
   right: 0;
   width: 100%;
@@ -78,7 +78,7 @@
   animation-delay: 1.5s;
 }
 
-.content span::after {
+.content .borderFx::after {
   top: 0;
   left: 0;
   width: 2px;
@@ -168,8 +168,8 @@
 
 .skillCategory::before,
 .skillCategory::after,
-.skillCategory span::before,
-.skillCategory span::after {
+.skillCategory .borderFx::before,
+.skillCategory .borderFx::after {
   content: '';
   position: absolute;
   background: linear-gradient(90deg, transparent, #64ffda, transparent);
@@ -194,13 +194,13 @@
   background: linear-gradient(180deg, transparent, #64ffda, transparent);
 }
 
-.skillCategory span {
+.skillCategory .borderFx {
   position: absolute;
   inset: 0;
   display: block;
 }
 
-.skillCategory span::before {
+.skillCategory .borderFx::before {
   bottom: 0;
   right: 0;
   width: 100%;
@@ -209,7 +209,7 @@
   animation-delay: calc(var(--order) * 0.5s + 1.5s);
 }
 
-.skillCategory span::after {
+.skillCategory .borderFx::after {
   top: 0;
   left: 0;
   width: 2px;
@@ -300,7 +300,9 @@
 /* Magic theme makeover */
 :global(.magic-theme) .about {
   background: transparent;
-  padding: 3rem 1.5rem;
+  padding: 2.25rem 1.5rem;
+  min-height: auto;
+  display: block;
 }
 
 :global(.magic-theme) .content {
@@ -369,12 +371,12 @@
 
 :global(.magic-theme) .content::before,
 :global(.magic-theme) .content::after,
-:global(.magic-theme) .content span::before,
-:global(.magic-theme) .content span::after,
+:global(.magic-theme) .content .borderFx::before,
+:global(.magic-theme) .content .borderFx::after,
 :global(.magic-theme) .skillCategory::before,
 :global(.magic-theme) .skillCategory::after,
-:global(.magic-theme) .skillCategory span::before,
-:global(.magic-theme) .skillCategory span::after {
+:global(.magic-theme) .skillCategory .borderFx::before,
+:global(.magic-theme) .skillCategory .borderFx::after {
   display: none;
 }
 
@@ -568,6 +570,11 @@
   min-height: 6.5rem;
 }
 
+.description.scrollReveal {
+  animation: none;
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .word {
     transition: none;
@@ -587,7 +594,7 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 10px rgba(125, 249, 255, 0.35);
+  text-shadow: 0 0 6px rgba(125, 249, 255, 0.25);
   opacity: 1;
 }
 
@@ -604,11 +611,17 @@
   text-shadow: 0 0 12px rgba(125, 249, 255, 0.45);
 }
 
+:global(html:not(.magic-theme)) .lit {
+  background: none;
+  -webkit-text-fill-color: #f4fbff;
+  text-shadow: 0 0 5px rgba(125, 249, 255, 0.2);
+}
+
 :global(.magic-theme) .magicAbout {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  padding: clamp(3.25rem, 5vw, 5rem) clamp(1.25rem, 3vw, 2.75rem) !important;
+  padding: clamp(2rem, 3.5vw, 3.5rem) clamp(1.25rem, 3vw, 2.75rem) !important;
 }
 
 @media (max-width: 900px) {

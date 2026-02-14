@@ -3,7 +3,7 @@ import styles from './Projects.module.css';
 import { FaGithub, FaLink } from 'react-icons/fa';
 import ProjectModal from './ProjectModal';
 
-const ProjectCard = React.memo(({ project, onMoreClick }) => {
+const ProjectCard = React.memo(({ project, onMoreClick, revealDelay = '0s', revealVariant = 'reveal-up' }) => {
   const recordProjectClick = async () => {
     try {
       // Only record clicks for non-admin pages
@@ -36,7 +36,11 @@ const ProjectCard = React.memo(({ project, onMoreClick }) => {
   };
 
   return (
-    <div className={styles.projectCard}>
+    <div
+      className={`${styles.projectCard} ${revealVariant}`}
+      data-reveal
+      style={{ '--reveal-delay': revealDelay }}
+    >
       <div className={styles.imageContainer}>
         <img 
           src={project.image} 
@@ -85,9 +89,11 @@ const ProjectCard = React.memo(({ project, onMoreClick }) => {
   );
 });
 
-const FilterButton = React.memo(({ filter, isActive, onClick }) => (
+const FilterButton = React.memo(({ filter, isActive, onClick, revealDelay = '0s' }) => (
   <button
-    className={`${styles.filterBtn} ${isActive ? styles.active : ''}`}
+    className={`${styles.filterBtn} ${isActive ? styles.active : ''} reveal-pop`}
+    data-reveal
+    style={{ '--reveal-delay': revealDelay }}
     onClick={onClick}
   >
     {filter}
@@ -184,21 +190,24 @@ const Projects = () => {
     <section id="projects" className={styles.projects}>
       <div className={styles.container}>
         <div className={styles.filters}>
-          {categories.map((filter) => (
+          {categories.map((filter, index) => (
             <FilterButton
               key={filter}
               filter={filter}
               isActive={filter === activeFilter}
               onClick={() => handleFilterClick(filter)}
+              revealDelay={`${Math.min(index, 6) * 0.06}s`}
             />
           ))}
         </div>
         <div className={`${styles.grid} ${animationState ? styles[animationState] : ''}`}>
-          {filteredProjects.map((project) => (
+          {filteredProjects.map((project, index) => (
             <ProjectCard
               key={project._id}
               project={project}
               onMoreClick={setSelectedProject}
+              revealDelay={`${Math.min(index, 6) * 0.08}s`}
+              revealVariant={index % 2 === 0 ? 'reveal-left' : 'reveal-right'}
             />
           ))}
         </div>

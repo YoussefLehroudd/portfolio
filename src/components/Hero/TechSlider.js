@@ -23,7 +23,11 @@ const TechSlider = () => {
   const repeatedTechnologies = [...technologies, ...technologies];
 
   return (
-    <div className={styles.slider}>
+    <div
+      className={`${styles.slider} reveal-up`}
+      data-reveal
+      style={{ '--reveal-delay': '0.12s' }}
+    >
       <div className={styles.track}>
         {repeatedTechnologies.map((tech, index) => (
           <div key={index} className={styles.techItem}>

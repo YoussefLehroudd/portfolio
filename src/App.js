@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Hero from './components/Hero/Hero';
@@ -11,6 +11,7 @@ import Loading from './components/Loading/Loading';
 import DecorativePattern from './components/DecorativePattern/DecorativePattern';
 import MagicNav from './components/DecorativePattern/MagicNav';
 import TechSlider from './components/Hero/TechSlider';
+import SlantedTicker from './components/Highlights/SlantedTicker';
 import GradientBackground from './components/Background/GradientBackground';
 import Ribbons from './components/Background/Ribbons';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -38,6 +39,7 @@ function App() {
     if (typeof window === 'undefined') return false;
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   });
+  const forceScrollTop = useRef(false);
 
   // Toggle a class on the root element so styles can react to magic/simple theme
   useEffect(() => {
@@ -48,6 +50,15 @@ function App() {
       root.classList.remove('magic-theme');
     }
     root.classList.toggle('gpu-lite', isGpuLite);
+
+    if (forceScrollTop.current) {
+      forceScrollTop.current = false;
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
+    }
   }, [isMagicTheme, isGpuLite]);
 
   useEffect(() => {
@@ -65,6 +76,7 @@ function App() {
 
   const triggerThemeSwitch = (nextIsMagic) => {
     if (nextIsMagic === isMagicTheme) return;
+    forceScrollTop.current = true;
     setIsSwitchingTheme(true);
     setIsMagicTheme(nextIsMagic);
     setTimeout(() => setIsSwitchingTheme(false), 1200);
@@ -101,6 +113,70 @@ function App() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const revealElements = Array.from(document.querySelectorAll('[data-reveal]'));
+    revealElements.forEach((el) => el.classList.remove('is-visible'));
+
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      revealElements.forEach((el) => el.classList.add('is-visible'));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          } else {
+            entry.target.classList.remove('is-visible');
+          }
+        });
+      },
+      { threshold: 0.2, rootMargin: '0px 0px -12% 0px' }
+    );
+
+    const observed = new WeakSet();
+
+    const observeAll = (elements) => {
+      elements.forEach((el) => {
+        if (!el || observed.has(el)) return;
+        observed.add(el);
+        observer.observe(el);
+      });
+    };
+
+    observeAll(revealElements);
+
+    const mutationObserver = new MutationObserver((mutations) => {
+      const newTargets = [];
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType !== 1) return;
+          const element = node;
+          if (element.matches && element.matches('[data-reveal]')) {
+            newTargets.push(element);
+          }
+          if (element.querySelectorAll) {
+            element.querySelectorAll('[data-reveal]').forEach((child) => newTargets.push(child));
+          }
+        });
+      });
+
+      if (newTargets.length) {
+        observeAll(newTargets);
+      }
+    });
+
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [isLoading, isMagicTheme]);
 
   return (
     <AuthProvider>
@@ -141,10 +217,11 @@ function App() {
               <Route path="/" element={
                 <>
                   <Header />
-                  <main className={isMagicTheme ? 'magic-main' : ''}>
+                  <main className={`${isMagicTheme ? 'magic-main' : ''}`}>
                     <Hero isMagicTheme={isMagicTheme} />
                     <TechSlider />
                     <About isMagicTheme={isMagicTheme} />
+                    <SlantedTicker />
                     <Projects />
                     {!isMagicTheme && <DecorativePattern />}
                     {isMagicTheme && <MagicNav onToggleTheme={() => triggerThemeSwitch(false)} />}

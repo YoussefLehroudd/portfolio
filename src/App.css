@@ -98,6 +98,13 @@ body {
   display: none !important;
 }
 
+.gpu-lite .app-shell [data-reveal] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  animation: none !important;
+}
+
 .app-shell {
   min-height: 100vh;
   display: flex;
@@ -422,6 +429,82 @@ main {
 
 .fade-in {
   animation: fadeIn 0.5s ease forwards;
+}
+
+/* Page entrance */
+.page-enter > *:not([data-reveal]) {
+  --enter-delay: 0s;
+  animation: pageEntrance 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--enter-delay);
+  will-change: transform, opacity;
+}
+
+.page-enter > *:nth-child(1) { --enter-delay: 0.05s; }
+.page-enter > *:nth-child(2) { --enter-delay: 0.15s; }
+.page-enter > *:nth-child(3) { --enter-delay: 0.25s; }
+.page-enter > *:nth-child(4) { --enter-delay: 0.35s; }
+.page-enter > *:nth-child(5) { --enter-delay: 0.45s; }
+.page-enter > *:nth-child(6) { --enter-delay: 0.55s; }
+.page-enter > *:nth-child(7) { --enter-delay: 0.65s; }
+.page-enter > *:nth-child(8) { --enter-delay: 0.75s; }
+
+@keyframes pageEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Scroll reveal */
+.app-shell [data-reveal] {
+  --reveal-x: 0px;
+  --reveal-y: 24px;
+  --reveal-scale: 0.98;
+  --reveal-blur: 3px;
+  --reveal-delay: 0s;
+  opacity: 0;
+  transform: translate3d(var(--reveal-x), var(--reveal-y), 0) scale(var(--reveal-scale));
+  filter: blur(var(--reveal-blur));
+  animation: none;
+  will-change: transform, opacity, filter;
+}
+
+.app-shell [data-reveal].is-visible {
+  animation: revealIn 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--reveal-delay);
+}
+
+@keyframes revealIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--reveal-x), var(--reveal-y), 0) scale(var(--reveal-scale));
+    filter: blur(var(--reveal-blur));
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.reveal-up { --reveal-y: 24px; }
+.reveal-down { --reveal-y: -24px; }
+.reveal-left { --reveal-x: -28px; --reveal-y: 0px; }
+.reveal-right { --reveal-x: 28px; --reveal-y: 0px; }
+.reveal-zoom { --reveal-scale: 0.92; --reveal-y: 10px; }
+.reveal-pop { --reveal-scale: 0.9; --reveal-y: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell [data-reveal] {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    animation: none !important;
+  }
 }
 
 /* Responsive */

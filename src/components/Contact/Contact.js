@@ -130,12 +130,20 @@ const Contact = () => {
       
       <div className={styles.container}>
         <div className={styles.header}>
-          <h2>Get in Touch</h2>
-          <p>Have a question or want to work together? Let me know!</p>
+          <h2 className="reveal-up" data-reveal style={{ '--reveal-delay': '0.06s' }}>
+            Get in Touch
+          </h2>
+          <p className="reveal-up" data-reveal style={{ '--reveal-delay': '0.14s' }}>
+            Have a question or want to work together? Let me know!
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
+          <div
+            className={`${styles.formGroup} reveal-up`}
+            data-reveal
+            style={{ '--reveal-delay': '0.22s' }}
+          >
             <label htmlFor="name" className={styles.label}>
               Name
             </label>
@@ -152,7 +160,11 @@ const Contact = () => {
             {nameError && <p className={styles.emailError}>{nameError}</p>}
           </div>
 
-          <div className={styles.formGroup}>
+          <div
+            className={`${styles.formGroup} reveal-up`}
+            data-reveal
+            style={{ '--reveal-delay': '0.3s' }}
+          >
             <label htmlFor="email" className={styles.label}>
               Email
             </label>
@@ -169,7 +181,11 @@ const Contact = () => {
             {emailError && <p className={styles.emailError}>{emailError}</p>}
           </div>
 
-          <div className={styles.formGroup}>
+          <div
+            className={`${styles.formGroup} reveal-up`}
+            data-reveal
+            style={{ '--reveal-delay': '0.38s' }}
+          >
             <label htmlFor="message" className={styles.label}>
               Message
             </label>
@@ -187,7 +203,9 @@ const Contact = () => {
           <button
             type="submit"
             disabled={status === 'sending'}
-            className={styles.button}
+            className={`${styles.button} reveal-pop`}
+            data-reveal
+            style={{ '--reveal-delay': '0.46s' }}
           >
             {status === 'sending' ? 'Sending...' : 'Send Message'}
           </button>

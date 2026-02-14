@@ -36,7 +36,18 @@ const About = ({ isMagicTheme = false }) => {
   const skillCategories = Array.isArray(aboutData?.skillCategories) ? aboutData.skillCategories : [];
 
   useEffect(() => {
-    if (!isMagicTheme || !aboutData || !descriptionRef.current) return;
+    if (!aboutData || !descriptionRef.current) return;
+
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reduceMotion) {
+      setLitCount(totalWords);
+      litCountRef.current = totalWords;
+      return;
+    }
 
     // Link the description highlight to how far it has travelled through the viewport
     const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
@@ -76,7 +87,16 @@ const About = ({ isMagicTheme = false }) => {
   }, [aboutData, totalWords, isMagicTheme]);
 
   useEffect(() => {
-    if (!isMagicTheme) return;
+    if (!descriptionText) return;
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      setLitCount(totalWords);
+      litCountRef.current = totalWords;
+      return;
+    }
     // Show at least the first word so the line isn't empty before scrolling
     const initial = Math.min(1, totalWords);
     setLitCount(initial);
@@ -102,7 +122,7 @@ const About = ({ isMagicTheme = false }) => {
         {tokens.map((token, index) => {
           const isWord = token.trim().length > 0;
           if (!isWord) {
-            return token === ' ' ? '\u00A0' : token;
+            return token;
           }
           const currentIndex = wordIndex;
           wordIndex += 1;
@@ -138,18 +158,39 @@ const About = ({ isMagicTheme = false }) => {
               <div className={styles.glowSoft} aria-hidden />
               <div className={styles.magicContent}>
                 <div className={styles.magicIntro}>
-                  <p className={styles.eyebrow}>About Me</p>
-                  <h2 className={styles.magicTitle}>
+                  <p
+                    className={`${styles.eyebrow} reveal-down`}
+                    data-reveal
+                    style={{ '--reveal-delay': '0.06s' }}
+                  >
+                    About Me
+                  </p>
+                  <h2
+                    className={`${styles.magicTitle} reveal-up`}
+                    data-reveal
+                    style={{ '--reveal-delay': '0.12s' }}
+                  >
                     About <span>Me</span>
                   </h2>
                   {renderAnimatedDescription(styles.magicDescription)}
                 </div>
 
                 <div className={styles.magicSkills}>
-                  <p className={styles.eyebrow}>Technical Skills</p>
+                  <p
+                    className={`${styles.eyebrow} reveal-down`}
+                    data-reveal
+                    style={{ '--reveal-delay': '0.22s' }}
+                  >
+                    Technical Skills
+                  </p>
                   <div className={styles.magicSkillGrid}>
                     {skillCategories.map((category, index) => (
-                      <div key={category.title || index} className={styles.magicSkillCard}>
+                      <div
+                        key={category.title || index}
+                        className={`${styles.magicSkillCard} ${index % 2 === 0 ? 'reveal-left' : 'reveal-right'}`}
+                        data-reveal
+                        style={{ '--reveal-delay': `${0.28 + index * 0.08}s` }}
+                      >
                         <h4>{category.title}</h4>
                         <ul>
                           {(Array.isArray(category.skills) ? category.skills : []).map((skill, skillIndex) => (
@@ -169,14 +210,31 @@ const About = ({ isMagicTheme = false }) => {
           <div className={styles.content}>
             <span className={styles.borderFx}></span>
             <div className={styles.aboutColumn}>
-              <h2 className={styles.title}>About Me</h2>
-              <p className={styles.description}>{descriptionText}</p>
+              <h2
+                className={`${styles.title} reveal-up`}
+                data-reveal
+                style={{ '--reveal-delay': '0.1s' }}
+              >
+                About Me
+              </h2>
+              {renderAnimatedDescription(styles.description)}
             </div>
             <div className={styles.skillsColumn}>
-              <h3>Technical Skills</h3>
+              <h3
+                className={`reveal-up`}
+                data-reveal
+                style={{ '--reveal-delay': '0.26s' }}
+              >
+                Technical Skills
+              </h3>
               <div className={styles.skillGrid}>
                 {skillCategories.map((category, index) => (
-                  <div key={category.title || index} className={styles.skillCategory}>
+                  <div
+                    key={category.title || index}
+                    className={`${styles.skillCategory} ${index % 2 === 0 ? 'reveal-left' : 'reveal-right'}`}
+                    data-reveal
+                    style={{ '--reveal-delay': `${0.32 + index * 0.08}s` }}
+                  >
                     <span className={styles.borderFx}></span>
                     <h4>{category.title}</h4>
                     <ul>

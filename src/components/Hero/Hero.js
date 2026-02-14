@@ -10,6 +10,7 @@ const Hero = ({ isMagicTheme = false }) => {
   const [data, setData] = useState(null);
   const [animationPosition, setAnimationPosition] = useState({ x: 75, y: 50 });
   const [isDragging, setIsDragging] = useState(false);
+  const [showDragHint, setShowDragHint] = useState(true);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -95,8 +96,9 @@ const Hero = ({ isMagicTheme = false }) => {
 
   // Drag functionality
   const handleMouseDown = (e) => {
-    if (e.button === 2) { // Right click
+    if (e.button === 0) { // Left click
       e.preventDefault();
+      setShowDragHint(false);
       setIsDragging(true);
       setDragStart({
         x: e.clientX - (animationPosition.x * window.innerWidth / 100),
@@ -120,6 +122,7 @@ const Hero = ({ isMagicTheme = false }) => {
 
     const handleMouseUpEvent = () => {
       setIsDragging(false);
+      setShowDragHint(true);
     };
 
     if (isDragging) {
@@ -174,6 +177,9 @@ const Hero = ({ isMagicTheme = false }) => {
           onMouseDown={handleMouseDown}
           onContextMenu={(e) => e.preventDefault()}
         >
+          {showDragHint && !isDragging && (
+            <div className={styles.dragHint}>Drag with left click</div>
+          )}
           {/* Main pulsing core */}
           <div className={styles.mainCore}></div>
           
@@ -242,7 +248,11 @@ const Hero = ({ isMagicTheme = false }) => {
         </div>
       )}
       <div className={styles.heroContent}>
-        <div className={`${styles.heroRibbon} md:gap-3 gap-2`}>
+        <div
+          className={`${styles.heroRibbon} md:gap-3 gap-2 reveal-down`}
+          data-reveal
+          style={{ '--reveal-delay': '0.05s' }}
+        >
           <span className={`${styles.ribbonBadge} rounded-full bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.2em]`}>
             Magic 2026
           </span>
@@ -250,30 +260,54 @@ const Hero = ({ isMagicTheme = false }) => {
             Product-led full stack experiences with motion, 3D and intent.
           </span>
         </div>
-        <h1 className={styles.title}>
+        <h1
+          className={`${styles.title} reveal-up`}
+          data-reveal
+          style={{ '--reveal-delay': '0.12s' }}
+        >
           <span>{text1}</span>
           <span className={styles.nameRotate}>{text2}</span>
           {currentLine === 1 && <span className={styles.cursor}>|</span>}
         </h1>
-        <h2 className={styles.subtitle}>
+        <h2
+          className={`${styles.subtitle} reveal-up`}
+          data-reveal
+          style={{ '--reveal-delay': '0.2s' }}
+        >
           {subtitleText}
           {currentLine === 2 && <span className={styles.cursor}>|</span>}
         </h2>
-        <p className={styles.description}>
+        <p
+          className={`${styles.description} reveal-up`}
+          data-reveal
+          style={{ '--reveal-delay': '0.28s' }}
+        >
           {descriptionText}
           {currentLine === 3 && <span className={styles.cursor}>|</span>}
         </p>
         <div className={styles.buttonContainer}>
-          <a href={primaryBtn.link} className={styles.primaryBtn}>
+          <a
+            href={primaryBtn.link}
+            className={`${styles.primaryBtn} reveal-pop`}
+            data-reveal
+            style={{ '--reveal-delay': '0.38s' }}
+          >
             {primaryBtn.text}
           </a>
-          <a href={secondaryBtn.link} className={styles.secondaryBtn}>
+          <a
+            href={secondaryBtn.link}
+            className={`${styles.secondaryBtn} reveal-pop`}
+            data-reveal
+            style={{ '--reveal-delay': '0.46s' }}
+          >
             {secondaryBtn.text}
           </a>
           {cvBtn.link && (
             <a 
               href={cvBtn.link} 
-              className={styles.secondaryBtn}
+              className={`${styles.secondaryBtn} reveal-pop`}
+              data-reveal
+              style={{ '--reveal-delay': '0.54s' }}
               target="_blank" 
               rel="noopener noreferrer"
               onClick={(e) => {
