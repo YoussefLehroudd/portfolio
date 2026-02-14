@@ -624,6 +624,59 @@
   padding: clamp(2rem, 3.5vw, 3.5rem) clamp(1.25rem, 3vw, 2.75rem) !important;
 }
 
+/* Skeletons */
+.skeletonKicker {
+  width: 140px;
+  height: 12px;
+  margin-bottom: 0.8rem;
+}
+
+.skeletonTitle {
+  width: clamp(220px, 45vw, 360px);
+  height: 34px;
+  margin-bottom: 1rem;
+}
+
+.skeletonSubtitle {
+  width: 180px;
+  height: 20px;
+  margin-bottom: 1rem;
+}
+
+.skeletonParagraph {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  max-width: 640px;
+}
+
+.skeletonLine {
+  height: 12px;
+  border-radius: 999px;
+}
+
+.skeletonLineShort {
+  width: 72%;
+}
+
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.skeletonSkillTitle {
+  width: 60%;
+  height: 14px;
+  border-radius: 999px;
+}
+
+.skeletonSkillList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 @media (max-width: 900px) {
   .magicContent {
     grid-template-columns: 1fr;

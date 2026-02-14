@@ -107,6 +107,7 @@ const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [categories, setCategories] = useState(['All Projects']);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -127,6 +128,7 @@ const Projects = () => {
 
   useEffect(() => {
     const fetchProjects = async () => {
+      setLoading(true);
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects`);
         if (!response.ok) {
@@ -137,6 +139,8 @@ const Projects = () => {
       } catch (err) {
         setError(err.message);
         console.error('Error fetching projects:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -182,8 +186,47 @@ const Projects = () => {
     ? projects 
     : projects.filter(project => project.category === activeFilter);
 
-  if (error) {
-    return <div className={styles.error}>Error loading projects: {error}</div>;
+  const showSkeleton = loading || error;
+
+  if (showSkeleton) {
+    const skeletonCards = Array.from({ length: 6 });
+    const skeletonFilters = Array.from({ length: 4 });
+    return (
+      <section id="projects" className={styles.projects}>
+        <div className={styles.container}>
+          <div className={styles.filters}>
+            {skeletonFilters.map((_, index) => (
+              <div
+                key={`projects-filter-skeleton-${index}`}
+                className={`${styles.filterSkeleton} skeleton`}
+              />
+            ))}
+          </div>
+          <div className={styles.grid}>
+            {skeletonCards.map((_, index) => (
+              <div
+                key={`project-skeleton-${index}`}
+                className={`${styles.projectCard} ${styles.skeletonCard}`}
+                data-reveal
+                style={{ '--reveal-delay': `${Math.min(index, 6) * 0.06}s` }}
+              >
+                <div className={`${styles.imageContainer} ${styles.skeletonMedia} skeleton`} />
+                <div className={styles.content}>
+                  <div className={`${styles.skeletonTitle} skeleton`} />
+                  <div className={`${styles.skeletonLine} skeleton`} />
+                  <div className={`${styles.skeletonLine} ${styles.skeletonLineShort} skeleton`} />
+                  <div className={styles.skeletonLinks}>
+                    <span className={`${styles.skeletonIcon} skeleton`} />
+                    <span className={`${styles.skeletonIcon} skeleton`} />
+                    <span className={`${styles.skeletonMore} skeleton`} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (

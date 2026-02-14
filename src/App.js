@@ -5,6 +5,7 @@ import Hero from './components/Hero/Hero';
 import About from './components/About/About';
 import Projects from './components/Projects/Projects';
 import Contact from './components/Contact/Contact';
+import Career from './components/Career/Career';
 import Login from './components/Admin/Login';
 import Dashboard from './components/Admin/Dashboard';
 import Loading from './components/Loading/Loading';
@@ -221,6 +222,7 @@ function App() {
                     <Hero isMagicTheme={isMagicTheme} />
                     <TechSlider />
                     <About isMagicTheme={isMagicTheme} />
+                    <Career isMagicTheme={isMagicTheme} />
                     <SlantedTicker />
                     <Projects />
                     {!isMagicTheme && <DecorativePattern />}

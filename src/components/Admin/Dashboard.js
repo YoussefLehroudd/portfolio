@@ -9,6 +9,7 @@ import AboutManagement from './AboutManagement';
 import HeroManagement from './HeroManagement';
 import SocialManagement from './SocialManagement';
 import ProfileManagement from './ProfileManagement';
+import CareerManagement from './CareerManagement';
 
 const StatisticsSection = ({ stats }) => {
   const [projects, setProjects] = useState([]);
@@ -239,6 +240,9 @@ const Dashboard = () => {
     if (path.includes('/about')) {
       return 'About Section Management';
     }
+    if (path.includes('/career')) {
+      return 'Career Section Management';
+    }
     if (path.includes('/social')) {
       return 'Social Links Management';
     }
@@ -287,6 +291,7 @@ const Dashboard = () => {
             />
             <Route path="projects/*" element={<ProjectsManagement />} />
             <Route path="about/*" element={<AboutManagement />} />
+            <Route path="career/*" element={<CareerManagement />} />
             <Route path="hero/*" element={<HeroManagement />} />
             <Route path="social/*" element={<SocialManagement />} />
             <Route path="profile/*" element={<ProfileManagement />} />

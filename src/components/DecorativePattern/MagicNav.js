@@ -3,8 +3,8 @@ import styles from './DecorativePattern.module.css';
 
 const navItems = [
   { href: '#about', label: 'About', aria: 'About section' },
+  { href: '#career', label: 'Career', aria: 'Career section' },
   { href: '#projects', label: 'Projects', aria: 'Projects section' },
-  { href: '#skills', label: 'Skills', aria: 'Skills section' },
   { href: '#contact', label: 'Contact', aria: 'Contact section' },
 ];
 

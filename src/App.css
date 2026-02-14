@@ -491,6 +491,35 @@ main {
   }
 }
 
+/* Skeleton loading */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(var(--text-primary-rgb), 0.08);
+  border-radius: 12px;
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  animation: skeletonShimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmer {
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
+}
+
 .reveal-up { --reveal-y: 24px; }
 .reveal-down { --reveal-y: -24px; }
 .reveal-left { --reveal-x: -28px; --reveal-y: 0px; }

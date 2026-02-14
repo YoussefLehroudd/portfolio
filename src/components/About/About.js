@@ -34,6 +34,9 @@ const About = ({ isMagicTheme = false }) => {
     [tokens]
   );
   const skillCategories = Array.isArray(aboutData?.skillCategories) ? aboutData.skillCategories : [];
+  const showSkeleton = !aboutData || error;
+  const skeletonSkillCards = useMemo(() => Array.from({ length: 4 }), []);
+  const skeletonLines = useMemo(() => Array.from({ length: 3 }), []);
 
   useEffect(() => {
     if (!aboutData || !descriptionRef.current) return;
@@ -103,12 +106,97 @@ const About = ({ isMagicTheme = false }) => {
     litCountRef.current = initial;
   }, [descriptionText, totalWords, isMagicTheme]);
 
-  if (error) {
-    return <div className={styles.error}>{error}</div>;
-  }
+  if (showSkeleton) {
+    return (
+      <section id="about" className={`${styles.about} ${isMagicTheme ? styles.magicAbout : ''}`}>
+        {isMagicTheme ? (
+          <div className={styles.magicShell}>
+            <div className={styles.gridBackdrop} aria-hidden />
+            <ElectricBorder
+              color="#7df9ff"
+              speed={1}
+              chaos={0.5}
+              thickness={2}
+              className={styles.electricFrame}
+              style={{ borderRadius: 28 }}
+            >
+              <div className={styles.magicGlass}>
+                <div className={styles.glowSoft} aria-hidden />
+                <div className={styles.magicContent}>
+                  <div className={styles.magicIntro}>
+                    <div className={`${styles.skeletonKicker} skeleton`} />
+                    <div className={`${styles.skeletonTitle} skeleton`} />
+                    <div className={styles.skeletonParagraph}>
+                      {skeletonLines.map((_, index) => (
+                        <div
+                          key={`about-skeleton-line-${index}`}
+                          className={`${styles.skeletonLine} ${index === skeletonLines.length - 1 ? styles.skeletonLineShort : ''} skeleton`}
+                        />
+                      ))}
+                    </div>
+                  </div>
 
-  if (!aboutData) {
-    return null;
+                  <div className={styles.magicSkills}>
+                    <div className={`${styles.skeletonSubtitle} skeleton`} />
+                    <div className={styles.magicSkillGrid}>
+                      {skeletonSkillCards.map((_, index) => (
+                        <div key={`magic-skeleton-skill-${index}`} className={`${styles.magicSkillCard} ${styles.skeletonCard}`}>
+                          <div className={`${styles.skeletonSkillTitle} skeleton`} />
+                          <div className={styles.skeletonSkillList}>
+                            {skeletonLines.map((__, lineIndex) => (
+                              <div
+                                key={`magic-skill-line-${index}-${lineIndex}`}
+                                className={`${styles.skeletonLine} ${lineIndex === 2 ? styles.skeletonLineShort : ''} skeleton`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ElectricBorder>
+          </div>
+        ) : (
+          <div className={styles.container}>
+            <div className={styles.content}>
+              <span className={styles.borderFx}></span>
+              <div className={styles.aboutColumn}>
+                <div className={`${styles.skeletonTitle} skeleton`} />
+                <div className={styles.skeletonParagraph}>
+                  {skeletonLines.map((_, index) => (
+                    <div
+                      key={`simple-skeleton-line-${index}`}
+                      className={`${styles.skeletonLine} ${index === skeletonLines.length - 1 ? styles.skeletonLineShort : ''} skeleton`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className={styles.skillsColumn}>
+                <div className={`${styles.skeletonSubtitle} skeleton`} />
+                <div className={styles.skillGrid}>
+                  {skeletonSkillCards.map((_, index) => (
+                    <div key={`simple-skeleton-skill-${index}`} className={`${styles.skillCategory} ${styles.skeletonCard}`}>
+                      <span className={styles.borderFx}></span>
+                      <div className={`${styles.skeletonSkillTitle} skeleton`} />
+                      <div className={styles.skeletonSkillList}>
+                        {skeletonLines.map((__, lineIndex) => (
+                          <div
+                            key={`simple-skill-line-${index}-${lineIndex}`}
+                            className={`${styles.skeletonLine} ${lineIndex === 2 ? styles.skeletonLineShort : ''} skeleton`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+    );
   }
 
   const renderAnimatedDescription = (className) => {
