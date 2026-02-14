@@ -118,6 +118,9 @@
   position: relative;
   width: 100%;
   height: 100%;
+  transform: scale(calc(0.94 + (var(--progress, 0) * 0.06)));
+  transform-origin: center;
+  transition: transform 0.25s ease-out;
 }
 
 .trunk {
@@ -386,6 +389,7 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
+    transform: none;
   }
 
   .trunk {
@@ -507,17 +511,44 @@
 }
 
 /* Magic theme */
-:global(.magic-theme) .career {
-  background: transparent;
-  padding: 5rem 1.5rem;
-  overflow: visible;
+:global(.magic-theme) section.career {
+  background: transparent !important;
+  padding: clamp(4.5rem, 6vw, 6.5rem) 2rem !important;
+  overflow: visible !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  max-width: none !important;
+  --magic-side: clamp(1rem, 3vw, 3.75rem);
+  margin: 0 calc(-1 * var(--magic-side)) !important;
+  width: calc(100% + (var(--magic-side) * 2)) !important;
 }
 
-:global(.magic-theme) .career::before {
+:global(.magic-theme) section.career::before {
   background:
     radial-gradient(circle at 18% 22%, rgba(124, 247, 212, 0.14), transparent 38%),
     radial-gradient(circle at 82% 12%, rgba(122, 214, 255, 0.16), transparent 36%),
     radial-gradient(circle at 45% 86%, rgba(124, 247, 212, 0.08), transparent 42%);
+}
+
+:global(.magic-theme) section.career::after {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(125, 249, 255, 0.08),
+      rgba(125, 249, 255, 0.08) 1px,
+      transparent 1px,
+      transparent 14px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(125, 249, 255, 0.05),
+      rgba(125, 249, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 16px
+    );
+  opacity: 0.22;
+  mix-blend-mode: screen;
 }
 
 :global(.magic-theme) .kicker {

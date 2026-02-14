@@ -115,7 +115,7 @@ body {
 
 .magic-app-shell {
   isolation: isolate;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .magic-ribbons-layer {

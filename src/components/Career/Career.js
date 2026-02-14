@@ -6,7 +6,9 @@ const Career = ({ isMagicTheme = false }) => {
   const [error, setError] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isFocusActive, setIsFocusActive] = useState(false);
   const scrollZoneRef = useRef(null);
+  const sectionRef = useRef(null);
 
   useEffect(() => {
     const fetchCareer = async () => {
@@ -33,6 +35,7 @@ const Career = ({ isMagicTheme = false }) => {
 
     const updateProgress = () => {
       const zone = scrollZoneRef.current;
+      const section = sectionRef.current;
       if (!zone) return;
 
       const rect = zone.getBoundingClientRect();
@@ -43,6 +46,12 @@ const Career = ({ isMagicTheme = false }) => {
 
       setScrollProgress(progress);
       setActiveIndex(nextIndex);
+
+      if (section) {
+        const active = rect.bottom > 0 && rect.top < viewport;
+        setIsFocusActive(active);
+      }
+
       frame = null;
     };
 
@@ -62,11 +71,18 @@ const Career = ({ isMagicTheme = false }) => {
     };
   }, [items.length]);
 
+  useEffect(() => {
+    document.body.classList.toggle('career-focus', isFocusActive);
+    return () => {
+      document.body.classList.remove('career-focus');
+    };
+  }, [isFocusActive]);
+
   if (showSkeleton) {
     const skeletonItems = Array.from({ length: 3 });
     const skeletonLines = Array.from({ length: 3 });
     return (
-      <section id="career" className={`${styles.career} ${isMagicTheme ? styles.magicCareer : ''}`}>
+      <section id="career" ref={sectionRef} className={`${styles.career} ${isMagicTheme ? styles.magicCareer : ''}`}>
         <div className={styles.container}>
           <div className={styles.header}>
             <div className={`${styles.skeletonKicker} skeleton`} />
@@ -124,7 +140,7 @@ const Career = ({ isMagicTheme = false }) => {
   }
 
   return (
-    <section id="career" className={`${styles.career} ${isMagicTheme ? styles.magicCareer : ''}`}>
+    <section id="career" ref={sectionRef} className={`${styles.career} ${isMagicTheme ? styles.magicCareer : ''}`}>
       <div className={styles.container}>
         <div className={styles.header}>
           <span className={`${styles.kicker} reveal-down`} data-reveal style={{ '--reveal-delay': '0.05s' }}>
