@@ -8,6 +8,7 @@
 .dashboard {
   flex: 1;
   margin-left: 250px;
+  width: calc(100% - 250px);
   transition: margin-left 0.3s ease;
   min-height: 100vh;
   position: relative;
@@ -16,6 +17,7 @@
 .sidebarCollapsed .dashboard,
 :global(.sidebar-collapsed) .dashboard {
   margin-left: 60px;
+  width: calc(100% - 60px);
 }
 
 .header {
@@ -50,6 +52,46 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.themeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(100, 255, 218, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+button.themeOption {
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+
+button.themeOptionActive {
+  background: rgba(100, 255, 218, 0.2);
+  border-color: rgba(100, 255, 218, 0.4);
+  color: #64ffda;
+}
+
+button.themeOption:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .userInfo span {
@@ -109,10 +151,72 @@
   margin-bottom: 0.5rem;
 }
 
+.messageTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.messageActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 .messageHeader h3 {
   margin: 0;
   color: #64ffda;
   font-size: 1.1rem;
+}
+
+.readBadge,
+.unreadBadge {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.readBadge {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.unreadBadge {
+  background: rgba(100, 255, 218, 0.15);
+  color: #64ffda;
+  border: 1px solid rgba(100, 255, 218, 0.4);
+}
+
+.readButton {
+  padding: 0.4rem 0.8rem;
+  background: rgba(100, 255, 218, 0.12);
+  color: #64ffda;
+  border: 1px solid rgba(100, 255, 218, 0.4);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.readButton:hover {
+  background: rgba(100, 255, 218, 0.2);
+  transform: translateY(-1px);
+}
+
+.skeletonHeader {
+  height: 16px;
+  width: 40%;
+  border-radius: 999px;
+}
+
+.skeletonChip {
+  height: 24px;
+  width: 72px;
+  border-radius: 999px;
 }
 
 .messageEmail {
@@ -126,6 +230,31 @@
   color: rgba(255, 255, 255, 0.8);
   line-height: 1.5;
   white-space: pre-wrap;
+}
+
+.messageRead {
+  opacity: 0.78;
+}
+
+.messageUnread {
+  border-color: rgba(100, 255, 218, 0.25);
+}
+
+.skeletonLine {
+  height: 10px;
+  border-radius: 999px;
+  margin-top: 0.6rem;
+}
+
+.skeletonLineShort {
+  width: 60%;
+}
+
+.skeletonMeta {
+  height: 10px;
+  width: 30%;
+  border-radius: 999px;
+  margin-top: 0.8rem;
 }
 
 .messageDate {
@@ -190,11 +319,26 @@
   margin-top: 1rem;
 }
 
+.tableScroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
 .statsTable th,
 .statsTable td {
   padding: 0.75rem;
   text-align: left;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tableSkeleton {
+  height: 12px;
+  border-radius: 999px;
+  width: 100%;
+}
+
+.tableSkeletonShort {
+  width: 65%;
 }
 
 .statsTable th {
@@ -245,33 +389,254 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
+.emptyState {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 1rem 0;
+}
+
+.monoCell {
+  font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  white-space: nowrap;
+}
+
+.visitMeta {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.locationText,
+.pathText,
+.deviceText {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+}
+
 @media (max-width: 768px) {
   .dashboard {
     margin-left: 60px;
+    width: calc(100% - 60px);
   }
 
   .header {
-    left: 60px;
-    padding: 1rem;
+    position: sticky;
+    left: auto;
+    right: auto;
+    height: auto;
+    min-height: 60px;
+    padding: 0.75rem 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .sidebarCollapsed .header,
+  :global(.sidebar-collapsed) .header {
+    left: auto;
   }
 
   .header h1 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    line-height: 1.3;
   }
 
   .userInfo span {
     display: none;
   }
 
+  .headerActions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+
+  button.themeOption {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
   .main {
-    padding: calc(60px + 1rem) 1rem 1rem;
+    padding: 1rem;
+  }
+
+  .messagesSection {
+    padding: 1rem;
   }
 
   .messageCard {
     padding: 1rem;
   }
 
+  .statsCards {
+    grid-template-columns: 1fr;
+  }
+
+  .statsNumber {
+    font-size: 1.6rem;
+  }
+
+  .tableScroll {
+    margin: 0 -0.5rem;
+    padding: 0 0.5rem;
+  }
+
+  .statsTable {
+    min-width: 460px;
+  }
+
+  .statsTable th,
+  .statsTable td {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+
   .projectGrid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
+
+  .messageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .messageActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .userInfo {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsNumber {
+    font-size: 1.4rem;
+  }
+
+  .themeToggle {
+    width: auto;
+    justify-content: flex-start;
+    transform: scale(0.95);
+    transform-origin: left center;
+    justify-self: start;
+    width: max-content;
+    padding: 0.2rem;
+  }
+
+  button.themeOption {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .headerActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    width: 100%;
+    gap: 0.6rem;
+  }
+
+  .userInfo {
+    width: auto;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+  .logoutButton {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+
+  .header h1 {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .messagesSection,
+  .messageCard {
+    max-width: 100%;
+  }
+  .dashboardContainer {
+    overflow-x: hidden;
+  }
+
+  .dashboard {
+    overflow-x: hidden;
+  }
+  .tableScroll {
+    overflow-x: visible;
+    margin: 0;
+    padding: 0;
+  }
+
+  .statsTable {
+    min-width: 0;
+  }
+
+  .statsTable thead {
+    display: none;
+  }
+
+  .statsTable tr {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+  }
+
+  .statsTable td {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    padding: 0.4rem 0;
+    border-bottom: none;
+    text-align: left;
+    word-break: break-word;
+    white-space: normal;
+    min-width: 0;
+  }
+
+  .statsTable td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64ffda;
+    flex: 0 0 auto;
+    min-width: 90px;
+    font-size: 0.8rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .statsTable tbody tr + tr {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .monoCell {
+    white-space: normal;
+  }
+
+  .statsTable td > div {
+    min-width: 0;
+  }
+
+  .locationText,
+  .pathText,
+  .deviceText {
+    white-space: normal;
+  }
+
+  .visitMeta {
+    display: block;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
 }

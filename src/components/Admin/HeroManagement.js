@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './HeroManagement.module.css';
+import AdminSkeleton from './AdminSkeleton';
 
 const parseMaybeJson = (value) => {
   if (typeof value === 'string') {
@@ -151,7 +152,7 @@ const HeroManagement = () => {
 
 
   if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
+    return <AdminSkeleton />;
   }
 
   return (

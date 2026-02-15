@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 const { connectDatabase, dbType } = require('./config/database');
+const { getIo } = require('./utils/socket');
 const runInitialSeed = require('./seeders/initialSeed');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
@@ -35,6 +36,7 @@ ensureEnv('CLOUDINARY_API_SECRET', 'FATAL ERROR: Cloudinary credentials are not 
 ensureEnv('JWT_SECRET', 'FATAL ERROR: JWT_SECRET is not defined.');
 
 const app = express();
+app.set('trust proxy', true);
 
 // CORS
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
@@ -49,9 +51,10 @@ if (process.env.NODE_ENV === 'production') {
           'https://portfolio-git-main-bots-projects-2568c239.vercel.app',
           'https://portfolio-wbwj.onrender.com',
           'https://youssefhrd.com',
-        ])
+      ])
   );
 }
+app.set('allowedOrigins', allowedOrigins);
 app.use(
   cors({
     origin: allowedOrigins,
@@ -107,8 +110,13 @@ app.get('/api', (req, res) => {
 app.post('/api/messages', async (req, res) => {
   try {
     const { name, email, message } = req.body;
-    const newMessage = new Message({ name, email, message });
+    const newMessage = new Message({ name, email, message, isRead: false });
     await newMessage.save();
+    const io = getIo();
+    if (io) {
+      const payload = newMessage.toJSON ? newMessage.toJSON() : newMessage;
+      io.to('admins').emit('message:new', payload);
+    }
     res.status(201).json({ message: 'Message sent successfully' });
   } catch (error) {
     console.error('Error saving message:', error);

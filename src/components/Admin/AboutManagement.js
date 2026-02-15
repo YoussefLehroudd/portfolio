@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './AboutManagement.module.css';
+import AdminSkeleton from './AdminSkeleton';
 
 const AboutManagement = () => {
   const [aboutData, setAboutData] = useState({
@@ -106,7 +107,7 @@ const AboutManagement = () => {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
+    return <AdminSkeleton />;
   }
 
   return (

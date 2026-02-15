@@ -12,6 +12,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "geoip-lite": "^1.4.10",
     "gsap": "^3.12.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.0",
@@ -26,7 +27,9 @@
     "react-router-dom": "^6.15.0",
     "react-scripts": "5.0.1",
     "sequelize": "^6.37.7",
+    "socket.io": "^4.7.5",
     "serverless-http": "^3.2.0",
+    "socket.io-client": "^4.7.5",
     "web-vitals": "^2.1.4"
   },
   "homepage": "/",

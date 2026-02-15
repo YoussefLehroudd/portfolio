@@ -1,0 +1,90 @@
+.shell {
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  display: grid;
+  gap: 1.5rem;
+  min-height: 320px;
+}
+
+.compact {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  min-height: auto;
+}
+
+.title {
+  height: 28px;
+  width: min(320px, 60%);
+  border-radius: 999px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  padding: 1rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  gap: 0.6rem;
+}
+
+.cardLine {
+  height: 12px;
+  border-radius: 999px;
+}
+
+.cardLineShort {
+  width: 60%;
+}
+
+.form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.input {
+  height: 42px;
+  border-radius: 8px;
+}
+
+.textarea {
+  height: 96px;
+  border-radius: 10px;
+}
+
+.actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.button {
+  height: 42px;
+  width: 150px;
+  border-radius: 999px;
+}
+
+.buttonGhost {
+  width: 120px;
+}
+
+@media (max-width: 768px) {
+  .shell {
+    padding: 1rem;
+  }
+
+  .title {
+    width: 70%;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}

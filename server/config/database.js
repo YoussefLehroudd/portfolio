@@ -82,6 +82,21 @@ const connectDatabase = async () => {
       await sequelize.authenticate();
       // Sync all defined models to ensure tables exist
       await sequelize.sync();
+
+      // Ensure message read status column exists for SQL stores
+      try {
+        const queryInterface = sequelize.getQueryInterface();
+        const table = await queryInterface.describeTable('messages');
+        if (!table.isRead) {
+          await queryInterface.addColumn('messages', 'isRead', {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+          });
+        }
+      } catch (err) {
+        console.error('Failed to ensure messages.isRead column:', err);
+      }
       console.log(`Connected to ${isPostgres ? 'PostgreSQL' : 'MySQL'}`);
     } catch (err) {
       console.error(`${isPostgres ? 'PostgreSQL' : 'MySQL'} connection error:`, err);

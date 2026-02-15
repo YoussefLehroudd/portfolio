@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styles from './CareerManagement.module.css';
+import AdminSkeleton from './AdminSkeleton';
 
 const emptyItem = {
   title: '',
@@ -121,7 +122,7 @@ const CareerManagement = () => {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
+    return <AdminSkeleton />;
   }
 
   return (

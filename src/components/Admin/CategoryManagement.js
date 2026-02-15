@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './CategoryManagement.module.css';
+import AdminSkeleton from './AdminSkeleton';
 
 const CategoryManagement = () => {
   const [categories, setCategories] = useState([]);
@@ -151,7 +152,7 @@ const CategoryManagement = () => {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Loading categories...</div>;
+    return <AdminSkeleton />;
   }
 
   return (

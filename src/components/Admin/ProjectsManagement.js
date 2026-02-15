@@ -4,6 +4,7 @@ import ProjectForm from './ProjectForm';
 import DeleteModal from './DeleteModal';
 import CategoryManagement from './CategoryManagement';
 import ProjectDetailModal from './ProjectDetailModal';
+import AdminSkeleton from './AdminSkeleton';
 
 const ProjectsManagement = () => {
   const [projects, setProjects] = useState([]);
@@ -162,7 +163,7 @@ const ProjectsManagement = () => {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
+    return <AdminSkeleton />;
   }
 
   return (

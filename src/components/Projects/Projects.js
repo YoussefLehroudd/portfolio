@@ -111,6 +111,7 @@ const Projects = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const gridRef = useRef(null);
+  const filtersRef = useRef(null);
   const [gridMinHeight, setGridMinHeight] = useState(null);
 
   useEffect(() => {
@@ -173,6 +174,76 @@ const Projects = () => {
       loadImages();
     }
   }, [projects]);
+
+  useEffect(() => {
+    const el = filtersRef.current;
+    if (!el) return;
+
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+
+    const onPointerDown = (event) => {
+      isDown = true;
+      el.classList.add(styles.dragging);
+      try {
+        el.setPointerCapture(event.pointerId);
+      } catch {
+        // ignore
+      }
+      startX = event.pageX - el.offsetLeft;
+      scrollLeft = el.scrollLeft;
+    };
+
+    const onPointerLeave = () => {
+      isDown = false;
+      el.classList.remove(styles.dragging);
+    };
+
+    const onPointerUp = (event) => {
+      isDown = false;
+      el.classList.remove(styles.dragging);
+      try {
+        el.releasePointerCapture(event.pointerId);
+      } catch {
+        // ignore
+      }
+    };
+
+    const onPointerMove = (event) => {
+      if (!isDown) return;
+      event.preventDefault();
+      const x = event.pageX - el.offsetLeft;
+      const walk = (x - startX) * 1.2;
+      el.scrollLeft = scrollLeft - walk;
+    };
+
+    const updateEdges = () => {
+      const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
+      const atStart = el.scrollLeft <= 1;
+      const atEnd = el.scrollLeft >= maxScroll - 1;
+      el.classList.toggle(styles.filtersAtStart, atStart);
+      el.classList.toggle(styles.filtersAtEnd, atEnd);
+    };
+
+    el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('pointerleave', onPointerLeave);
+    el.addEventListener('pointerup', onPointerUp);
+    el.addEventListener('pointermove', onPointerMove);
+    el.addEventListener('scroll', updateEdges, { passive: true });
+    window.addEventListener('resize', updateEdges);
+    const frame = requestAnimationFrame(updateEdges);
+
+    return () => {
+      el.removeEventListener('pointerdown', onPointerDown);
+      el.removeEventListener('pointerleave', onPointerLeave);
+      el.removeEventListener('pointerup', onPointerUp);
+      el.removeEventListener('pointermove', onPointerMove);
+      el.removeEventListener('scroll', updateEdges);
+      window.removeEventListener('resize', updateEdges);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [categories.length]);
 
   const handleFilterClick = useCallback((filter) => {
     if (filter === activeFilter) return; // no change
@@ -269,7 +340,7 @@ const Projects = () => {
   return (
     <section id="projects" className={styles.projects}>
       <div className={styles.container}>
-        <div className={styles.filters}>
+        <div className={styles.filters} ref={filtersRef}>
           {categories.map((filter, index) => (
             <FilterButton
               key={filter}

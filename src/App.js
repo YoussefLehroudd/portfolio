@@ -36,6 +36,9 @@ function App() {
     return localStorage.getItem('mode') === 'magic';
   });
   const [isSwitchingTheme, setIsSwitchingTheme] = useState(false);
+  const isAdminRoute = typeof window !== 'undefined'
+    ? window.location.pathname.startsWith('/admin')
+    : false;
   const [isGpuLite, setIsGpuLite] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -103,8 +106,21 @@ function App() {
     
     if (!currentPath.includes('/admin') && lastVisitDate !== today) {
       localStorage.setItem('lastVisitDate', today);
+      const visitPayload = {
+        path: currentPath,
+        referrer: document.referrer || '',
+        language: navigator.language || '',
+        screen: window.screen ? `${window.screen.width}x${window.screen.height}` : '',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+        platform: navigator.platform || '',
+        device: /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
+      };
       fetch(`${process.env.REACT_APP_API_URL}/api/statistics/visit`, {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(visitPayload)
       }).catch(error => console.error('Error recording visit:', error));
     }
 
@@ -205,7 +221,7 @@ function App() {
               />
             </div>
           )}
-          {!isMagicTheme && (
+          {!isMagicTheme && !isAdminRoute && (
             <button
               className="bgToggle"
               type="button"
@@ -239,7 +255,10 @@ function App() {
                 path="/admin/dashboard/*"
                 element={
                   <PrivateRoute>
-                    <Dashboard />
+                    <Dashboard
+                      isMagicTheme={isMagicTheme}
+                      onToggleTheme={triggerThemeSwitch}
+                    />
                   </PrivateRoute>
                 }
               >

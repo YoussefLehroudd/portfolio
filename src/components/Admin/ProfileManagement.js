@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ProfileManagement.module.css';
+import AdminSkeleton from './AdminSkeleton';
 
 const ProfileManagement = () => {
   const [profileData, setProfileData] = useState({
@@ -82,7 +83,7 @@ const ProfileManagement = () => {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
+    return <AdminSkeleton />;
   }
 
   return (

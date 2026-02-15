@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './SocialManagement.module.css';
+import AdminSkeleton from './AdminSkeleton';
 import { FaGithub, FaWhatsapp, FaInstagram, FaLinkedin } from 'react-icons/fa';
 
 const SocialManagement = () => {
@@ -71,7 +72,7 @@ const SocialManagement = () => {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Loading...</div>;
+    return <AdminSkeleton />;
   }
 
   return (

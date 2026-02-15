@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Dashboard.module.css';
@@ -11,9 +12,22 @@ import SocialManagement from './SocialManagement';
 import ProfileManagement from './ProfileManagement';
 import CareerManagement from './CareerManagement';
 
-const StatisticsSection = ({ stats }) => {
+const StatisticsSection = ({ stats, visits, visitsLoading }) => {
   const [projects, setProjects] = useState([]);
   const safeStats = Array.isArray(stats) ? stats : [];
+  const safeVisits = Array.isArray(visits) ? visits : [];
+  const formatCountry = (countryCode) => {
+    if (!countryCode || countryCode === 'Unknown') return 'Unknown';
+    if (countryCode.length === 2 && typeof Intl !== 'undefined' && Intl.DisplayNames) {
+      try {
+        const display = new Intl.DisplayNames(['en'], { type: 'region' });
+        return display.of(countryCode) || countryCode;
+      } catch (error) {
+        return countryCode;
+      }
+    }
+    return countryCode;
+  };
   
   useEffect(() => {
     const fetchProjects = async () => {
@@ -53,28 +67,93 @@ const StatisticsSection = ({ stats }) => {
         </div>
         <div className={styles.messageCard}>
           <h3>Recent Statistics</h3>
-          <table className={styles.statsTable}>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Visits</th>
-                <th>Project Clicks</th>
-              </tr>
-            </thead>
-            <tbody>
-              {safeStats.map((stat) => {
-                const projectDetails = Array.isArray(stat.project_details) ? stat.project_details : [];
-                const clicks = projectDetails.reduce((sum, project) => sum + (project.clicks || 0), 0);
+          <div className={styles.tableScroll}>
+            <table className={styles.statsTable}>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Visits</th>
+                  <th>Project Clicks</th>
+                </tr>
+              </thead>
+              <tbody>
+                {safeStats.map((stat) => {
+                  const projectDetails = Array.isArray(stat.project_details) ? stat.project_details : [];
+                  const clicks = projectDetails.reduce((sum, project) => sum + (project.clicks || 0), 0);
                 return (
                 <tr key={stat.date}>
-                  <td>{new Date(stat.date).toLocaleDateString()}</td>
-                  <td>{stat.visits}</td>
-                  <td>{clicks}</td>
+                  <td data-label="Date">{new Date(stat.date).toLocaleDateString()}</td>
+                  <td data-label="Visits">{stat.visits}</td>
+                  <td data-label="Project Clicks">{clicks}</td>
                 </tr>
                 );
               })}
             </tbody>
           </table>
+          </div>
+        </div>
+        <div className={styles.messageCard}>
+          <h3>Recent Visits</h3>
+          <div className={styles.tableScroll}>
+            <table className={styles.statsTable}>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Location</th>
+                  <th>IP</th>
+                  <th>Entry</th>
+                  <th>Device</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visitsLoading ? (
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <tr key={`visit-skeleton-${index}`}>
+                      <td data-label="Time"><div className={`${styles.tableSkeleton} skeleton`} /></td>
+                      <td data-label="Location"><div className={`${styles.tableSkeleton} skeleton`} /></td>
+                      <td data-label="IP"><div className={`${styles.tableSkeleton} ${styles.tableSkeletonShort} skeleton`} /></td>
+                      <td data-label="Entry"><div className={`${styles.tableSkeleton} skeleton`} /></td>
+                      <td data-label="Device"><div className={`${styles.tableSkeleton} ${styles.tableSkeletonShort} skeleton`} /></td>
+                    </tr>
+                  ))
+                ) : safeVisits.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className={styles.emptyState}>No visit logs yet.</td>
+                  </tr>
+                ) : (
+                  safeVisits.map((visit) => {
+                    const location = [visit.city, visit.region, formatCountry(visit.country)]
+                      .filter(Boolean)
+                      .join(', ') || 'Unknown';
+                    const entryPath = visit.path || '-';
+                    const referrer = visit.referrer || 'Direct';
+                    const device = visit.device || 'Unknown';
+                    const platform = visit.platform ? ` · ${visit.platform}` : '';
+                    return (
+                      <tr key={visit._id || visit.id || visit.createdAt}>
+                        <td className={styles.monoCell} data-label="Time">
+                          {new Date(visit.createdAt || visit.updatedAt).toLocaleString()}
+                        </td>
+                        <td data-label="Location">
+                          <div className={styles.locationText}>{location}</div>
+                          {visit.timezone && <div className={styles.visitMeta}>{visit.timezone}</div>}
+                        </td>
+                        <td className={styles.monoCell} data-label="IP">{visit.ip || 'Unknown'}</td>
+                        <td data-label="Entry">
+                          <div className={styles.pathText}>{entryPath}</div>
+                          <div className={styles.visitMeta}>Ref: {referrer}</div>
+                        </td>
+                        <td data-label="Device">
+                          <div className={styles.deviceText}>{device}{platform}</div>
+                          {visit.screen && <div className={styles.visitMeta}>{visit.screen}</div>}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
         <div className={styles.messageCard}>
           <h3>Most Clicked Projects</h3>
@@ -103,43 +182,82 @@ const StatisticsSection = ({ stats }) => {
   );
 };
 
-const MessagesSection = ({ messages, error, onDeleteClick, isLoading }) => (
-  <section className={styles.messagesSection}>
-    {error && <div className={styles.error}>{error}</div>}
-    <div className={styles.messagesList}>
-      {messages.length === 0 ? (
-        isLoading ? null : <p>No messages found.</p>
-      ) : (
-        messages.map(message => (
-          <div key={message._id} className={styles.messageCard}>
-            <div className={styles.messageHeader}>
-              <h3>{message.name}</h3>
-              <button
-                onClick={() => onDeleteClick(message)}
-                className={styles.deleteButton}
-              >
-                Delete
-              </button>
-            </div>
-            <p className={styles.messageEmail}>{message.email}</p>
-            <p className={styles.messageContent}>{message.message}</p>
-            <p className={styles.messageDate}>
-              {new Date(message.createdAt).toLocaleString()}
-            </p>
-          </div>
-        ))
-      )}
-    </div>
-  </section>
-);
+const MessagesSection = ({ messages, error, onDeleteClick, onMarkRead, isLoading }) => {
+  const skeletons = Array.from({ length: 3 });
 
-const Dashboard = () => {
+  return (
+    <section className={styles.messagesSection}>
+      {error && <div className={styles.error}>{error}</div>}
+      <div className={styles.messagesList}>
+        {isLoading ? (
+          skeletons.map((_, index) => (
+            <div key={`message-skeleton-${index}`} className={styles.messageCard}>
+              <div className={styles.messageHeader}>
+                <div className={`${styles.skeletonHeader} skeleton`} />
+                <div className={`${styles.skeletonChip} skeleton`} />
+              </div>
+              <div className={`${styles.skeletonLine} skeleton`} />
+              <div className={`${styles.skeletonLine} skeleton`} />
+              <div className={`${styles.skeletonLine} ${styles.skeletonLineShort} skeleton`} />
+              <div className={`${styles.skeletonMeta} skeleton`} />
+            </div>
+          ))
+        ) : messages.length === 0 ? (
+          <p>No messages found.</p>
+        ) : (
+          messages.map(message => (
+            <div
+              key={message._id}
+              className={`${styles.messageCard} ${message.isRead ? styles.messageRead : styles.messageUnread}`}
+            >
+              <div className={styles.messageHeader}>
+                <div className={styles.messageTitle}>
+                  <h3>{message.name}</h3>
+                  {message.isRead ? (
+                    <span className={styles.readBadge}>Read</span>
+                  ) : (
+                    <span className={styles.unreadBadge}>New</span>
+                  )}
+                </div>
+                <div className={styles.messageActions}>
+                  {!message.isRead && (
+                    <button
+                      onClick={() => onMarkRead(message)}
+                      className={styles.readButton}
+                    >
+                      Mark read
+                    </button>
+                  )}
+                  <button
+                    onClick={() => onDeleteClick(message)}
+                    className={styles.deleteButton}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+              <p className={styles.messageEmail}>{message.email}</p>
+              <p className={styles.messageContent}>{message.message}</p>
+              <p className={styles.messageDate}>
+                {new Date(message.createdAt).toLocaleString()}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  );
+};
+
+const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [error, setError] = useState('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState(null);
   const [statistics, setStatistics] = useState([]);
+  const [visitLogs, setVisitLogs] = useState([]);
+  const [visitsLoading, setVisitsLoading] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { admin, logout } = useAuth();
   const navigate = useNavigate();
@@ -148,8 +266,60 @@ const Dashboard = () => {
   useEffect(() => {
     fetchMessages();
     fetchStatistics();
+    fetchVisitLogs();
     // Check initial sidebar state
     setIsSidebarCollapsed(document.body.classList.contains('sidebar-collapsed'));
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return undefined;
+
+    const socket = io(process.env.REACT_APP_API_URL, {
+      transports: ['websocket'],
+      auth: { token }
+    });
+
+    const getMessageId = (message) => message?._id || message?.id;
+    const getVisitId = (visit) => visit?._id || visit?.id || visit?.createdAt;
+
+    socket.on('message:new', (message) => {
+      setMessages((prev) => {
+        const id = getMessageId(message);
+        if (!id || prev.some((item) => getMessageId(item) === id)) return prev;
+        return [{ ...message, isRead: Boolean(message?.isRead) }, ...prev];
+      });
+    });
+
+    socket.on('message:delete', ({ id }) => {
+      if (!id) return;
+      setMessages((prev) => prev.filter((message) => getMessageId(message) !== id));
+    });
+
+    socket.on('message:read', ({ id, isRead }) => {
+      if (!id) return;
+      setMessages((prev) =>
+        prev.map((message) =>
+          getMessageId(message) === id ? { ...message, isRead: Boolean(isRead) } : message
+        )
+      );
+    });
+
+    socket.on('visit:new', (visit) => {
+      setVisitLogs((prev) => {
+        const id = getVisitId(visit);
+        if (!id || prev.some((item) => getVisitId(item) === id)) return prev;
+        return [visit, ...prev].slice(0, 60);
+      });
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error?.message || error);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const fetchStatistics = async () => {
@@ -184,7 +354,10 @@ const Dashboard = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setMessages(data);
+        const normalized = Array.isArray(data)
+          ? data.map((item) => ({ ...item, isRead: Boolean(item.isRead) }))
+          : [];
+        setMessages(normalized);
       } else {
         setError('Failed to fetch messages');
       }
@@ -192,6 +365,28 @@ const Dashboard = () => {
       setError('Error loading messages');
     }
     setMessagesLoading(false);
+  };
+
+  const fetchVisitLogs = async () => {
+    setVisitsLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/statistics/visits?limit=60`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setVisitLogs(data);
+      } else {
+        console.error('Failed to fetch visit logs');
+      }
+    } catch (error) {
+      console.error('Error loading visit logs:', error);
+    }
+    setVisitsLoading(false);
   };
 
   const handleDeleteClick = (message) => {
@@ -218,6 +413,36 @@ const Dashboard = () => {
       }
     } catch (error) {
       setError('Error deleting message');
+    }
+  };
+
+  const handleMarkRead = async (message) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const messageId = message.id || message._id;
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/messages/${messageId}/read`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ isRead: true })
+      });
+
+      if (response.ok) {
+        const updated = await response.json();
+        setMessages((prev) =>
+          prev.map((item) =>
+            (item._id || item.id) === (updated._id || updated.id || messageId)
+              ? { ...item, isRead: true }
+              : item
+          )
+        );
+      } else {
+        setError('Failed to update message');
+      }
+    } catch (error) {
+      setError('Error updating message');
     }
   };
 
@@ -258,17 +483,39 @@ const Dashboard = () => {
     return 'Statistics';
   };
 
+  const unreadCount = messages.filter((message) => !message.isRead).length;
+
   return (
     <div className={`${styles.dashboardContainer} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-      <Sidebar messageCount={messages.length} />
+      <Sidebar messageCount={unreadCount} />
       <div className={styles.dashboard}>
         <header className={styles.header}>
           <h1>{getPageTitle()}</h1>
-          <div className={styles.userInfo}>
-            <span>Welcome, {admin?.username}</span>
-            <button onClick={handleLogout} className={styles.logoutButton}>
-              Logout
-            </button>
+          <div className={styles.headerActions}>
+            <div className={styles.themeToggle} role="group" aria-label="Theme switch">
+              <button
+                type="button"
+                className={`${styles.themeOption} ${!isMagicTheme ? styles.themeOptionActive : ''}`}
+                aria-pressed={!isMagicTheme}
+                onClick={() => onToggleTheme && onToggleTheme(false)}
+              >
+                Simple
+              </button>
+              <button
+                type="button"
+                className={`${styles.themeOption} ${isMagicTheme ? styles.themeOptionActive : ''}`}
+                aria-pressed={isMagicTheme}
+                onClick={() => onToggleTheme && onToggleTheme(true)}
+              >
+                Magic
+              </button>
+            </div>
+            <div className={styles.userInfo}>
+              <span>Welcome, {admin?.username}</span>
+              <button onClick={handleLogout} className={styles.logoutButton}>
+                Logout
+              </button>
+            </div>
           </div>
         </header>
 
@@ -276,7 +523,7 @@ const Dashboard = () => {
           <Routes>
             <Route 
               path="/" 
-              element={<StatisticsSection stats={statistics} />} 
+              element={<StatisticsSection stats={statistics} visits={visitLogs} visitsLoading={visitsLoading} />} 
             />
             <Route 
               path="messages/*" 
@@ -286,6 +533,7 @@ const Dashboard = () => {
                   isLoading={messagesLoading}
                   error={error}
                   onDeleteClick={handleDeleteClick}
+                  onMarkRead={handleMarkRead}
                 />
               }
             />
@@ -297,7 +545,7 @@ const Dashboard = () => {
             <Route path="profile/*" element={<ProfileManagement />} />
             <Route 
               path="statistics/*" 
-              element={<StatisticsSection stats={statistics} />}
+              element={<StatisticsSection stats={statistics} visits={visitLogs} visitsLoading={visitsLoading} />}
             />
           </Routes>
         </main>

@@ -20,11 +20,16 @@ if (isSQL) {
         type: DataTypes.STRING,
         allowNull: false
       },
-      message: {
-        type: DataTypes.TEXT,
-        allowNull: false
-      }
+    message: {
+      type: DataTypes.TEXT,
+      allowNull: false
     },
+    isRead: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    }
+  },
     {
       tableName: 'messages',
       timestamps: true
@@ -45,6 +50,10 @@ if (isSQL) {
     message: {
       type: String,
       required: true
+    },
+    isRead: {
+      type: Boolean,
+      default: false
     },
     createdAt: {
       type: Date,

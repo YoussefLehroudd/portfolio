@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ProjectForm.module.css';
+import AdminSkeleton from './AdminSkeleton';
 import { useAuth } from '../../context/AuthContext';
 
 const ProjectForm = ({ project, onSubmit, onClose }) => {
@@ -213,7 +214,13 @@ const ProjectForm = ({ project, onSubmit, onClose }) => {
   };
 
   if (loading) {
-    return <div className={styles.loading}>Loading categories...</div>;
+    return (
+      <div className={styles.formOverlay}>
+        <div className={styles.formContainer}>
+          <AdminSkeleton compact rows={8} cards={2} showActions={false} />
+        </div>
+      </div>
+    );
   }
 
   return (
