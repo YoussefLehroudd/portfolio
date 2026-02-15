@@ -89,18 +89,30 @@ const ProjectCard = React.memo(({ project, onMoreClick, revealDelay = '0s', reve
   );
 });
 
-const FilterButton = React.memo(({ filter, isActive, onClick, revealDelay = '0s' }) => (
-  <button
-    className={`${styles.filterBtn} ${isActive ? styles.active : ''} reveal-pop`}
-    data-reveal
-    style={{ '--reveal-delay': revealDelay }}
-    onClick={onClick}
-    onMouseDown={(e) => e.preventDefault()}
-    type="button"
-  >
-    {filter}
-  </button>
-));
+const FilterButton = React.memo(React.forwardRef(({ filter, isActive, onClick, isDraggingRef, revealDelay = '0s' }, ref) => {
+  const handleClick = (event) => {
+    if (isDraggingRef?.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    onClick();
+  };
+
+  return (
+    <button
+      ref={ref}
+      className={`${styles.filterBtn} ${isActive ? styles.active : ''} reveal-pop`}
+      data-reveal
+      style={{ '--reveal-delay': revealDelay }}
+      onClick={handleClick}
+      type="button"
+    >
+      {filter}
+    </button>
+  );
+}));
+FilterButton.displayName = 'FilterButton';
 
 const Projects = () => {
   const [activeFilter, setActiveFilter] = useState('All Projects');
@@ -112,7 +124,28 @@ const Projects = () => {
   const [loading, setLoading] = useState(true);
   const gridRef = useRef(null);
   const filtersRef = useRef(null);
+  const indicatorRef = useRef(null);
+  const trailRef = useRef(null);
+  const filterButtonRefs = useRef({});
+  const prevActiveRef = useRef(null);
+  const isDraggingRef = useRef(false);
   const [gridMinHeight, setGridMinHeight] = useState(null);
+  const [showFiltersHint, setShowFiltersHint] = useState(true);
+  const updateIndicator = useCallback(() => {
+    const container = filtersRef.current;
+    const indicator = indicatorRef.current;
+    const activeEl = filterButtonRefs.current[activeFilter];
+    if (!container || !indicator || !activeEl) return;
+
+    const left = activeEl.offsetLeft;
+    const top = activeEl.offsetTop;
+
+    indicator.style.opacity = '1';
+    indicator.style.width = `${activeEl.offsetWidth}px`;
+    indicator.style.height = `${activeEl.offsetHeight}px`;
+    indicator.style.setProperty('--indicator-x', `${left}px`);
+    indicator.style.setProperty('--indicator-y', `${top}px`);
+  }, [activeFilter]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -176,74 +209,157 @@ const Projects = () => {
   }, [projects]);
 
   useEffect(() => {
+    if (loading || error) return;
     const el = filtersRef.current;
     if (!el) return;
 
     let isDown = false;
+    let isDragging = false;
     let startX = 0;
-    let scrollLeft = 0;
+    let startScrollLeft = 0;
+    let activePointerId = null;
+    let usingWindowListeners = false;
+    const dragThreshold = 8;
 
-    const onPointerDown = (event) => {
-      isDown = true;
-      el.classList.add(styles.dragging);
-      try {
-        el.setPointerCapture(event.pointerId);
-      } catch {
-        // ignore
-      }
-      startX = event.pageX - el.offsetLeft;
-      scrollLeft = el.scrollLeft;
-    };
+    const updateEdges = () => {
+      const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
+      const hasOverflow = maxScroll > 6;
+      const atStart = Math.round(el.scrollLeft) <= 1;
+      const atEnd = Math.ceil(el.scrollLeft) >= Math.floor(maxScroll - 2);
 
-    const onPointerLeave = () => {
-      isDown = false;
-      el.classList.remove(styles.dragging);
-    };
+      el.classList.toggle(styles.filtersAtStart, atStart);
+      el.classList.toggle(styles.filtersAtEnd, atEnd);
 
-    const onPointerUp = (event) => {
-      isDown = false;
-      el.classList.remove(styles.dragging);
-      try {
-        el.releasePointerCapture(event.pointerId);
-      } catch {
-        // ignore
-      }
+      const shouldShowHint = hasOverflow && atStart && !atEnd;
+      setShowFiltersHint((prev) => (prev === shouldShowHint ? prev : shouldShowHint));
+      updateIndicator();
     };
 
     const onPointerMove = (event) => {
       if (!isDown) return;
-      event.preventDefault();
-      const x = event.pageX - el.offsetLeft;
-      const walk = (x - startX) * 1.2;
-      el.scrollLeft = scrollLeft - walk;
+      if (activePointerId !== null && event.pointerId !== activePointerId) return;
+      const x = event.clientX;
+      const delta = x - startX;
+      if (!isDragging && Math.abs(delta) > dragThreshold) {
+        isDragging = true;
+        isDraggingRef.current = true;
+        el.classList.add(styles.dragging);
+      }
+
+      if (isDragging) {
+        event.preventDefault();
+        const walk = delta * 1.2;
+        el.scrollLeft = startScrollLeft - walk;
+        updateEdges();
+      }
     };
 
-    const updateEdges = () => {
-      const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
-      const atStart = el.scrollLeft <= 1;
-      const atEnd = el.scrollLeft >= maxScroll - 1;
-      el.classList.toggle(styles.filtersAtStart, atStart);
-      el.classList.toggle(styles.filtersAtEnd, atEnd);
+    const clearDrag = () => {
+      if (!isDown) return;
+      isDown = false;
+      el.classList.remove(styles.dragging);
+
+      if (usingWindowListeners) {
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerUp);
+        usingWindowListeners = false;
+      }
+
+      activePointerId = null;
+      updateEdges();
+      isDragging = false;
+
+      if (isDraggingRef.current) {
+        setTimeout(() => {
+          isDraggingRef.current = false;
+        }, 0);
+      }
+    };
+
+    const onPointerUp = (event) => {
+      if (activePointerId !== null && event.pointerId !== activePointerId) return;
+      clearDrag();
+    };
+
+    const onPointerDown = (event) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      activePointerId = event.pointerId;
+      isDown = true;
+      isDraggingRef.current = false;
+      isDragging = false;
+      startX = event.clientX;
+      startScrollLeft = el.scrollLeft;
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp);
+      window.addEventListener('pointercancel', onPointerUp);
+      usingWindowListeners = true;
     };
 
     el.addEventListener('pointerdown', onPointerDown);
-    el.addEventListener('pointerleave', onPointerLeave);
-    el.addEventListener('pointerup', onPointerUp);
-    el.addEventListener('pointermove', onPointerMove);
     el.addEventListener('scroll', updateEdges, { passive: true });
     window.addEventListener('resize', updateEdges);
+    window.addEventListener('blur', clearDrag);
     const frame = requestAnimationFrame(updateEdges);
 
     return () => {
       el.removeEventListener('pointerdown', onPointerDown);
-      el.removeEventListener('pointerleave', onPointerLeave);
-      el.removeEventListener('pointerup', onPointerUp);
-      el.removeEventListener('pointermove', onPointerMove);
       el.removeEventListener('scroll', updateEdges);
       window.removeEventListener('resize', updateEdges);
+      window.removeEventListener('blur', clearDrag);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [categories.length]);
+  }, [categories.length, loading, error, updateIndicator]);
+
+  useEffect(() => {
+    if (loading || error) return;
+    const frame = requestAnimationFrame(updateIndicator);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [updateIndicator, loading, error, categories.length]);
+
+  useEffect(() => {
+    if (loading || error) return;
+    const indicator = indicatorRef.current;
+    if (!indicator) return;
+    indicator.classList.remove(styles.activeIndicatorPulse);
+    void indicator.offsetWidth;
+    indicator.classList.add(styles.activeIndicatorPulse);
+  }, [activeFilter, loading, error, styles.activeIndicatorPulse]);
+
+  useEffect(() => {
+    if (loading || error) return;
+    const trail = trailRef.current;
+    const currentEl = filterButtonRefs.current[activeFilter];
+    const prevKey = prevActiveRef.current;
+    const prevEl = prevKey ? filterButtonRefs.current[prevKey] : null;
+
+    if (trail && currentEl && prevEl && currentEl !== prevEl) {
+      const startLeft = prevEl.offsetLeft;
+      const endLeft = currentEl.offsetLeft;
+      const startRight = startLeft + prevEl.offsetWidth;
+      const endRight = endLeft + currentEl.offsetWidth;
+      const minLeft = Math.min(startLeft, endLeft);
+      const maxRight = Math.max(startRight, endRight);
+      const width = Math.max(8, maxRight - minLeft);
+
+      trail.style.width = `${width}px`;
+      trail.style.height = `${currentEl.offsetHeight}px`;
+      trail.style.setProperty('--trail-x', `${minLeft}px`);
+      trail.style.setProperty('--trail-y', `${currentEl.offsetTop}px`);
+      trail.style.setProperty('--trail-distance', `${width}px`);
+
+      trail.classList.remove(styles.trailActive);
+      void trail.offsetWidth;
+      trail.classList.add(styles.trailActive);
+    }
+
+    prevActiveRef.current = activeFilter;
+  }, [activeFilter, loading, error, styles.trailActive]);
 
   const handleFilterClick = useCallback((filter) => {
     if (filter === activeFilter) return; // no change
@@ -341,13 +457,24 @@ const Projects = () => {
     <section id="projects" className={styles.projects}>
       <div className={styles.container}>
         <div className={styles.filters} ref={filtersRef}>
+          <div ref={trailRef} className={styles.trail} aria-hidden="true" />
+          <div ref={indicatorRef} className={styles.activeIndicator} aria-hidden="true" />
+          <div className={`${styles.dragHint} ${showFiltersHint ? '' : styles.dragHintHidden}`}>
+            Drag -&gt;
+          </div>
           {categories.map((filter, index) => (
             <FilterButton
               key={filter}
               filter={filter}
               isActive={filter === activeFilter}
               onClick={() => handleFilterClick(filter)}
+              isDraggingRef={isDraggingRef}
               revealDelay={`${Math.min(index, 6) * 0.06}s`}
+              ref={(node) => {
+                if (node) {
+                  filterButtonRefs.current[filter] = node;
+                }
+              }}
             />
           ))}
         </div>

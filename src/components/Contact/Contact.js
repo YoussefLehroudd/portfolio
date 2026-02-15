@@ -127,96 +127,112 @@ const Contact = () => {
 
   return (
     <section id="contact" className={styles.contact}>
-      
       <div className={styles.container}>
-        <div className={styles.header}>
-          <h2 className="reveal-up" data-reveal style={{ '--reveal-delay': '0.06s' }}>
-            Get in Touch
-          </h2>
-          <p className="reveal-up" data-reveal style={{ '--reveal-delay': '0.14s' }}>
-            Have a question or want to work together? Let me know!
-          </p>
+        <div className={styles.layout}>
+          <div className={styles.intro}>
+            <div className={`${styles.kicker} reveal-up`} data-reveal style={{ '--reveal-delay': '0.05s' }}>
+              Dev Channel Online
+              <span className={styles.caret} aria-hidden="true">_</span>
+            </div>
+            <h2 className="reveal-up" data-reveal style={{ '--reveal-delay': '0.12s' }}>
+              Let&apos;s ship your next <span className={styles.neon}>build</span>
+            </h2>
+            <p className="reveal-up" data-reveal style={{ '--reveal-delay': '0.18s' }}>
+              Tell me about your idea and I&apos;ll turn it into a fast, polished product. Clean code, smooth UX, and measurable impact.
+            </p>
+
+            <div className={`${styles.console} reveal-up`} data-reveal style={{ '--reveal-delay': '0.24s' }}>
+              <div className={styles.consoleHeader}>
+                <span className={styles.dot} />
+                <span className={styles.dot} />
+                <span className={styles.dot} />
+                <span className={styles.consoleTitle}>terminal</span>
+              </div>
+              <div className={styles.consoleBody}>
+                <div className={styles.codeLine}><span className={styles.prompt}>$</span> git clone your-idea</div>
+                <div className={styles.codeLine}><span className={styles.prompt}>$</span> npm install && npm run build</div>
+                <div className={styles.codeLine}><span className={styles.prompt}>$</span> deploy --prod</div>
+                <div className={styles.statusRow}>
+                  <span className={styles.pulseDot} />
+                  Available for new projects
+                </div>
+              </div>
+            </div>
+
+            <div className={`${styles.stack} reveal-up`} data-reveal style={{ '--reveal-delay': '0.3s' }}>
+              <span>React</span>
+              <span>Node.js</span>
+              <span>API</span>
+              <span>UI/UX</span>
+              <span>Performance</span>
+            </div>
+          </div>
+
+          <div className={`${styles.formPanel} reveal-up`} data-reveal style={{ '--reveal-delay': '0.32s' }}>
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <div className={styles.formGroup}>
+                <label htmlFor="name" className={styles.label}>
+                  Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className={styles.input}
+                  placeholder="Your name"
+                />
+                {nameError && <p className={styles.emailError}>{nameError}</p>}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="email" className={styles.label}>
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className={styles.input}
+                  placeholder="you@email.com"
+                />
+                {emailError && <p className={styles.emailError}>{emailError}</p>}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="message" className={styles.label}>
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  className={styles.textarea}
+                  placeholder={placeholder}
+                />
+              </div>
+
+              <button type="submit" disabled={status === 'sending'} className={styles.button}>
+                <span>{status === 'sending' ? 'Sending...' : 'Send Message'}</span>
+                <span className={styles.buttonIcon} aria-hidden="true">↗</span>
+              </button>
+
+              {status === 'success' && (
+                <p className={styles.success}>Message sent successfully!</p>
+              )}
+              {status === 'error' && (
+                <p className={styles.error}>Failed to send message. Please try again.</p>
+              )}
+            </form>
+          </div>
         </div>
-
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div
-            className={`${styles.formGroup} reveal-up`}
-            data-reveal
-            style={{ '--reveal-delay': '0.22s' }}
-          >
-            <label htmlFor="name" className={styles.label}>
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className={styles.input}
-              placeholder="Your name"
-            />
-            {nameError && <p className={styles.emailError}>{nameError}</p>}
-          </div>
-
-          <div
-            className={`${styles.formGroup} reveal-up`}
-            data-reveal
-            style={{ '--reveal-delay': '0.3s' }}
-          >
-            <label htmlFor="email" className={styles.label}>
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className={styles.input}
-              placeholder="your.email@example.com"
-            />
-            {emailError && <p className={styles.emailError}>{emailError}</p>}
-          </div>
-
-          <div
-            className={`${styles.formGroup} reveal-up`}
-            data-reveal
-            style={{ '--reveal-delay': '0.38s' }}
-          >
-            <label htmlFor="message" className={styles.label}>
-              Message
-            </label>
-            <textarea
-              id="message"
-              name="message"
-              value={formData.message}
-              onChange={handleChange}
-              required
-              className={styles.textarea}
-              placeholder={placeholder}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={status === 'sending'}
-            className={`${styles.button} reveal-pop`}
-            data-reveal
-            style={{ '--reveal-delay': '0.46s' }}
-          >
-            {status === 'sending' ? 'Sending...' : 'Send Message'}
-          </button>
-
-          {status === 'success' && (
-            <p className={styles.success}>Message sent successfully!</p>
-          )}
-          {status === 'error' && (
-            <p className={styles.error}>Failed to send message. Please try again.</p>
-          )}
-        </form>
       </div>
     </section>
   );
