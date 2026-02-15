@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import styles from './Projects.module.css';
 import { FaGithub, FaLink } from 'react-icons/fa';
 import ProjectModal from './ProjectModal';
@@ -95,6 +95,8 @@ const FilterButton = React.memo(({ filter, isActive, onClick, revealDelay = '0s'
     data-reveal
     style={{ '--reveal-delay': revealDelay }}
     onClick={onClick}
+    onMouseDown={(e) => e.preventDefault()}
+    type="button"
   >
     {filter}
   </button>
@@ -108,6 +110,8 @@ const Projects = () => {
   const [categories, setCategories] = useState(['All Projects']);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const gridRef = useRef(null);
+  const [gridMinHeight, setGridMinHeight] = useState(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -181,6 +185,39 @@ const Projects = () => {
       }, 500); // fadeIn duration
     }, 500); // fadeOut duration
   }, [activeFilter]);
+  
+  useEffect(() => {
+    if (loading) return;
+    if (!gridRef.current) return;
+    if (activeFilter !== 'All Projects') return;
+
+    const grid = gridRef.current;
+    const measure = (rect) => {
+      const height = rect?.height ?? grid.getBoundingClientRect().height;
+      if (height > 0) {
+        setGridMinHeight((prev) => (prev ? Math.max(prev, height) : height));
+      }
+    };
+
+    let frame = requestAnimationFrame(() => measure());
+
+    let observer;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver((entries) => {
+        entries.forEach((entry) => measure(entry.contentRect));
+      });
+      observer.observe(grid);
+    }
+
+    const handleResize = () => measure();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      if (observer) observer.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [activeFilter, projects.length, loading]);
 
   const filteredProjects = activeFilter === 'All Projects' 
     ? projects 
@@ -243,7 +280,11 @@ const Projects = () => {
             />
           ))}
         </div>
-        <div className={`${styles.grid} ${animationState ? styles[animationState] : ''}`}>
+        <div
+          ref={gridRef}
+          className={`${styles.grid} ${animationState ? styles[animationState] : ''}`}
+          style={gridMinHeight ? { minHeight: `${gridMinHeight}px` } : undefined}
+        >
           {filteredProjects.map((project, index) => (
             <ProjectCard
               key={project._id}
