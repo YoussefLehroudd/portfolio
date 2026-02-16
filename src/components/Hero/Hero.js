@@ -12,7 +12,8 @@ const Hero = ({ isMagicTheme = false }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [showDragHint, setShowDragHint] = useState(true);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const typingDoneRef = useRef(false);
+  const typingIntervalRef = useRef(null);
+  const typingStateRef = useRef({ key: '', inProgress: false, done: false });
 
   useEffect(() => {
     // Fetch hero data
@@ -49,15 +50,24 @@ const Hero = ({ isMagicTheme = false }) => {
 
   useEffect(() => {
     if (!data) return;
-    const storedDone = sessionStorage.getItem('heroTyped') === 'true';
-    if (storedDone || typingDoneRef.current) {
-      setText1(data.firstName);
-      setText2(data.lastName);
-      setSubtitleText(data.title);
-      setDescriptionText(data.description);
-      setCurrentLine(0);
-      typingDoneRef.current = true;
+
+    const typingKey = `${data.firstName}|${data.lastName}|${data.title}|${data.description}`;
+    const state = typingStateRef.current;
+
+    if (state.key === typingKey && (state.inProgress || state.done)) {
       return;
+    }
+
+    typingStateRef.current = { key: typingKey, inProgress: true, done: false };
+
+    setText1('');
+    setText2('');
+    setSubtitleText('');
+    setDescriptionText('');
+    setCurrentLine(1);
+
+    if (typingIntervalRef.current) {
+      clearInterval(typingIntervalRef.current);
     }
 
     // Typing animation
@@ -98,13 +108,23 @@ const Hero = ({ isMagicTheme = false }) => {
         } else {
           clearInterval(interval);
           setCurrentLine(0);
-          typingDoneRef.current = true;
-          sessionStorage.setItem('heroTyped', 'true');
+          typingStateRef.current = { key: typingKey, inProgress: false, done: true };
         }
       }
     }, 100);
 
-    return () => clearInterval(interval);
+    typingIntervalRef.current = interval;
+
+    return () => {
+      clearInterval(interval);
+      if (typingIntervalRef.current === interval) {
+        typingIntervalRef.current = null;
+      }
+      const current = typingStateRef.current;
+      if (current.key === typingKey && !current.done) {
+        current.inProgress = false;
+      }
+    };
   }, [data]);
 
   // Drag functionality

@@ -346,7 +346,7 @@ const Projects = () => {
     indicator.classList.remove(styles.activeIndicatorPulse);
     void indicator.offsetWidth;
     indicator.classList.add(styles.activeIndicatorPulse);
-  }, [activeFilter, loading, error, styles.activeIndicatorPulse]);
+  }, [activeFilter, loading, error]);
 
   useEffect(() => {
     if (loading || error) return;
@@ -376,7 +376,7 @@ const Projects = () => {
     }
 
     prevActiveRef.current = activeFilter;
-  }, [activeFilter, loading, error, styles.trailActive]);
+  }, [activeFilter, loading, error]);
 
   const handleFilterClick = useCallback((filter) => {
     if (filter === activeFilter) return; // no change
