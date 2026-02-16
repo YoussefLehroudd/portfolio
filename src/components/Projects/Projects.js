@@ -30,9 +30,9 @@ const ProjectCard = React.memo(({ project, onMoreClick, revealDelay = '0s', reve
     await recordProjectClick();
   };
 
-  const handleMoreClick = async () => {
-    await recordProjectClick();
+  const handleMoreClick = () => {
     onMoreClick(project);
+    recordProjectClick();
   };
 
   return (

@@ -261,6 +261,7 @@
   position: relative;
 }
 
+
 .projectCard::before {
   content: '';
   position: absolute;
@@ -269,6 +270,7 @@
   opacity: 0.7;
   pointer-events: none;
 }
+
 
 .projectCard:hover {
   transform: translateY(-8px);
