@@ -130,6 +130,7 @@ const Projects = () => {
   const prevActiveRef = useRef(null);
   const isDraggingRef = useRef(false);
   const [gridMinHeight, setGridMinHeight] = useState(null);
+  const layoutRef = useRef(null);
   const [showFiltersHint, setShowFiltersHint] = useState(true);
   const updateIndicator = useCallback(() => {
     const container = filtersRef.current;
@@ -316,6 +317,22 @@ const Projects = () => {
 
   useEffect(() => {
     if (loading || error) return;
+    const el = filtersRef.current;
+    if (!el || !window.matchMedia) return;
+
+    const mql = window.matchMedia('(max-width: 768px)');
+    const handleChange = () => {
+      el.scrollLeft = 0;
+      updateIndicator();
+    };
+
+    handleChange();
+    mql.addEventListener('change', handleChange);
+    return () => mql.removeEventListener('change', handleChange);
+  }, [loading, error, updateIndicator]);
+
+  useEffect(() => {
+    if (loading || error) return;
     const frame = requestAnimationFrame(updateIndicator);
     return () => {
       if (frame) cancelAnimationFrame(frame);
@@ -379,9 +396,24 @@ const Projects = () => {
     if (activeFilter !== 'All Projects') return;
 
     const grid = gridRef.current;
+    const getLayoutKey = () => (window.matchMedia('(max-width: 768px)').matches ? 'mobile' : 'desktop');
+    let remeasureFrame = null;
     const measure = (rect) => {
       const height = rect?.height ?? grid.getBoundingClientRect().height;
       if (height > 0) {
+        const layoutKey = getLayoutKey();
+        if (layoutRef.current !== layoutKey) {
+          layoutRef.current = layoutKey;
+          setGridMinHeight(null);
+          if (remeasureFrame) cancelAnimationFrame(remeasureFrame);
+          remeasureFrame = requestAnimationFrame(() => {
+            const freshHeight = grid.getBoundingClientRect().height;
+            if (freshHeight > 0) {
+              setGridMinHeight(freshHeight);
+            }
+          });
+          return;
+        }
         setGridMinHeight((prev) => (prev ? Math.max(prev, height) : height));
       }
     };
@@ -401,6 +433,7 @@ const Projects = () => {
 
     return () => {
       if (frame) cancelAnimationFrame(frame);
+      if (remeasureFrame) cancelAnimationFrame(remeasureFrame);
       if (observer) observer.disconnect();
       window.removeEventListener('resize', handleResize);
     };

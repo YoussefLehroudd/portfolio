@@ -344,51 +344,101 @@ main {
 
 /* Theme toggle button */
 .bgToggle {
-  position: fixed;
-  bottom: 36px;
-  right: 18px;
-  z-index: 20;
-  padding: 0.6rem 1.2rem;
-  background: linear-gradient(135deg, #0f5243, #0a7e73); /* deeper teal to match site palette */
-  color: #e8f1ff;
-  border: 1px solid rgba(100, 255, 218, 0.22);
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.6rem;
+  background-color: #0b1b1a;
+  background:
+    linear-gradient(135deg, rgba(6, 12, 20, 0.92), rgba(8, 34, 38, 0.9)) padding-box,
+    conic-gradient(from 120deg, rgba(124, 247, 212, 0.9), rgba(122, 214, 255, 0.9), rgba(106, 255, 207, 0.9), rgba(124, 247, 212, 0.9)) border-box;
+  color: #eaffff;
+  border: 1px solid transparent;
   border-radius: 999px;
   cursor: pointer;
-  font-weight: 800;
-  font-size: 0.95rem;
-  letter-spacing: 0.25px;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), 0 0 0 4px rgba(122, 214, 255, 0.18);
-  backdrop-filter: blur(14px);
-  transition: transform 0.18s ease, box-shadow 0.2s ease, filter 0.2s ease;
-  min-width: 180px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.48),
+    0 0 0 1px rgba(124, 247, 212, 0.25),
+    0 0 30px rgba(122, 214, 255, 0.32),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  text-shadow: 0 4px 18px rgba(124, 247, 212, 0.35);
+  backdrop-filter: blur(14px) saturate(160%);
+  transition: transform 0.2s ease, box-shadow 0.22s ease, filter 0.2s ease;
+  min-width: 190px;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.bgToggle::before {
+  content: '';
+  position: absolute;
+  inset: -60% -30%;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(124, 247, 212, 0.35), transparent 45%),
+    radial-gradient(circle at 80% 70%, rgba(122, 214, 255, 0.28), transparent 50%),
+    linear-gradient(120deg, transparent 38%, rgba(255, 255, 255, 0.45) 50%, transparent 62%);
+  opacity: 0.6;
+  transform: translateX(-60%) rotate(8deg);
+  animation: toggleSheen 3.8s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .bgToggle:hover {
-  transform: translateY(-1px) scale(1.01);
-  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.45), 0 0 0 6px rgba(100, 255, 218, 0.16);
-  filter: brightness(1.02);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 22px 46px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(124, 247, 212, 0.45),
+    0 0 42px rgba(122, 214, 255, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  filter: brightness(1.05) saturate(1.1);
 }
 
 .bgToggle:active {
   transform: translateY(0);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35), 0 0 0 3px rgba(100, 255, 218, 0.14);
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(124, 247, 212, 0.35),
+    0 0 20px rgba(122, 214, 255, 0.25);
 }
 
-:global(.magic-theme) .bgToggle {
-  display: none;
+.bgToggle:focus-visible {
+  outline: 2px solid rgba(124, 247, 212, 0.85);
+  outline-offset: 4px;
 }
+
+.gpu-lite .bgToggle::before {
+  animation: none;
+}
+
+/* Keep switch visible in both themes */
+:global(.magic-theme) .bgToggle {
+  color: #04121e;
+  text-shadow: none;
+}
+
 
 @media (max-width: 768px) {
   .bgToggle {
-    top: auto;
-    right: 12px;
-    bottom: 24px;
-    left: auto;
-    min-width: 150px;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+    min-width: 160px;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
   }
+}
+
+@keyframes toggleSheen {
+  0% { transform: translateX(-60%) rotate(8deg); opacity: 0.2; }
+  45% { opacity: 0.55; }
+  100% { transform: translateX(40%) rotate(8deg); opacity: 0.25; }
 }
 
 /* Scrollbar */

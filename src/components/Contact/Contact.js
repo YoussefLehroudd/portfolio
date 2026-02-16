@@ -12,11 +12,11 @@ const Contact = () => {
   const [emailError, setEmailError] = useState('');
   const [nameError, setNameError] = useState('');
   const messages = useMemo(() => [
-    "Hi, I'd love to work together...",
-    "I have a project idea...",
-    "Let's build something amazing...",
-    "I'm interested in your services...",
-    "Got a question about your work..."
+    "$ git checkout -b feature/your-idea",
+    "$ npm run build && npm run deploy",
+    "$ curl -X POST /api/project --data '{\"idea\":\"...\"}'",
+    "$ docker build -t your-idea .",
+    "$ pnpm dev --host 0.0.0.0"
   ], []);
   const [messageIndex, setMessageIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './Hero.module.css';
 
 const Hero = ({ isMagicTheme = false }) => {
@@ -12,6 +12,7 @@ const Hero = ({ isMagicTheme = false }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [showDragHint, setShowDragHint] = useState(true);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const typingDoneRef = useRef(false);
 
   useEffect(() => {
     // Fetch hero data
@@ -48,6 +49,16 @@ const Hero = ({ isMagicTheme = false }) => {
 
   useEffect(() => {
     if (!data) return;
+    const storedDone = sessionStorage.getItem('heroTyped') === 'true';
+    if (storedDone || typingDoneRef.current) {
+      setText1(data.firstName);
+      setText2(data.lastName);
+      setSubtitleText(data.title);
+      setDescriptionText(data.description);
+      setCurrentLine(0);
+      typingDoneRef.current = true;
+      return;
+    }
 
     // Typing animation
     let index = 0;
@@ -87,6 +98,8 @@ const Hero = ({ isMagicTheme = false }) => {
         } else {
           clearInterval(interval);
           setCurrentLine(0);
+          typingDoneRef.current = true;
+          sessionStorage.setItem('heroTyped', 'true');
         }
       }
     }, 100);
@@ -428,6 +441,31 @@ const Hero = ({ isMagicTheme = false }) => {
           )}
         </div>
       </div>
+      {!isMagicTheme && (
+        <div className={styles.heroShowcase} aria-hidden="true">
+          <div className={styles.showcaseHeader}>
+            <span className={styles.showcaseDots} />
+            <div className={styles.showcaseTabs}>
+              <span className={`${styles.showcaseTab} ${styles.showcaseTabActive}`}>profile.ts</span>
+              <span className={styles.showcaseTab}>skills.json</span>
+            </div>
+            <span className={styles.showcaseStatus}>live</span>
+          </div>
+          <div className={styles.showcaseBody}>
+            <div className={styles.codeLine} style={{ '--line-w': '82%' }} />
+            <div className={`${styles.codeLine} ${styles.codeLineAccent}`} style={{ '--line-w': '68%' }} />
+            <div className={styles.codeLine} style={{ '--line-w': '74%' }} />
+            <div className={styles.codeLine} style={{ '--line-w': '60%' }} />
+            <div className={`${styles.codeLine} ${styles.codeLineAccent}`} style={{ '--line-w': '86%' }} />
+            <div className={styles.codeLine} style={{ '--line-w': '64%' }} />
+            <div className={styles.codeLine} style={{ '--line-w': '52%' }} />
+          </div>
+          <div className={styles.showcaseFooter}>
+            <span className={styles.showcasePrompt}>$ npm run dev</span>
+            <span className={styles.showcaseBadge}>ready</span>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

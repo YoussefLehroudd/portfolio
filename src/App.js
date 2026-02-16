@@ -221,22 +221,17 @@ function App() {
               />
             </div>
           )}
-          {!isMagicTheme && !isAdminRoute && (
-            <button
-              className="bgToggle"
-              type="button"
-              onClick={() => triggerThemeSwitch(true)}
-            >
-              Switch to magic
-            </button>
-          )}
           {isLoading ? (
             <Loading />
           ) : (
             <Routes>
               <Route path="/" element={
                 <>
-                  <Header />
+                  <Header
+                    showSwitch={!isAdminRoute}
+                    isMagicTheme={isMagicTheme}
+                    onToggleTheme={triggerThemeSwitch}
+                  />
                   <main className={`${isMagicTheme ? 'magic-main' : ''}`}>
                     <Hero isMagicTheme={isMagicTheme} />
                     <TechSlider />
