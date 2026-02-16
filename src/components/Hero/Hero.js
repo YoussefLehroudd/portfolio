@@ -195,7 +195,6 @@ const Hero = ({ isMagicTheme = false }) => {
     const parts = cvBtn.link.split('/').pop() || 'youssef_cv';
     return parts.includes('.') ? parts : `${parts}.png`;
   })();
-
   return (
     <section id="hero" className={styles.hero}>
       <div className={styles.animationContainer}>

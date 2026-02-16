@@ -12,6 +12,7 @@ import Loading from './components/Loading/Loading';
 import DecorativePattern from './components/DecorativePattern/DecorativePattern';
 import MagicNav from './components/DecorativePattern/MagicNav';
 import TechSlider from './components/Hero/TechSlider';
+import HeroMarquee from './components/Hero/HeroMarquee';
 import SlantedTicker from './components/Highlights/SlantedTicker';
 import GradientBackground from './components/Background/GradientBackground';
 import Ribbons from './components/Background/Ribbons';
@@ -233,6 +234,7 @@ function App() {
                     onToggleTheme={triggerThemeSwitch}
                   />
                   <main className={`${isMagicTheme ? 'magic-main' : ''}`}>
+                    <HeroMarquee isMagicTheme={isMagicTheme} />
                     <Hero isMagicTheme={isMagicTheme} />
                     <TechSlider />
                     <About isMagicTheme={isMagicTheme} />
