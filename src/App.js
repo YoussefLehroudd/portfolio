@@ -6,6 +6,7 @@ import About from './components/About/About';
 import Projects from './components/Projects/Projects';
 import Contact from './components/Contact/Contact';
 import Career from './components/Career/Career';
+import Reviews from './components/Reviews/Reviews';
 import Login from './components/Admin/Login';
 import Dashboard from './components/Admin/Dashboard';
 import Loading from './components/Loading/Loading';
@@ -241,6 +242,7 @@ function App() {
                     <Career isMagicTheme={isMagicTheme} />
                     <SlantedTicker />
                     <Projects />
+                    <Reviews isMagicTheme={isMagicTheme} />
                     {!isMagicTheme && <DecorativePattern />}
                     {isMagicTheme && <MagicNav onToggleTheme={() => triggerThemeSwitch(false)} />}
                     <Contact />

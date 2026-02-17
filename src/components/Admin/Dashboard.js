@@ -11,6 +11,8 @@ import HeroManagement from './HeroManagement';
 import SocialManagement from './SocialManagement';
 import ProfileManagement from './ProfileManagement';
 import CareerManagement from './CareerManagement';
+import ReviewsManagement from './ReviewsManagement';
+import AvatarManagement from './AvatarManagement';
 
 const StatisticsSection = ({ stats, visits, visitsLoading }) => {
   const [projects, setProjects] = useState([]);
@@ -474,6 +476,12 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
     if (path.includes('/profile')) {
       return 'Profile Management';
     }
+    if (path.includes('/reviews')) {
+      return 'Reviews Management';
+    }
+    if (path.includes('/avatars')) {
+      return 'Avatar Library';
+    }
     if (path.includes('/statistics')) {
       return 'Statistics';
     }
@@ -543,6 +551,8 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
             <Route path="hero/*" element={<HeroManagement />} />
             <Route path="social/*" element={<SocialManagement />} />
             <Route path="profile/*" element={<ProfileManagement />} />
+            <Route path="reviews/*" element={<ReviewsManagement />} />
+            <Route path="avatars/*" element={<AvatarManagement />} />
             <Route 
               path="statistics/*" 
               element={<StatisticsSection stats={statistics} visits={visitLogs} visitsLoading={visitsLoading} />}
