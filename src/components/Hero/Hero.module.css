@@ -1045,10 +1045,14 @@
   .showcaseHeader {
     padding: 0.6rem 0.8rem;
     gap: 0.5rem;
+    position: relative;
+    justify-content: center;
   }
 
   .showcaseTabs {
-    max-width: 100%;
+    max-width: calc(100% - 5rem);
+    margin: 0 auto;
+    justify-content: center;
   }
 
   .showcaseTab {
@@ -1057,9 +1061,22 @@
     font-size: 0.62rem;
   }
 
+  .showcaseDots,
+  .showcaseStatus {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .showcaseDots {
+    left: 0.8rem;
+  }
+
   .showcaseStatus {
     font-size: 0.56rem;
     letter-spacing: 0.18em;
+    margin-left: 0;
+    right: 0.8rem;
   }
 }
 
