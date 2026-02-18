@@ -35,19 +35,19 @@ const Reviews = ({ isMagicTheme = false }) => {
     boundsEl: null
   });
 
-  const getReviewKey = (review) => {
+  const getReviewKey = useCallback((review) => {
     const id = review?._id || review?.id || '';
     const updated = review?.updatedAt || review?.createdAt || '';
     return `${id}:${updated}`;
-  };
+  }, []);
 
-  const isSameReviews = (prevList, nextList) => {
+  const isSameReviews = useCallback((prevList, nextList) => {
     if (prevList.length !== nextList.length) return false;
     for (let i = 0; i < prevList.length; i += 1) {
       if (getReviewKey(prevList[i]) !== getReviewKey(nextList[i])) return false;
     }
     return true;
-  };
+  }, [getReviewKey]);
 
   const refreshReviews = useCallback(async ({ silent = false } = {}) => {
     if (refreshInFlightRef.current) return;
@@ -98,7 +98,7 @@ const Reviews = ({ isMagicTheme = false }) => {
       }
       refreshInFlightRef.current = false;
     }
-  }, []);
+  }, [isSameReviews]);
 
   const notifyReviewsUpdated = useCallback(() => {
     if (reviewsChannelRef.current) {

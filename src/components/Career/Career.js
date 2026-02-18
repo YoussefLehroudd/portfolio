@@ -25,7 +25,10 @@ const Career = ({ isMagicTheme = false }) => {
     fetchCareer();
   }, []);
 
-  const items = Array.isArray(careerData?.items) ? careerData.items : [];
+  const items = useMemo(
+    () => (Array.isArray(careerData?.items) ? careerData.items : []),
+    [careerData]
+  );
   const orderedItems = useMemo(() => {
     if (!items.length) return [];
     return [...items].reverse();
