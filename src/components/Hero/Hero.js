@@ -70,7 +70,7 @@ const Hero = ({ isMagicTheme = false, isLowPower = false }) => {
     const safeTitle = safeText(data.title, fallbackHero.current.title);
     const safeDescription = safeText(data.description, fallbackHero.current.description);
 
-    const shouldAnimate = !(isMagicTheme && isLowPower);
+    const shouldAnimate = !isMagicTheme && !isLowPower;
     const constPrefix = isMagicTheme ? '' : 'const';
     const semicolonSuffix = isMagicTheme ? '' : ';';
     const subtitlePrefix = isMagicTheme ? '' : '//';
@@ -139,6 +139,7 @@ const Hero = ({ isMagicTheme = false, isLowPower = false }) => {
       setCurrentLine(step.line);
     }
 
+    const typingDelay = isMagicTheme ? 45 : 60;
     const interval = setInterval(() => {
       if (!step) {
         clearInterval(interval);
@@ -164,7 +165,7 @@ const Hero = ({ isMagicTheme = false, isLowPower = false }) => {
       if (step?.line) {
         setCurrentLine(step.line);
       }
-    }, 100);
+    }, typingDelay);
 
     typingIntervalRef.current = interval;
 
@@ -253,7 +254,7 @@ const Hero = ({ isMagicTheme = false, isLowPower = false }) => {
   const fullTitle = safeText(data.title, fallbackHero.current.title);
   const fullDescription = safeText(data.description, fallbackHero.current.description);
 
-  const shouldAnimate = !(isMagicTheme && isLowPower);
+  const shouldAnimate = !isMagicTheme && !isLowPower;
   const constPrefix = isMagicTheme ? '' : 'const';
   const semicolonSuffix = isMagicTheme ? '' : ';';
   const subtitlePrefix = isMagicTheme ? '' : '//';
