@@ -34,7 +34,7 @@
   },
   "homepage": "/",
   "scripts": {
-    "start": "cross-env PORT=3000 react-scripts start",
+    "start": "node server/index.js",
     "server": "cross-env PORT=5001 node server/index.js",
     "dev": "concurrently \"npm run server\" \"npm run start\"",
     "build": "cross-env GENERATE_SOURCEMAP=false react-scripts build",
