@@ -13,7 +13,8 @@ const Ribbons = ({
   enableFade = false,
   enableShaderEffect = false,
   effectAmplitude = 2,
-  backgroundColor = [0, 0, 0, 0]
+  backgroundColor = [0, 0, 0, 0],
+  dpr
 }) => {
   const containerRef = useRef(null);
 
@@ -27,8 +28,11 @@ const Ribbons = ({
     const container = containerRef.current;
     if (!container) return undefined;
 
+    const resolvedDpr = typeof dpr === 'number' && dpr > 0
+      ? dpr
+      : Math.min(window.devicePixelRatio || 1, 2);
     const renderer = new Renderer({
-      dpr: Math.min(window.devicePixelRatio || 1, 2),
+      dpr: resolvedDpr,
       alpha: true,
       antialias: true,
       powerPreference: 'high-performance'
@@ -255,7 +259,8 @@ const Ribbons = ({
     enableFade,
     enableShaderEffect,
     effectAmplitude,
-    backgroundColor
+    backgroundColor,
+    dpr
   ]);
 
   return <div ref={containerRef} className="relative w-full h-full" />;

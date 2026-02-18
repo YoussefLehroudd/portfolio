@@ -34,7 +34,18 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#64ffda" />
     <meta name="msapplication-TileColor" content="#0a192f">
-    
+
+    <script>
+      (function() {
+        try {
+          var mode = localStorage.getItem('mode');
+          if (mode === 'magic') {
+            document.documentElement.classList.add('magic-theme');
+          }
+        } catch (e) {}
+      })();
+    </script>
+
     <title>Youssef Lehroud | Full Stack Developer</title>
   </head>
   <body>

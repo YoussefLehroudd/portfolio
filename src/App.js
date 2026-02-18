@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Hero from './components/Hero/Hero';
@@ -48,7 +48,7 @@ function App() {
   const forceScrollTop = useRef(false);
 
   // Toggle a class on the root element so styles can react to magic/simple theme
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.documentElement;
     if (isMagicTheme) {
       root.classList.add('magic-theme');
@@ -75,6 +75,52 @@ function App() {
     return () => mql.removeEventListener('change', handleChange);
   }, []);
 
+  const [isLowPower, setIsLowPower] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const lowMemory = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory <= 4;
+    const lowCPU = typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency <= 4;
+    const saveData = navigator.connection && navigator.connection.saveData;
+    return mq.matches || lowMemory || lowCPU || saveData;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const update = () => {
+      const lowMemory = typeof navigator.deviceMemory === 'number' && navigator.deviceMemory <= 4;
+      const lowCPU = typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency <= 4;
+      const saveData = navigator.connection && navigator.connection.saveData;
+      setIsLowPower(mq.matches || lowMemory || lowCPU || saveData);
+    };
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  const ribbonsConfig = useMemo(() => {
+    if (!isLowPower) {
+      return {
+        baseThickness: 26,
+        speedMultiplier: 0.55,
+        maxAge: 480,
+        pointCount: 50,
+        enableShaderEffect: true,
+        effectAmplitude: 2,
+        dpr: 2
+      };
+    }
+    return {
+      baseThickness: 20,
+      speedMultiplier: 0.42,
+      maxAge: 360,
+      pointCount: 32,
+      enableShaderEffect: false,
+      effectAmplitude: 0,
+      dpr: 1
+    };
+  }, [isLowPower]);
+
   // Persist magic/simple mode across refresh
   useEffect(() => {
     localStorage.setItem('mode', isMagicTheme ? 'magic' : 'simple');
@@ -94,10 +140,10 @@ function App() {
     let timer;
 
     if (!isAdminRoute) {
-      // Simulate loading time only for public pages
+      // Keep a short, non-blocking splash without hurting LCP
       timer = setTimeout(() => {
         setIsLoading(false);
-      }, 2000);
+      }, 250);
     } else {
       setIsLoading(false);
     }
@@ -213,13 +259,15 @@ function App() {
           {isMagicTheme && (
             <div className="magic-ribbons-layer" aria-hidden="true">
               <Ribbons
-                baseThickness={26}
                 colors={['#7df9ff']}
-                speedMultiplier={0.55}
-                maxAge={480}
+                baseThickness={ribbonsConfig.baseThickness}
+                speedMultiplier={ribbonsConfig.speedMultiplier}
+                maxAge={ribbonsConfig.maxAge}
+                pointCount={ribbonsConfig.pointCount}
                 enableFade={false}
-                enableShaderEffect={true}
-                effectAmplitude={2}
+                enableShaderEffect={ribbonsConfig.enableShaderEffect}
+                effectAmplitude={ribbonsConfig.effectAmplitude}
+                dpr={ribbonsConfig.dpr}
               />
             </div>
           )}
@@ -229,14 +277,16 @@ function App() {
             <Routes>
               <Route path="/" element={
                 <>
-                  <Header
-                    showSwitch={!isAdminRoute}
-                    isMagicTheme={isMagicTheme}
-                    onToggleTheme={triggerThemeSwitch}
-                  />
+                  {!isMagicTheme && (
+                    <Header
+                      showSwitch={!isAdminRoute}
+                      isMagicTheme={isMagicTheme}
+                      onToggleTheme={triggerThemeSwitch}
+                    />
+                  )}
                   <main className={`${isMagicTheme ? 'magic-main' : ''}`}>
                     <HeroMarquee isMagicTheme={isMagicTheme} />
-                    <Hero isMagicTheme={isMagicTheme} />
+                    <Hero isMagicTheme={isMagicTheme} isLowPower={isLowPower} />
                     <TechSlider />
                     <About isMagicTheme={isMagicTheme} />
                     <Career isMagicTheme={isMagicTheme} />

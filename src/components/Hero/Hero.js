@@ -1,19 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styles from './Hero.module.css';
 
-const Hero = ({ isMagicTheme = false }) => {
+const Hero = ({ isMagicTheme = false, isLowPower = false }) => {
+  const [constText, setConstText] = useState('');
   const [text1, setText1] = useState('');
   const [text2, setText2] = useState('');
+  const [semicolonText, setSemicolonText] = useState('');
+  const [subtitlePrefixText, setSubtitlePrefixText] = useState('');
   const [subtitleText, setSubtitleText] = useState('');
   const [descriptionText, setDescriptionText] = useState('');
   const [currentLine, setCurrentLine] = useState(1);
-  const [data, setData] = useState(null);
+  const fallbackHero = useRef({
+    firstName: "Hi, I'm",
+    lastName: 'Youssef',
+    title: 'Full Stack Developer',
+    description: 'I create engaging web experiences with modern technologies',
+    primaryButton: { text: 'View My Work', link: '#projects' },
+    secondaryButton: { text: 'Get in Touch', link: '#contact' },
+    cvButton: { text: 'Download CV', link: '/youssef_cv.pdf' }
+  });
+  const [data, setData] = useState(fallbackHero.current);
   const [animationPosition, setAnimationPosition] = useState({ x: 75, y: 50 });
   const [isDragging, setIsDragging] = useState(false);
   const [showDragHint, setShowDragHint] = useState(true);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const typingIntervalRef = useRef(null);
   const typingStateRef = useRef({ key: '', inProgress: false, done: false });
+  const safeText = (value, fallbackValue) =>
+    typeof value === 'string' && value.trim().length > 0 ? value : fallbackValue;
 
   useEffect(() => {
     // Fetch hero data
@@ -51,65 +65,104 @@ const Hero = ({ isMagicTheme = false }) => {
   useEffect(() => {
     if (!data) return;
 
-    const typingKey = `${data.firstName}|${data.lastName}|${data.title}|${data.description}`;
+    const safeFirstName = safeText(data.firstName, fallbackHero.current.firstName);
+    const safeLastName = safeText(data.lastName, fallbackHero.current.lastName);
+    const safeTitle = safeText(data.title, fallbackHero.current.title);
+    const safeDescription = safeText(data.description, fallbackHero.current.description);
+
+    const shouldAnimate = !(isMagicTheme && isLowPower);
+    const constPrefix = isMagicTheme ? '' : 'const';
+    const semicolonSuffix = isMagicTheme ? '' : ';';
+    const subtitlePrefix = isMagicTheme ? '' : '//';
+    const typingKey = `${safeFirstName}|${safeLastName}|${safeTitle}|${safeDescription}|${isMagicTheme ? 'magic' : 'simple'}|${shouldAnimate ? 'anim' : 'static'}`;
     const state = typingStateRef.current;
 
     if (state.key === typingKey && (state.inProgress || state.done)) {
       return;
     }
 
+    if (typingIntervalRef.current) {
+      clearInterval(typingIntervalRef.current);
+      typingIntervalRef.current = null;
+    }
+
+    if (!shouldAnimate) {
+      setConstText(constPrefix);
+      setText1(safeFirstName);
+      setText2(safeLastName);
+      setSemicolonText(semicolonSuffix);
+      setSubtitlePrefixText(subtitlePrefix);
+      setSubtitleText(safeTitle);
+      setDescriptionText(safeDescription);
+      setCurrentLine(0);
+      typingStateRef.current = { key: typingKey, inProgress: false, done: true };
+      return;
+    }
+
     typingStateRef.current = { key: typingKey, inProgress: true, done: false };
 
+    setConstText('');
     setText1('');
     setText2('');
+    setSemicolonText('');
+    setSubtitlePrefixText('');
     setSubtitleText('');
     setDescriptionText('');
     setCurrentLine(1);
 
-    if (typingIntervalRef.current) {
-      clearInterval(typingIntervalRef.current);
+    const steps = [
+      { text: constPrefix, setter: setConstText, line: 1 },
+      { text: safeFirstName, setter: setText1, line: 1 },
+      { text: safeLastName, setter: setText2, line: 1 },
+      { text: semicolonSuffix, setter: setSemicolonText, line: 1, nextLine: 2 },
+      { text: subtitlePrefix, setter: setSubtitlePrefixText, line: 2 },
+      { text: safeTitle, setter: setSubtitleText, line: 2, nextLine: 3 },
+      { text: safeDescription, setter: setDescriptionText, line: 3 }
+    ];
+
+    let stepIndex = 0;
+    let index = 0;
+
+    const getNextStep = () => {
+      while (stepIndex < steps.length && (!steps[stepIndex].text || steps[stepIndex].text.length === 0)) {
+        const skipped = steps[stepIndex];
+        if (skipped.nextLine) {
+          setCurrentLine(skipped.nextLine);
+        }
+        stepIndex += 1;
+      }
+      return steps[stepIndex];
+    };
+
+    let step = getNextStep();
+    if (step?.line) {
+      setCurrentLine(step.line);
     }
 
-    // Typing animation
-    let index = 0;
-    let phase = 1;
-
     const interval = setInterval(() => {
-      if (phase === 1) {
-        if (index <= data.firstName.length) {
-          setText1(data.firstName.slice(0, index));
-          index++;
-        } else {
-          phase = 2;
-          index = 0;
-        }
-      } else if (phase === 2) {
-        if (index <= data.lastName.length) {
-          setText2(data.lastName.slice(0, index));
-          index++;
-        } else {
-          phase = 3;
-          index = 0;
-          setCurrentLine(2);
-        }
-      } else if (phase === 3) {
-        if (index <= data.title.length) {
-          setSubtitleText(data.title.slice(0, index));
-          index++;
-        } else {
-          phase = 4;
-          index = 0;
-          setCurrentLine(3);
-        }
-      } else if (phase === 4) {
-        if (index <= data.description.length) {
-          setDescriptionText(data.description.slice(0, index));
-          index++;
-        } else {
-          clearInterval(interval);
-          setCurrentLine(0);
-          typingStateRef.current = { key: typingKey, inProgress: false, done: true };
-        }
+      if (!step) {
+        clearInterval(interval);
+        setCurrentLine(0);
+        typingStateRef.current = { key: typingKey, inProgress: false, done: true };
+        return;
+      }
+
+      if (index <= step.text.length) {
+        step.setter(step.text.slice(0, index));
+        index += 1;
+        return;
+      }
+
+      if (step.nextLine) {
+        setCurrentLine(step.nextLine);
+      }
+
+      stepIndex += 1;
+      index = 0;
+      step = getNextStep();
+
+      if (step?.line) {
+        setCurrentLine(step.line);
       }
     }, 100);
 
@@ -125,7 +178,7 @@ const Hero = ({ isMagicTheme = false }) => {
         current.inProgress = false;
       }
     };
-  }, [data]);
+  }, [data, isMagicTheme, isLowPower]);
 
   // Drag functionality
   const handleMouseDown = (e) => {
@@ -195,6 +248,45 @@ const Hero = ({ isMagicTheme = false }) => {
     const parts = cvBtn.link.split('/').pop() || 'youssef_cv';
     return parts.includes('.') ? parts : `${parts}.png`;
   })();
+  const fullFirstName = safeText(data.firstName, fallbackHero.current.firstName);
+  const fullLastName = safeText(data.lastName, fallbackHero.current.lastName);
+  const fullTitle = safeText(data.title, fallbackHero.current.title);
+  const fullDescription = safeText(data.description, fallbackHero.current.description);
+
+  const shouldAnimate = !(isMagicTheme && isLowPower);
+  const constPrefix = isMagicTheme ? '' : 'const';
+  const semicolonSuffix = isMagicTheme ? '' : ';';
+  const subtitlePrefix = isMagicTheme ? '' : '//';
+  const subtitleRenderText = shouldAnimate
+    ? (subtitleText || (isMagicTheme ? fullTitle : (currentLine === 0 ? fullTitle : '')))
+    : fullTitle;
+
+  const displayConst = shouldAnimate ? constText : constPrefix;
+  const displayFirst = shouldAnimate ? text1 : fullFirstName;
+  const displayLast = shouldAnimate ? text2 : fullLastName;
+  const displaySemicolon = shouldAnimate ? semicolonText : semicolonSuffix;
+  const displaySubtitlePrefix = shouldAnimate ? subtitlePrefixText : subtitlePrefix;
+  const displayDescription = shouldAnimate ? descriptionText : fullDescription;
+
+  const constDone = constText.length >= constPrefix.length;
+  const firstDone = text1.length >= fullFirstName.length;
+  const lastDone = text2.length >= fullLastName.length;
+  const semicolonDone = semicolonText.length >= semicolonSuffix.length;
+  const subtitlePrefixDone = subtitlePrefixText.length >= subtitlePrefix.length;
+  const subtitleDone = subtitleText.length >= fullTitle.length;
+
+  const isLine1Active = currentLine === 1;
+  const isLine2Active = currentLine === 2;
+  const isLine3Active = currentLine === 3;
+
+  const showConstCursor = shouldAnimate && isLine1Active && constPrefix.length > 0 && !constDone;
+  const showFirstNameCursor = shouldAnimate && isLine1Active && constDone && !firstDone;
+  const showLastNameCursor = shouldAnimate && isLine1Active && constDone && firstDone && !lastDone;
+  const showSemicolonCursor = shouldAnimate && isLine1Active && constDone && firstDone && lastDone && semicolonSuffix.length > 0 && !semicolonDone;
+  const showSubtitlePrefixCursor = shouldAnimate && isLine2Active && subtitlePrefix.length > 0 && !subtitlePrefixDone;
+  const showSubtitleCursor = shouldAnimate && isLine2Active && (subtitlePrefixDone || subtitlePrefix.length === 0) && !subtitleDone;
+  const showDescriptionCursor = shouldAnimate && isLine3Active;
+
   return (
     <section id="hero" className={styles.hero}>
       <div className={styles.animationContainer}>
@@ -297,25 +389,94 @@ const Hero = ({ isMagicTheme = false }) => {
           data-reveal
           style={{ '--reveal-delay': '0.12s' }}
         >
-          <span>{text1}</span>
-          <span className={styles.nameRotate}>{text2}</span>
-          {currentLine === 1 && <span className={styles.cursor}>|</span>}
+          {!isMagicTheme && (
+            <span
+              className={`${styles.titlePrefix} ${styles.typingChunk} ${styles.typingInline}`}
+              data-fulltext={constPrefix}
+            >
+              <span className={styles.typingText}>
+                {displayConst}
+                <span className={`${styles.cursor} ${showConstCursor ? styles.cursorActive : styles.cursorHidden}`}>
+                  |
+                </span>
+              </span>
+            </span>
+          )}
+          <span className={`${styles.typingChunk} ${styles.typingInline}`} data-fulltext={fullFirstName}>
+            <span className={styles.typingText}>
+              {displayFirst}
+              <span className={`${styles.cursor} ${showFirstNameCursor ? styles.cursorActive : styles.cursorHidden}`}>
+                |
+              </span>
+            </span>
+          </span>
+          <span
+            className={`${styles.typingChunk} ${styles.typingInline} ${styles.nameRotate}`}
+            data-fulltext={fullLastName}
+          >
+            <span className={styles.typingText}>
+              {displayLast}
+              <span className={`${styles.cursor} ${showLastNameCursor ? styles.cursorActive : styles.cursorHidden}`}>
+                |
+              </span>
+            </span>
+          </span>
+          {!isMagicTheme && (
+            <span
+              className={`${styles.titleSuffix} ${styles.typingChunk} ${styles.typingInline}`}
+              data-fulltext={semicolonSuffix}
+            >
+            <span className={styles.typingText}>
+                {displaySemicolon}
+                <span className={`${styles.cursor} ${showSemicolonCursor ? styles.cursorActive : styles.cursorHidden}`}>
+                  |
+                </span>
+              </span>
+            </span>
+          )}
         </h1>
         <h2
           className={`${styles.subtitle} reveal-up`}
           data-reveal
           style={{ '--reveal-delay': '0.2s' }}
         >
-          {subtitleText}
-          {currentLine === 2 && <span className={styles.cursor}>|</span>}
+          {!isMagicTheme && (
+            <span
+              className={`${styles.subtitlePrefix} ${styles.typingChunk} ${styles.typingInline}`}
+              data-fulltext={subtitlePrefix}
+            >
+            <span className={styles.typingText}>
+              {displaySubtitlePrefix}
+              <span className={`${styles.cursor} ${showSubtitlePrefixCursor ? styles.cursorActive : styles.cursorHidden}`}>
+                |
+              </span>
+            </span>
+          </span>
+          )}
+          <span className={`${styles.typingChunk} ${styles.typingInline}`} data-fulltext={fullTitle}>
+            <span className={styles.typingText}>
+              {subtitleRenderText}
+              <span className={`${styles.cursor} ${showSubtitleCursor ? styles.cursorActive : styles.cursorHidden}`}>
+                |
+              </span>
+            </span>
+          </span>
         </h2>
         <p
           className={`${styles.description} reveal-up`}
           data-reveal
           style={{ '--reveal-delay': '0.28s' }}
         >
-          {descriptionText}
-          {currentLine === 3 && <span className={styles.cursor}>|</span>}
+          <span className={`${styles.typingChunk} ${styles.typingBlock}`} data-fulltext={fullDescription}>
+            <span className={styles.typingText}>
+              {displayDescription}
+              <span
+                className={`${styles.cursor} ${showDescriptionCursor ? styles.cursorActive : styles.cursorHidden}`}
+              >
+                |
+              </span>
+            </span>
+          </span>
         </p>
         <div className={styles.buttonContainer}>
           <a

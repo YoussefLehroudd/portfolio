@@ -1209,20 +1209,9 @@
   color: #f4f7ff;
 }
 
-:global(html:not(.magic-theme)) .title::before {
-  content: 'const';
-  font-family: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 0.35em;
-  letter-spacing: 0.35em;
-  text-transform: uppercase;
-  color: rgba(124, 255, 218, 0.85);
-  margin-right: 0.35rem;
-}
-
+:global(html:not(.magic-theme)) .title::before,
 :global(html:not(.magic-theme)) .title::after {
-  content: ';';
-  color: rgba(124, 255, 218, 0.7);
-  font-size: 0.9em;
+  content: none;
 }
 
 :global(.magic-theme) .title {
@@ -1231,6 +1220,16 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 1.5rem;
+}
+
+:global(.magic-theme) .title .typingText {
+  background: linear-gradient(120deg, #f1f5ff 0%, #9fe8ff 55%, #7cf7d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+:global(.magic-theme) .title .cursor {
+  color: #7cf7d4;
 }
 
 .title span {
@@ -1246,6 +1245,66 @@
   width: 3px;
   animation: blink 1s infinite;
   margin-left: 5px;
+}
+
+.typingChunk {
+  position: relative;
+  max-width: 100%;
+}
+
+.typingInline {
+  display: inline-block;
+}
+
+.typingInlineWrap {
+  display: inline-block;
+}
+
+.typingBlock {
+  display: block;
+  width: 100%;
+}
+
+.typingChunk::before {
+  content: attr(data-fulltext);
+  visibility: hidden;
+  pointer-events: none;
+  white-space: pre-wrap;
+}
+
+.typingInline::before {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.typingInlineWrap::before {
+  display: inline-block;
+}
+
+.typingBlock::before {
+  display: block;
+}
+
+.typingText {
+  position: absolute;
+  inset: 0;
+  left: 0;
+  top: 0;
+  width: 100%;
+  white-space: pre-wrap;
+}
+
+.typingInline .typingText {
+  white-space: nowrap;
+}
+
+.cursorActive {
+  opacity: 1;
+}
+
+.cursorHidden {
+  opacity: 0;
+  animation: none;
 }
 
 @keyframes blink {
@@ -1270,8 +1329,27 @@
 }
 
 :global(html:not(.magic-theme)) .subtitle::before {
-  content: '// ';
+  content: none;
+}
+
+.titlePrefix {
+  font-family: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.35em;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(124, 255, 218, 0.85);
+  margin-right: 0.35rem;
+}
+
+.titleSuffix {
+  color: rgba(124, 255, 218, 0.7);
+  font-size: 0.9em;
+  margin-left: 0.1rem;
+}
+
+.subtitlePrefix {
   color: rgba(124, 255, 218, 0.9);
+  margin-right: 0.35rem;
 }
 
 :global(.magic-theme) .subtitle {
@@ -1279,6 +1357,13 @@
   color: rgba(244, 248, 249, 0.9);
   letter-spacing: 0.4px;
   margin-bottom: 1.25rem;
+}
+
+:global(.magic-theme) .subtitle .typingText {
+  color: rgba(244, 248, 249, 0.9);
+  background: none;
+  -webkit-text-fill-color: rgba(244, 248, 249, 0.9);
+  -webkit-background-clip: initial;
 }
 
 .description {
