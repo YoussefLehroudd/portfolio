@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styles from './Reviews.module.css';
 
 const Reviews = ({ isMagicTheme = false }) => {
@@ -20,6 +20,11 @@ const Reviews = ({ isMagicTheme = false }) => {
   const previewRef = useRef(null);
   const modalPreviewRef = useRef(null);
   const openPreviewRef = useRef(false);
+  const currentIndexRef = useRef(0);
+  const refreshInFlightRef = useRef(false);
+  const hasLoadedRef = useRef(false);
+  const refreshAbortRef = useRef(null);
+  const reviewsChannelRef = useRef(null);
   const dragRef = useRef({
     active: false,
     startX: 0,
@@ -30,25 +35,140 @@ const Reviews = ({ isMagicTheme = false }) => {
     boundsEl: null
   });
 
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/reviews`);
-        if (response.ok) {
-          const data = await response.json();
-          const nextReviews = Array.isArray(data) ? data : [];
-          setReviews(nextReviews);
+  const getReviewKey = (review) => {
+    const id = review?._id || review?.id || '';
+    const updated = review?.updatedAt || review?.createdAt || '';
+    return `${id}:${updated}`;
+  };
+
+  const isSameReviews = (prevList, nextList) => {
+    if (prevList.length !== nextList.length) return false;
+    for (let i = 0; i < prevList.length; i += 1) {
+      if (getReviewKey(prevList[i]) !== getReviewKey(nextList[i])) return false;
+    }
+    return true;
+  };
+
+  const refreshReviews = useCallback(async ({ silent = false } = {}) => {
+    if (refreshInFlightRef.current) return;
+    refreshInFlightRef.current = true;
+    if (refreshAbortRef.current) {
+      refreshAbortRef.current.abort();
+    }
+    const controller = new AbortController();
+    refreshAbortRef.current = controller;
+
+    if (!silent || !hasLoadedRef.current) {
+      setLoading(true);
+    }
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/reviews`, {
+        signal: controller.signal
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      const nextReviews = Array.isArray(data) ? data : [];
+
+      setReviews((prev) => {
+        if (isSameReviews(prev, nextReviews)) return prev;
+
+        const prevActive = prev[currentIndexRef.current];
+        const prevActiveId = prevActive?._id || prevActive?.id;
+        if (prevActiveId) {
+          const nextIndex = nextReviews.findIndex((review) =>
+            (review._id || review.id) === prevActiveId
+          );
+          setCurrentIndex(nextIndex >= 0 ? nextIndex : 0);
+        } else {
           setCurrentIndex(0);
         }
-      } catch (error) {
+        return nextReviews;
+      });
+      hasLoadedRef.current = true;
+    } catch (error) {
+      if (error?.name !== 'AbortError') {
         console.error('Error fetching reviews:', error);
-      } finally {
+      }
+    } finally {
+      if (!silent || !hasLoadedRef.current) {
+        setLoading(false);
+      } else if (hasLoadedRef.current) {
         setLoading(false);
       }
-    };
-
-    fetchReviews();
+      refreshInFlightRef.current = false;
+    }
   }, []);
+
+  const notifyReviewsUpdated = useCallback(() => {
+    if (reviewsChannelRef.current) {
+      reviewsChannelRef.current.postMessage({ type: 'reviews:updated', at: Date.now() });
+    }
+    try {
+      localStorage.setItem('reviews:updated', String(Date.now()));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshReviews();
+    return () => {
+      if (refreshAbortRef.current) {
+        refreshAbortRef.current.abort();
+      }
+    };
+  }, [refreshReviews]);
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    if ('BroadcastChannel' in window) {
+      const channel = new BroadcastChannel('reviews');
+      channel.onmessage = (event) => {
+        if (event?.data?.type === 'reviews:updated') {
+          refreshReviews({ silent: true });
+        }
+      };
+      reviewsChannelRef.current = channel;
+    }
+
+    const handleStorage = (event) => {
+      if (event.key === 'reviews:updated') {
+        refreshReviews({ silent: true });
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      if (reviewsChannelRef.current) {
+        reviewsChannelRef.current.close();
+        reviewsChannelRef.current = null;
+      }
+    };
+  }, [refreshReviews]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      refreshReviews({ silent: true });
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [refreshReviews]);
+
+  useEffect(() => {
+    const handleFocus = () => refreshReviews({ silent: true });
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
+  }, [refreshReviews]);
 
   useEffect(() => {
     const fetchAvatars = async () => {
@@ -255,6 +375,7 @@ const Reviews = ({ isMagicTheme = false }) => {
       setImageFile(null);
       setSelectedAvatarId('');
       setStatus({ type: 'success', text: 'Review sent! It will appear after approval.' });
+      notifyReviewsUpdated();
     } catch (error) {
       console.error('Review submit error:', error);
       setStatus({ type: 'error', text: 'Could not send your review. Try again.' });
