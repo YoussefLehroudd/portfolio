@@ -9,6 +9,7 @@ const emptyItem = {
   description: '',
   tags: [],
   tagsText: '',
+  createdAt: null,
   isCurrent: false
 };
 
@@ -26,6 +27,7 @@ const CareerManagement = () => {
     () => careerData.items.map((item, index) => ({ item, index })).reverse(),
     [careerData.items]
   );
+  const getActualIndex = (displayIndex, length) => length - 1 - displayIndex;
 
   useEffect(() => {
     fetchCareerData();
@@ -43,7 +45,8 @@ const CareerManagement = () => {
           items: Array.isArray(data.items) && data.items.length
             ? data.items.map((item) => ({
                 ...item,
-                tagsText: Array.isArray(item.tags) ? item.tags.join(', ') : (item.tagsText || '')
+                tagsText: Array.isArray(item.tags) ? item.tags.join(', ') : (item.tagsText || ''),
+                createdAt: item.createdAt || null
               }))
             : [emptyItem]
         });
@@ -84,18 +87,10 @@ const CareerManagement = () => {
     });
   };
 
-  const toggleCurrent = (index) => {
-    setCareerData((prev) => {
-      const nextItems = [...prev.items];
-      nextItems[index] = { ...nextItems[index], isCurrent: !nextItems[index].isCurrent };
-      return { ...prev, items: nextItems };
-    });
-  };
-
   const addItem = () => {
     setCareerData((prev) => ({
       ...prev,
-      items: [...prev.items, { ...emptyItem }]
+      items: [...prev.items, { ...emptyItem, createdAt: new Date().toISOString() }]
     }));
   };
 
@@ -103,6 +98,36 @@ const CareerManagement = () => {
     setCareerData((prev) => {
       const nextItems = prev.items.filter((_, idx) => idx !== index);
       return { ...prev, items: nextItems.length ? nextItems : [emptyItem] };
+    });
+  };
+
+  const moveItem = (displayIndex, direction) => {
+    setCareerData((prev) => {
+      const length = prev.items.length;
+      if (length < 2) return prev;
+      const nextDisplay = displayIndex + direction;
+      if (nextDisplay < 0 || nextDisplay >= length) return prev;
+      const from = getActualIndex(displayIndex, length);
+      const to = getActualIndex(nextDisplay, length);
+      const nextItems = [...prev.items];
+      [nextItems[from], nextItems[to]] = [nextItems[to], nextItems[from]];
+      return { ...prev, items: nextItems };
+    });
+  };
+
+  const moveToEdge = (displayIndex, toTop) => {
+    setCareerData((prev) => {
+      const length = prev.items.length;
+      if (length < 2) return prev;
+      const from = getActualIndex(displayIndex, length);
+      const nextItems = [...prev.items];
+      const [moved] = nextItems.splice(from, 1);
+      if (toTop) {
+        nextItems.push(moved);
+      } else {
+        nextItems.unshift(moved);
+      }
+      return { ...prev, items: nextItems };
     });
   };
 
@@ -121,7 +146,8 @@ const CareerManagement = () => {
           const { tagsText, ...rest } = item;
           return {
             ...rest,
-            tags: Array.isArray(tagsFromText) ? tagsFromText : []
+            tags: Array.isArray(tagsFromText) ? tagsFromText : [],
+            createdAt: rest.createdAt || null
           };
         })
       };
@@ -208,13 +234,53 @@ const CareerManagement = () => {
             <div key={`career-item-${index}`} className={styles.itemCard}>
               <div className={styles.itemHeader}>
                 <h4>Item {displayIndex + 1}</h4>
-                <button
-                  type="button"
-                  className={styles.removeButton}
-                  onClick={() => removeItem(index)}
-                >
-                  Remove
-                </button>
+                <div className={styles.itemActions}>
+                  <div className={styles.moveControls}>
+                    <button
+                      type="button"
+                      className={styles.moveButton}
+                      onClick={() => moveToEdge(displayIndex, true)}
+                      disabled={displayIndex === 0}
+                      title="Move to top"
+                    >
+                      Top
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.moveButton}
+                      onClick={() => moveItem(displayIndex, -1)}
+                      disabled={displayIndex === 0}
+                      title="Move up"
+                    >
+                      Up
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.moveButton}
+                      onClick={() => moveItem(displayIndex, 1)}
+                      disabled={displayIndex === displayItems.length - 1}
+                      title="Move down"
+                    >
+                      Down
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.moveButton}
+                      onClick={() => moveToEdge(displayIndex, false)}
+                      disabled={displayIndex === displayItems.length - 1}
+                      title="Move to bottom"
+                    >
+                      Bottom
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.removeButton}
+                    onClick={() => removeItem(index)}
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
 
               <div className={styles.itemGrid}>
@@ -265,15 +331,6 @@ const CareerManagement = () => {
                   placeholder="Describe what you did or learned"
                 />
               </div>
-
-              <label className={styles.checkbox}>
-                <input
-                  type="checkbox"
-                  checked={item.isCurrent || false}
-                  onChange={() => toggleCurrent(index)}
-                />
-                Mark as current role
-              </label>
             </div>
           );
           })}

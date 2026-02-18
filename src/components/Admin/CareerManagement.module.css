@@ -82,6 +82,20 @@
   align-items: center;
 }
 
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.moveControls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
 .itemHeader h4 {
   color: #64ffda;
   margin: 0;
@@ -95,6 +109,7 @@
 
 .addButton,
 .removeButton,
+.moveButton,
 .submitButton {
   padding: 0.6rem 1rem;
   border-radius: 4px;
@@ -115,12 +130,29 @@
   border: 1px solid #f44336;
 }
 
+.moveButton {
+  background: rgba(100, 255, 218, 0.08);
+  color: #64ffda;
+  border: 1px solid rgba(100, 255, 218, 0.35);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.85rem;
+}
+
 .addButton:hover {
   background: #45e6c3;
 }
 
 .removeButton:hover {
   background: rgba(244, 67, 54, 0.2);
+}
+
+.moveButton:hover {
+  background: rgba(100, 255, 218, 0.18);
+}
+
+.moveButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .checkbox {

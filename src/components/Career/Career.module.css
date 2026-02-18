@@ -157,17 +157,7 @@
 }
 
 .trunk::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: calc(var(--progress, 0) * 100%);
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(var(--career-accent-rgb), 1), rgba(var(--career-accent-rgb), 0));
-  box-shadow: 0 0 20px rgba(var(--career-accent-rgb), 0.6);
-  transform: translate(-50%, -50%);
-  animation: trunkPulse 2.6s ease-in-out infinite;
+  content: none;
 }
 
 .card {
@@ -254,16 +244,7 @@
 }
 
 .connector::after {
-  content: '';
-  position: absolute;
-  left: -6px;
-  top: 50%;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(var(--career-accent-rgb), 0.95), rgba(var(--career-accent-rgb), 0));
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 16px rgba(var(--career-accent-rgb), 0.6);
+  content: none;
 }
 
 .left .connector {

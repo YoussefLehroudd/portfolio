@@ -63,6 +63,10 @@ if (isSQL) {
       type: String,
       required: false
     }],
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
     isCurrent: {
       type: Boolean,
       default: false

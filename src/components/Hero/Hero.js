@@ -70,7 +70,7 @@ const Hero = ({ isMagicTheme = false, isLowPower = false }) => {
     const safeTitle = safeText(data.title, fallbackHero.current.title);
     const safeDescription = safeText(data.description, fallbackHero.current.description);
 
-    const shouldAnimate = !isMagicTheme && !isLowPower;
+    const shouldAnimate = !isMagicTheme;
     const constPrefix = isMagicTheme ? '' : 'const';
     const semicolonSuffix = isMagicTheme ? '' : ';';
     const subtitlePrefix = isMagicTheme ? '' : '//';
@@ -254,7 +254,7 @@ const Hero = ({ isMagicTheme = false, isLowPower = false }) => {
   const fullTitle = safeText(data.title, fallbackHero.current.title);
   const fullDescription = safeText(data.description, fallbackHero.current.description);
 
-  const shouldAnimate = !isMagicTheme && !isLowPower;
+  const shouldAnimate = !isMagicTheme;
   const constPrefix = isMagicTheme ? '' : 'const';
   const semicolonSuffix = isMagicTheme ? '' : ';';
   const subtitlePrefix = isMagicTheme ? '' : '//';

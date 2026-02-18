@@ -181,6 +181,10 @@ const Career = ({ isMagicTheme = false }) => {
               {orderedItems.map((item, index) => {
                 const sideClass = index % 2 === 0 ? styles.right : styles.left;
                 const stateClass = index === activeIndex ? styles.cardActive : styles.cardInactive;
+                const createdTime = item?.createdAt ? new Date(item.createdAt).getTime() : 0;
+                const isNew = createdTime && Number.isFinite(createdTime)
+                  ? (Date.now() - createdTime) < 24 * 60 * 60 * 1000
+                  : false;
                 return (
                   <article
                     key={`${item.title}-${index}`}
@@ -191,7 +195,7 @@ const Career = ({ isMagicTheme = false }) => {
                     <span className={styles.connector} aria-hidden="true" />
                     <div className={styles.cardTop}>
                       <span className={styles.period}>{item.period}</span>
-                      {item.isCurrent && <span className={styles.now}>Now</span>}
+                      {isNew && <span className={styles.now}>Now</span>}
                     </div>
                     <h3>{item.title}</h3>
                     <p className={styles.place}>{item.place}</p>

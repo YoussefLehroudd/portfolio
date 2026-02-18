@@ -1754,6 +1754,17 @@
     line-height: 1.12;
   }
 
+  :global(html:not(.magic-theme)) .subtitle {
+    font-size: clamp(0.95rem, 4.2vw, 1.15rem);
+    letter-spacing: 0.04em;
+    text-align: center;
+  }
+
+  :global(html:not(.magic-theme)) .subtitle .typingInline::before,
+  :global(html:not(.magic-theme)) .subtitle .typingText {
+    white-space: normal;
+  }
+
   .description {
     font-size: 0.88rem;
     line-height: 1.38;
