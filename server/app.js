@@ -67,6 +67,16 @@ app.use(
 );
 app.use(express.json());
 
+// Block source maps in production (avoid exposing source file structure)
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.path.endsWith('.map')) {
+      return res.status(404).end();
+    }
+    return next();
+  });
+}
+
 // DB connect + seed
 const dbReady = connectDatabase().then(() => runInitialSeed()).catch((err) => {
   console.error('DB init error:', err);
