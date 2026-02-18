@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styles from './CareerManagement.module.css';
 import AdminSkeleton from './AdminSkeleton';
 
@@ -8,6 +8,7 @@ const emptyItem = {
   period: '',
   description: '',
   tags: [],
+  tagsText: '',
   isCurrent: false
 };
 
@@ -21,6 +22,10 @@ const CareerManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const displayItems = useMemo(
+    () => careerData.items.map((item, index) => ({ item, index })).reverse(),
+    [careerData.items]
+  );
 
   useEffect(() => {
     fetchCareerData();
@@ -35,7 +40,12 @@ const CareerManagement = () => {
           headline: data.headline || '',
           subheadline: data.subheadline || '',
           intro: data.intro || '',
-          items: Array.isArray(data.items) && data.items.length ? data.items : [emptyItem]
+          items: Array.isArray(data.items) && data.items.length
+            ? data.items.map((item) => ({
+                ...item,
+                tagsText: Array.isArray(item.tags) ? item.tags.join(', ') : (item.tagsText || '')
+              }))
+            : [emptyItem]
         });
       } else {
         setError('Failed to fetch career data');
@@ -67,7 +77,11 @@ const CareerManagement = () => {
       .split(',')
       .map((tag) => tag.trim())
       .filter(Boolean);
-    handleItemChange(index, 'tags', tags);
+    setCareerData((prev) => {
+      const nextItems = [...prev.items];
+      nextItems[index] = { ...nextItems[index], tagsText: value, tags };
+      return { ...prev, items: nextItems };
+    });
   };
 
   const toggleCurrent = (index) => {
@@ -98,13 +112,27 @@ const CareerManagement = () => {
     setError('');
     try {
       const token = localStorage.getItem('adminToken');
+      const payload = {
+        ...careerData,
+        items: careerData.items.map((item) => {
+          const tagsFromText = typeof item.tagsText === 'string'
+            ? item.tagsText.split(',').map((tag) => tag.trim()).filter(Boolean)
+            : item.tags;
+          const { tagsText, ...rest } = item;
+          return {
+            ...rest,
+            tags: Array.isArray(tagsFromText) ? tagsFromText : []
+          };
+        })
+      };
+
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/career`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(careerData)
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
@@ -174,10 +202,12 @@ const CareerManagement = () => {
             </button>
           </div>
 
-          {careerData.items.map((item, index) => (
+          {displayItems.map((entry, displayIndex) => {
+            const { item, index } = entry;
+            return (
             <div key={`career-item-${index}`} className={styles.itemCard}>
               <div className={styles.itemHeader}>
-                <h4>Item {index + 1}</h4>
+                <h4>Item {displayIndex + 1}</h4>
                 <button
                   type="button"
                   className={styles.removeButton}
@@ -219,7 +249,7 @@ const CareerManagement = () => {
                   <label>Tags (comma separated)</label>
                   <input
                     type="text"
-                    value={(item.tags || []).join(', ')}
+                    value={item.tagsText ?? (item.tags || []).join(', ')}
                     onChange={(e) => handleTagsChange(index, e.target.value)}
                     placeholder="React, Node.js, UI/UX"
                   />
@@ -245,7 +275,8 @@ const CareerManagement = () => {
                 Mark as current role
               </label>
             </div>
-          ))}
+          );
+          })}
         </div>
 
         <div className={styles.preview}>
@@ -255,13 +286,16 @@ const CareerManagement = () => {
             <p>{careerData.subheadline}</p>
             <p>{careerData.intro}</p>
             <div className={styles.previewItems}>
-              {careerData.items.map((item, index) => (
-                <div key={`preview-${index}`} className={styles.previewItem}>
-                  <strong>{item.title}</strong>
-                  <span>{item.place}</span>
-                  <em>{item.period}</em>
-                </div>
-              ))}
+              {displayItems.map((entry) => {
+                const { item, index } = entry;
+                return (
+                  <div key={`preview-${index}`} className={styles.previewItem}>
+                    <strong>{item.title}</strong>
+                    <span>{item.place}</span>
+                    <em>{item.period}</em>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

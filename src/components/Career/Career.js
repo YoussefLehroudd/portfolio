@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import styles from './Career.module.css';
 
 const Career = ({ isMagicTheme = false }) => {
@@ -26,10 +26,14 @@ const Career = ({ isMagicTheme = false }) => {
   }, []);
 
   const items = Array.isArray(careerData?.items) ? careerData.items : [];
+  const orderedItems = useMemo(() => {
+    if (!items.length) return [];
+    return [...items].reverse();
+  }, [items]);
   const showSkeleton = !careerData || error;
 
   useEffect(() => {
-    if (!scrollZoneRef.current || items.length === 0) return;
+    if (!scrollZoneRef.current || orderedItems.length === 0) return;
 
     let frame = null;
 
@@ -42,7 +46,7 @@ const Career = ({ isMagicTheme = false }) => {
       const viewport = window.innerHeight || 1;
       const total = Math.max(1, zone.offsetHeight - viewport);
       const progress = Math.min(1, Math.max(0, -rect.top / total));
-      const nextIndex = Math.min(items.length - 1, Math.floor(progress * items.length));
+      const nextIndex = Math.min(orderedItems.length - 1, Math.floor(progress * orderedItems.length));
 
       setScrollProgress(progress);
       setActiveIndex(nextIndex);
@@ -69,7 +73,7 @@ const Career = ({ isMagicTheme = false }) => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, [items.length]);
+  }, [orderedItems.length]);
 
   useEffect(() => {
     document.body.classList.toggle('career-focus', isFocusActive);
@@ -166,12 +170,12 @@ const Career = ({ isMagicTheme = false }) => {
         <div
           className={styles.timeline}
           ref={scrollZoneRef}
-          style={{ '--steps': items.length, '--progress': scrollProgress }}
+          style={{ '--steps': orderedItems.length, '--progress': scrollProgress }}
         >
           <div className={styles.stickyStage}>
             <div className={styles.stageInner}>
               <span className={styles.trunk} aria-hidden="true" />
-              {items.map((item, index) => {
+              {orderedItems.map((item, index) => {
                 const sideClass = index % 2 === 0 ? styles.right : styles.left;
                 const stateClass = index === activeIndex ? styles.cardActive : styles.cardInactive;
                 return (

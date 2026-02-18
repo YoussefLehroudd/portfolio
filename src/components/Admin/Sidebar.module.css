@@ -183,6 +183,7 @@
 
 .collapsed .navItem {
   justify-content: center;
+  gap: 0;
   padding: 0;
   width: 42px;
   margin-left: auto;
