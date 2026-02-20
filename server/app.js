@@ -19,6 +19,8 @@ const statisticsRoutes = require('./routes/statistics');
 const reviewRoutes = require('./routes/reviews');
 const avatarRoutes = require('./routes/avatars');
 const adminAvatarRoutes = require('./routes/adminAvatars');
+const emailSettingsRoutes = require('./routes/emailSettings');
+const subscriberRoutes = require('./routes/subscribers');
 const Message = require('./models/Message');
 
 dotenv.config();
@@ -99,6 +101,8 @@ app.use('/api/statistics', statisticsRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/avatars', avatarRoutes);
 app.use('/api/admin/avatars', adminAvatarRoutes);
+app.use('/api/admin/email-settings', emailSettingsRoutes);
+app.use('/api/subscribers', subscriberRoutes);
 
 // Serve static (for local prod build)
 app.use(express.static(path.join(__dirname, '../build')));

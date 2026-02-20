@@ -12,6 +12,7 @@
   transition: margin-left 0.3s ease;
   min-height: 100vh;
   position: relative;
+  min-width: 0;
 }
 
 .sidebarCollapsed .dashboard,
@@ -115,6 +116,13 @@ button.themeOption:hover {
 
 .main {
   padding: calc(60px + 2rem) 2rem 2rem;
+}
+
+.main input,
+.main textarea,
+.main select {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .messagesSection {
@@ -556,6 +564,16 @@ button.themeOption:hover {
 
   .header h1 {
     font-size: 1rem;
+  }
+
+  .main {
+    padding: 0.9rem 0.7rem 1.2rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .main {
+    padding: 0.8rem 0.6rem 1.1rem;
   }
 }
 

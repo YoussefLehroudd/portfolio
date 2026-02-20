@@ -335,6 +335,93 @@
   font-size: 0.85rem;
 }
 
+.subscribePanel {
+  position: relative;
+  margin: 2.6rem auto 0;
+  max-width: 860px;
+  padding: 2rem 2.4rem;
+  border-radius: 22px;
+  background: rgba(8, 12, 14, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.subscribePanel::before {
+  content: '';
+  position: absolute;
+  inset: -30%;
+  background: conic-gradient(from 0deg, rgba(100, 255, 218, 0.22), rgba(77, 227, 255, 0.12), transparent, rgba(100, 255, 218, 0.22));
+  animation: borderSpin 16s linear infinite;
+  opacity: 0.5;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.subscribePanel::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: rgba(8, 12, 14, 0.94);
+  border-radius: 20px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.subscribe {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.subscribeHeader {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.subscribeTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #f4fffe;
+}
+
+.subscribeText {
+  margin: 0;
+  color: var(--contact-muted);
+  font-size: 0.95rem;
+}
+
+.subscribeForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.subscribeButton {
+  padding: 0.85rem 1.3rem;
+  font-size: 0.95rem;
+}
+
+.subscribeHint {
+  text-align: center;
+  font-size: 0.85rem;
+  font-family: 'IBM Plex Mono', monospace;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
@@ -342,6 +429,11 @@
 
   .intro p {
     max-width: 100%;
+  }
+
+  .subscribePanel {
+    max-width: 100%;
+    margin-top: 2rem;
   }
 }
 
@@ -352,6 +444,14 @@
 
   .formPanel {
     padding: 2rem 1.4rem;
+  }
+
+  .subscribeForm {
+    grid-template-columns: 1fr;
+  }
+
+  .subscribePanel {
+    padding: 1.6rem 1.4rem;
   }
 }
 

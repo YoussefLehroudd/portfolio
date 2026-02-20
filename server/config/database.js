@@ -97,6 +97,19 @@ const connectDatabase = async () => {
       } catch (err) {
         console.error('Failed to ensure messages.isRead column:', err);
       }
+      // Ensure email settings optional columns exist for SQL stores
+      try {
+        const queryInterface = sequelize.getQueryInterface();
+        const table = await queryInterface.describeTable('email_settings');
+        if (!table.logoUrl) {
+          await queryInterface.addColumn('email_settings', 'logoUrl', {
+            type: DataTypes.STRING,
+            allowNull: true
+          });
+        }
+      } catch (err) {
+        console.error('Failed to ensure email_settings.logoUrl column:', err);
+      }
       console.log(`Connected to ${isPostgres ? 'PostgreSQL' : 'MySQL'}`);
     } catch (err) {
       console.error(`${isPostgres ? 'PostgreSQL' : 'MySQL'} connection error:`, err);

@@ -408,10 +408,13 @@
 
 @media (max-width: 768px) {
   .reviewsManagement {
-    padding: 1rem;
+    padding: 0.9rem 0.7rem;
+    max-width: 100%;
+    margin: 0;
   }
 
   .header {
     flex-direction: column;
+    align-items: flex-start;
   }
 }

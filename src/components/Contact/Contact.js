@@ -7,10 +7,15 @@ const Contact = () => {
     email: '',
     message: ''
   });
+  const [subscribeEmail, setSubscribeEmail] = useState('');
+  const [subscribeStatus, setSubscribeStatus] = useState('');
+  const [subscribeNote, setSubscribeNote] = useState('');
+  const [subscribeError, setSubscribeError] = useState('');
   const [status, setStatus] = useState('');
   const [placeholder, setPlaceholder] = useState('');
   const [emailError, setEmailError] = useState('');
   const [nameError, setNameError] = useState('');
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const messages = useMemo(() => [
     "$ git checkout -b feature/your-idea",
     "$ npm run build && npm run deploy",
@@ -67,7 +72,6 @@ const Contact = () => {
 
     if (fieldName === 'email') {
       setEmailError('');
-      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (value && !emailRegex.test(value)) {
         setEmailError("Veuillez entrer une adresse e-mail valide (exemple: nom@domaine.com)");
       }
@@ -85,12 +89,71 @@ const Contact = () => {
     }
   }, [status]);
 
+  useEffect(() => {
+    if (subscribeStatus && subscribeStatus !== 'sending') {
+      const timer = setTimeout(() => {
+        setSubscribeStatus('');
+        setSubscribeNote('');
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [subscribeStatus]);
+
+  const handleSubscribeChange = (e) => {
+    setSubscribeEmail(e.target.value);
+    setSubscribeError('');
+  };
+
+  const handleSubscribeSubmit = async (e) => {
+    e.preventDefault();
+    setSubscribeNote('');
+
+    if (!emailRegex.test(subscribeEmail)) {
+      setSubscribeError('Please enter a valid email address.');
+      return;
+    }
+
+    setSubscribeStatus('sending');
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/subscribers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: subscribeEmail }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        if (data.status === 'already') {
+          setSubscribeStatus('already');
+          setSubscribeNote('You are already subscribed.');
+        } else {
+          setSubscribeStatus('success');
+          setSubscribeNote(
+            data.emailSent === false
+              ? 'Subscribed! Confirmation email may arrive shortly.'
+              : 'Thanks! Check your inbox for a confirmation.'
+          );
+        }
+        setSubscribeEmail('');
+      } else {
+        setSubscribeStatus('error');
+        setSubscribeNote(data.error || 'Failed to subscribe. Please try again.');
+      }
+    } catch (error) {
+      setSubscribeStatus('error');
+      setSubscribeNote('Failed to subscribe. Please try again.');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validate name and email before submitting
     const nameRegex = /^[a-zA-Z\s]{3,}$/;
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     if (!nameRegex.test(formData.name)) {
       setNameError("Le nom doit contenir au moins 3 lettres et ne pas contenir de chiffres");
@@ -231,6 +294,54 @@ const Contact = () => {
                 <p className={styles.error}>Failed to send message. Please try again.</p>
               )}
             </form>
+          </div>
+        </div>
+
+        <div className={`${styles.subscribePanel} reveal-up`} data-reveal style={{ '--reveal-delay': '0.4s' }}>
+          <div className={styles.subscribe}>
+            <div className={styles.subscribeHeader}>
+              <h3 className={styles.subscribeTitle}>Stay in the loop</h3>
+              <p className={styles.subscribeText}>Get a short email when I ship something new.</p>
+            </div>
+            <form onSubmit={handleSubscribeSubmit} className={styles.subscribeForm}>
+              <label htmlFor="subscribeEmail" className={styles.srOnly}>
+                Email address
+              </label>
+              <input
+                type="email"
+                id="subscribeEmail"
+                name="subscribeEmail"
+                value={subscribeEmail}
+                onChange={handleSubscribeChange}
+                className={styles.input}
+                placeholder="your@email.com"
+                autoComplete="email"
+                disabled={subscribeStatus === 'sending'}
+                required
+              />
+              <button
+                type="submit"
+                disabled={subscribeStatus === 'sending'}
+                className={`${styles.button} ${styles.subscribeButton}`}
+              >
+                <span>{subscribeStatus === 'sending' ? 'Joining...' : 'Notify me'}</span>
+                <span className={styles.buttonIcon} aria-hidden="true">↗</span>
+              </button>
+            </form>
+
+            {subscribeError && <p className={styles.emailError}>{subscribeError}</p>}
+            {subscribeStatus === 'sending' && (
+              <p className={styles.subscribeHint}>Subscribing...</p>
+            )}
+            {subscribeStatus === 'success' && (
+              <p className={styles.success}>{subscribeNote || 'Subscribed!'}</p>
+            )}
+            {subscribeStatus === 'already' && (
+              <p className={styles.success}>{subscribeNote || 'Already subscribed.'}</p>
+            )}
+            {subscribeStatus === 'error' && (
+              <p className={styles.error}>{subscribeNote || 'Failed to subscribe. Please try again.'}</p>
+            )}
           </div>
         </div>
       </div>

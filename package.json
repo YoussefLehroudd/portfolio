@@ -26,9 +26,10 @@
     "react-intersection-observer": "^9.16.0",
     "react-router-dom": "^6.15.0",
     "react-scripts": "5.0.1",
+    "resend": "^6.9.2",
     "sequelize": "^6.37.7",
-    "socket.io": "^4.7.5",
     "serverless-http": "^3.2.0",
+    "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "web-vitals": "^2.1.4"
   },

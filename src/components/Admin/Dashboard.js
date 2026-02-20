@@ -13,6 +13,7 @@ import ProfileManagement from './ProfileManagement';
 import CareerManagement from './CareerManagement';
 import ReviewsManagement from './ReviewsManagement';
 import AvatarManagement from './AvatarManagement';
+import EmailSettings from './EmailSettings';
 
 const StatisticsSection = ({ stats, visits, visitsLoading }) => {
   const [projects, setProjects] = useState([]);
@@ -476,6 +477,9 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
     if (path.includes('/profile')) {
       return 'Profile Management';
     }
+    if (path.includes('/email-settings')) {
+      return 'Email Settings';
+    }
     if (path.includes('/reviews')) {
       return 'Reviews Management';
     }
@@ -553,6 +557,7 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
             <Route path="profile/*" element={<ProfileManagement />} />
             <Route path="reviews/*" element={<ReviewsManagement />} />
             <Route path="avatars/*" element={<AvatarManagement />} />
+            <Route path="email-settings/*" element={<EmailSettings />} />
             <Route 
               path="statistics/*" 
               element={<StatisticsSection stats={statistics} visits={visitLogs} visitsLoading={visitsLoading} />}
