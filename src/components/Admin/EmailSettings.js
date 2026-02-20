@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import styles from './EmailSettings.module.css';
 import AdminSkeleton from './AdminSkeleton';
 
@@ -24,30 +24,7 @@ const EmailSettings = () => {
   const [success, setSuccess] = useState('');
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-  useEffect(() => {
-    fetchSettings();
-    fetchProjects();
-  }, []);
-
-  useEffect(() => {
-    if (!testStatus) return;
-    const timer = setTimeout(() => {
-      setTestStatus('');
-      setTestMessage('');
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [testStatus]);
-
-  useEffect(() => {
-    if (!projectTestStatus) return;
-    const timer = setTimeout(() => {
-      setProjectTestStatus('');
-      setProjectTestMessage('');
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [projectTestStatus]);
-
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
@@ -73,9 +50,9 @@ const EmailSettings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects/admin`, {
@@ -95,7 +72,31 @@ const EmailSettings = () => {
     } catch (err) {
       console.error('Failed to load projects for test email:', err);
     }
-  };
+  }, [selectedProjectId]);
+
+  useEffect(() => {
+    fetchSettings();
+    fetchProjects();
+  }, [fetchSettings, fetchProjects]);
+
+  useEffect(() => {
+    if (!testStatus) return;
+    const timer = setTimeout(() => {
+      setTestStatus('');
+      setTestMessage('');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [testStatus]);
+
+  useEffect(() => {
+    if (!projectTestStatus) return;
+    const timer = setTimeout(() => {
+      setProjectTestStatus('');
+      setProjectTestMessage('');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [projectTestStatus]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
