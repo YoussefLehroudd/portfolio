@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Message = require('../models/Message');
 const Review = require('../models/Review');
+const Subscriber = require('../models/Subscriber');
 const { getIo } = require('../utils/socket');
 
 // Get all messages
@@ -130,6 +131,17 @@ router.get('/stats', auth, async (req, res) => {
   } catch (error) {
     console.error('Error fetching stats:', error);
     res.status(500).json({ message: 'Error fetching stats' });
+  }
+});
+
+// Get subscribers
+router.get('/subscribers', auth, async (req, res) => {
+  try {
+    const subscribers = await Subscriber.find().sort({ createdAt: -1 });
+    res.json(subscribers);
+  } catch (error) {
+    console.error('Error fetching subscribers:', error);
+    res.status(500).json({ message: 'Error fetching subscribers' });
   }
 });
 

@@ -97,7 +97,8 @@ const connectDatabase = async () => {
       } catch (err) {
         console.error('Failed to ensure messages.isRead column:', err);
       }
-      // Ensure email settings optional columns exist for SQL stores
+
+      // Ensure email settings logo column exists for SQL stores
       try {
         const queryInterface = sequelize.getQueryInterface();
         const table = await queryInterface.describeTable('email_settings');

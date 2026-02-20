@@ -1,7 +1,7 @@
 const express = require('express');
 const { Resend } = require('resend');
 const Subscriber = require('../models/Subscriber');
-const EmailSettings = require('../models/EmailSettings');
+const { resolveEmailSettings } = require('../utils/emailSettings');
 
 const router = express.Router();
 
@@ -12,48 +12,6 @@ const getResendClient = () => {
   return new Resend(process.env.RESEND_API_KEY);
 };
 
-const parseFromEnv = (fromValue = '') => {
-  const raw = String(fromValue || '').trim();
-  if (!raw) return { fromName: '', fromEmail: '' };
-  const match = raw.match(/^\s*"?([^"<]+?)"?\s*<([^>]+)>\s*$/);
-  if (match) {
-    return { fromName: match[1].trim(), fromEmail: match[2].trim() };
-  }
-  return { fromName: '', fromEmail: raw };
-};
-
-const buildFromAddress = ({ fromName, fromEmail }) => {
-  if (!fromEmail) return '';
-  const cleanName = String(fromName || '').trim();
-  if (cleanName) {
-    return `${cleanName} <${fromEmail}>`;
-  }
-  return fromEmail;
-};
-
-const resolveEmailSettings = async () => {
-  const settings = await EmailSettings.findOne();
-  if (settings) {
-    const data = settings.toJSON ? settings.toJSON() : settings;
-    return {
-      from: buildFromAddress({
-        fromName: data.fromName,
-        fromEmail: data.fromEmail
-      }),
-      notifyEmail: String(data.notifyEmail || '').trim().toLowerCase(),
-      fromName: data.fromName || '',
-      logoUrl: data.logoUrl || ''
-    };
-  }
-
-  const fallback = parseFromEnv(process.env.RESEND_FROM);
-  return {
-    from: buildFromAddress(fallback),
-    notifyEmail: String(process.env.RESEND_NOTIFY_EMAIL || '').trim().toLowerCase(),
-    fromName: fallback.fromName,
-    logoUrl: process.env.EMAIL_LOGO_URL || ''
-  };
-};
 
 router.post('/', async (req, res) => {
   const { email } = req.body || {};
@@ -73,7 +31,7 @@ router.post('/', async (req, res) => {
     await subscriber.save();
 
     const resend = getResendClient();
-    const { from, notifyEmail, fromName, logoUrl } = await resolveEmailSettings();
+    const { from, notifyEmail, fromName } = await resolveEmailSettings();
 
     if (!resend || !from) {
       return res.status(202).json({ status: 'subscribed', emailSent: false });
@@ -85,11 +43,6 @@ router.post('/', async (req, res) => {
       subject: 'You are in the loop',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #0b0d12;">
-          ${logoUrl ? `
-            <div style="margin-bottom: 14px;">
-              <img src="${logoUrl}" alt="${fromName || 'Logo'}" style="height: 48px; width: 48px; object-fit: contain; border-radius: 10px;" />
-            </div>
-          ` : ''}
           ${fromName ? `<div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">${fromName}</div>` : ''}
           <h2 style="margin: 0 0 12px;">Welcome aboard</h2>
           <p style="margin: 0 0 10px;">Thanks for subscribing. I will send you updates whenever I ship something new.</p>
@@ -111,11 +64,6 @@ router.post('/', async (req, res) => {
         subject: 'New portfolio subscriber',
         html: `
           <div style="font-family: Arial, sans-serif; padding: 20px; color: #0b0d12;">
-            ${logoUrl ? `
-              <div style="margin-bottom: 12px;">
-                <img src="${logoUrl}" alt="${fromName || 'Logo'}" style="height: 40px; width: 40px; object-fit: contain; border-radius: 8px;" />
-              </div>
-            ` : ''}
             ${fromName ? `<div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">${fromName}</div>` : ''}
             <p style="margin: 0 0 10px;">New subscriber:</p>
             <strong>${normalizedEmail}</strong>

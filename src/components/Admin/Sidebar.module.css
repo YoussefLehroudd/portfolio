@@ -1,6 +1,7 @@
 .sidebar {
   width: 250px;
-  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
   background: rgba(25, 25, 25, 0.95);
   border-right: 1px solid rgba(100, 255, 218, 0.1);
   position: fixed;
@@ -10,6 +11,7 @@
   flex-direction: column;
   transition: width 0.3s ease;
   z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .sidebar.collapsed {
@@ -96,6 +98,14 @@
   padding: 1rem 0.5rem;
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  scrollbar-width: none;
+}
+
+.nav::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .navItem {

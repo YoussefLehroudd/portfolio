@@ -9,14 +9,16 @@ const EmailSettings = () => {
     notifyEmail: '',
     logoUrl: ''
   });
-  const [logoFile, setLogoFile] = useState(null);
-  const [logoUploadStatus, setLogoUploadStatus] = useState('');
-  const [logoUploadMessage, setLogoUploadMessage] = useState('');
-  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [testStatus, setTestStatus] = useState('');
   const [testMessage, setTestMessage] = useState('');
   const [isTesting, setIsTesting] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [projectTestEmail, setProjectTestEmail] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [projectTestStatus, setProjectTestStatus] = useState('');
+  const [projectTestMessage, setProjectTestMessage] = useState('');
+  const [isProjectTesting, setIsProjectTesting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -24,7 +26,26 @@ const EmailSettings = () => {
 
   useEffect(() => {
     fetchSettings();
+    fetchProjects();
   }, []);
+
+  useEffect(() => {
+    if (!testStatus) return;
+    const timer = setTimeout(() => {
+      setTestStatus('');
+      setTestMessage('');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [testStatus]);
+
+  useEffect(() => {
+    if (!projectTestStatus) return;
+    const timer = setTimeout(() => {
+      setProjectTestStatus('');
+      setProjectTestMessage('');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [projectTestStatus]);
 
   const fetchSettings = async () => {
     try {
@@ -54,63 +75,34 @@ const EmailSettings = () => {
     }
   };
 
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects/admin`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const list = Array.isArray(data) ? data : [];
+        setProjects(list);
+        if (!selectedProjectId && list.length) {
+          setSelectedProjectId(list[0]._id || list[0].id || '');
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load projects for test email:', err);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value
     }));
-  };
-
-  const handleLogoFileChange = (e) => {
-    const file = e.target.files?.[0] || null;
-    setLogoFile(file);
-    setLogoUploadStatus('');
-    setLogoUploadMessage('');
-  };
-
-  const handleLogoUpload = async () => {
-    if (!logoFile) {
-      setLogoUploadStatus('error');
-      setLogoUploadMessage('Please select an image file first.');
-      return;
-    }
-
-    try {
-      setIsUploadingLogo(true);
-      setLogoUploadStatus('');
-      setLogoUploadMessage('');
-      const token = localStorage.getItem('adminToken');
-      const payload = new FormData();
-      payload.append('image', logoFile);
-
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/upload/image`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: payload
-      });
-
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || 'Upload failed');
-      }
-
-      if (data.url) {
-        setFormData((prev) => ({ ...prev, logoUrl: data.url }));
-        setLogoUploadStatus('success');
-        setLogoUploadMessage('Logo uploaded. Remember to save changes.');
-        setLogoFile(null);
-      } else {
-        throw new Error('Upload did not return a URL');
-      }
-    } catch (error) {
-      setLogoUploadStatus('error');
-      setLogoUploadMessage(error.message || 'Failed to upload logo.');
-    } finally {
-      setIsUploadingLogo(false);
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -191,6 +183,52 @@ const EmailSettings = () => {
     }
   };
 
+  const handleProjectTestSubmit = async (e) => {
+    e.preventDefault();
+    setProjectTestMessage('');
+    setProjectTestStatus('');
+
+    const normalized = projectTestEmail.trim().toLowerCase();
+    if (!emailRegex.test(normalized)) {
+      setProjectTestStatus('error');
+      setProjectTestMessage('Please enter a valid test email address.');
+      return;
+    }
+
+    if (!selectedProjectId) {
+      setProjectTestStatus('error');
+      setProjectTestMessage('Please select a project.');
+      return;
+    }
+
+    try {
+      setIsProjectTesting(true);
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/email-settings/test-project`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ email: normalized, projectId: selectedProjectId })
+      });
+
+      if (response.ok) {
+        setProjectTestStatus('success');
+        setProjectTestMessage('Project test email sent successfully.');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setProjectTestStatus('error');
+        setProjectTestMessage(errorData.message || 'Failed to send project test email.');
+      }
+    } catch (err) {
+      setProjectTestStatus('error');
+      setProjectTestMessage('Failed to send project test email.');
+    } finally {
+      setIsProjectTesting(false);
+    }
+  };
+
   if (loading) {
     return <AdminSkeleton compact />;
   }
@@ -205,7 +243,6 @@ const EmailSettings = () => {
       <div className={styles.helper}>
         <p>Use a verified sender from Resend. Example: <strong>Acme</strong> + <strong>hello@yourdomain.com</strong>.</p>
         <p>If From Email is empty, confirmation emails will not be sent.</p>
-        <p>Logo URL should be a public http(s) link.</p>
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
@@ -245,42 +282,13 @@ const EmailSettings = () => {
         <div className={styles.formGroup}>
           <label>Logo URL</label>
           <input
-            type="url"
+            type="text"
             name="logoUrl"
             value={formData.logoUrl}
             onChange={handleChange}
-            placeholder="https://yourdomain.com/favicon-32x32.png"
+            placeholder="https://yourdomain.com/logo.png"
           />
-          <div className={styles.uploadRow}>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoFileChange}
-              className={styles.fileInput}
-            />
-            <button
-              type="button"
-              className={styles.uploadButton}
-              onClick={handleLogoUpload}
-              disabled={!logoFile || isUploadingLogo}
-            >
-              {isUploadingLogo ? 'Uploading...' : 'Upload Logo'}
-            </button>
-          </div>
-          {logoUploadStatus === 'success' && (
-            <div className={styles.success}>{logoUploadMessage}</div>
-          )}
-          {logoUploadStatus === 'error' && (
-            <div className={styles.error}>{logoUploadMessage}</div>
-          )}
         </div>
-
-        {formData.logoUrl && (
-          <div className={styles.logoPreview}>
-            <span>Preview</span>
-            <img src={formData.logoUrl} alt="Email logo preview" />
-          </div>
-        )}
 
         <button type="submit" className={styles.submitButton} disabled={loading}>
           Save Changes
@@ -308,6 +316,45 @@ const EmailSettings = () => {
 
         {testStatus === 'success' && <div className={styles.success}>{testMessage}</div>}
         {testStatus === 'error' && <div className={styles.error}>{testMessage}</div>}
+      </div>
+
+      <div className={styles.testSection}>
+        <h3>Send Project Test</h3>
+        <p className={styles.testHint}>Pick a project and preview the announcement email.</p>
+        <form onSubmit={handleProjectTestSubmit} className={styles.projectTestForm}>
+          <select
+            value={selectedProjectId}
+            onChange={(e) => setSelectedProjectId(e.target.value)}
+            className={styles.testSelect}
+            disabled={projects.length === 0 || isProjectTesting}
+          >
+            {projects.length === 0 ? (
+              <option value="">No projects available</option>
+            ) : (
+              projects.map((project) => (
+                <option key={project._id || project.id} value={project._id || project.id}>
+                  {project.title || 'Untitled project'}
+                </option>
+              ))
+            )}
+          </select>
+          <input
+            type="email"
+            name="projectTestEmail"
+            value={projectTestEmail}
+            onChange={(e) => setProjectTestEmail(e.target.value)}
+            placeholder="test@yourdomain.com"
+            className={styles.testInput}
+            required
+            disabled={isProjectTesting}
+          />
+          <button type="submit" className={styles.testButton} disabled={isProjectTesting || projects.length === 0}>
+            {isProjectTesting ? 'Sending...' : 'Send Project Test'}
+          </button>
+        </form>
+
+        {projectTestStatus === 'success' && <div className={styles.success}>{projectTestMessage}</div>}
+        {projectTestStatus === 'error' && <div className={styles.error}>{projectTestMessage}</div>}
       </div>
     </div>
   );

@@ -124,6 +124,27 @@ const Sidebar = ({ messageCount = 0 }) => {
           )}
         </div>
 
+        <div
+          className={`${styles.navItem} ${isActive('subscribers') ? styles.active : ''}`}
+          onClick={() => handleNavigation('subscribers')}
+        >
+          <div className={styles.iconWrapper}>
+            <svg
+              className={styles.icon}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+          </div>
+          <span>Subscribers</span>
+        </div>
+
         <div 
           className={`${styles.navItem} ${isActive('reviews') ? styles.active : ''}`}
           onClick={() => handleNavigation('reviews')}
