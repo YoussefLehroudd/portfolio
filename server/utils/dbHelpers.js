@@ -10,14 +10,23 @@ const normalizeWhere = (where = {}) => {
 
     if (isSQL && value && typeof value === 'object' && !Array.isArray(value)) {
       const translated = {};
+      let hasEntries = false;
+
+      for (const symbolKey of Object.getOwnPropertySymbols(value)) {
+        translated[symbolKey] = value[symbolKey];
+        hasEntries = true;
+      }
+
       Object.entries(value).forEach(([opKey, opVal]) => {
+        hasEntries = true;
         if (opKey === '$ne' && Op) {
           translated[Op.ne] = opVal;
         } else {
           translated[opKey] = opVal;
         }
       });
-      normalized[targetKey] = translated;
+
+      normalized[targetKey] = hasEntries ? translated : value;
     } else {
       normalized[targetKey] = value;
     }
