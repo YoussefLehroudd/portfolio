@@ -223,12 +223,18 @@
   font-size: 1rem;
   transition: all 0.3s ease;
   box-sizing: border-box;
+  color-scheme: dark;
 }
 
 .testSelect:focus {
   outline: none;
   border-color: #64ffda;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.testSelect option {
+  background-color: #0f172a;
+  color: #e5e7eb;
 }
 
 .testButton {
