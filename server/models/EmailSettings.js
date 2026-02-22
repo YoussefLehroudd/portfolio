@@ -16,6 +16,10 @@ if (isSQL) {
         type: DataTypes.STRING,
         allowNull: true
       },
+      provider: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
       fromEmail: {
         type: DataTypes.STRING,
         allowNull: true
@@ -26,6 +30,26 @@ if (isSQL) {
       },
       logoUrl: {
         type: DataTypes.STRING,
+        allowNull: true
+      },
+      smtpHost: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      smtpPort: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+      },
+      smtpUser: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      smtpPass: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      smtpSecure: {
+        type: DataTypes.BOOLEAN,
         allowNull: true
       }
     },
@@ -42,6 +66,10 @@ if (isSQL) {
       type: String,
       trim: true
     },
+    provider: {
+      type: String,
+      trim: true
+    },
     fromEmail: {
       type: String,
       trim: true,
@@ -55,6 +83,23 @@ if (isSQL) {
     logoUrl: {
       type: String,
       trim: true
+    },
+    smtpHost: {
+      type: String,
+      trim: true
+    },
+    smtpPort: {
+      type: Number
+    },
+    smtpUser: {
+      type: String,
+      trim: true
+    },
+    smtpPass: {
+      type: String
+    },
+    smtpSecure: {
+      type: Boolean
     }
   }, {
     timestamps: true

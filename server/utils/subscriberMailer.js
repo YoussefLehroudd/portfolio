@@ -1,14 +1,6 @@
-const { Resend } = require('resend');
 const Subscriber = require('../models/Subscriber');
-const { resolveEmailSettings } = require('./emailSettings');
-
-const chunkArray = (items, size) => {
-  const chunks = [];
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size));
-  }
-  return chunks;
-};
+const { sendEmail } = require('./mailer');
+const { createUnsubscribeToken, buildUnsubscribeUrl } = require('./unsubscribe');
 
 const escapeHtml = (value = '') => (
   String(value)
@@ -36,10 +28,11 @@ const resolveImageUrl = (image, siteUrl) => {
   return image.startsWith('/') ? `${siteUrl}${image}` : `${siteUrl}/${image}`;
 };
 
-const renderLayout = ({ fromName, title, bodyHtml, ctaLabel, ctaUrl, secondaryCtaLabel, secondaryCtaUrl, logoUrl }) => {
+const renderLayout = ({ fromName, title, bodyHtml, ctaLabel, ctaUrl, secondaryCtaLabel, secondaryCtaUrl, logoUrl, unsubscribeUrl }) => {
   const safeTitle = escapeHtml(title);
   const safeFromName = escapeHtml(fromName || '');
   const safeLogoUrl = logoUrl ? escapeHtml(logoUrl) : '';
+  const safeUnsubscribeUrl = unsubscribeUrl ? escapeHtml(unsubscribeUrl) : '';
   const headerBlock = (safeLogoUrl || safeFromName) ? `
     <table role="presentation" cellspacing="0" cellpadding="0" style="margin: 0 0 12px;">
       <tr>
@@ -91,6 +84,7 @@ const renderLayout = ({ fromName, title, bodyHtml, ctaLabel, ctaUrl, secondaryCt
             <tr>
               <td style="padding: 14px 22px; background-color:#f9fafb; color:#6b7280; font-size: 12px; font-family: Arial, sans-serif;" bgcolor="#f9fafb">
                 You are receiving this because you subscribed for updates.
+                ${safeUnsubscribeUrl ? ` <a href="${safeUnsubscribeUrl}" style="color:#0f766e; text-decoration:none;">Unsubscribe</a>.` : ''}
               </td>
             </tr>
           </table>
@@ -100,16 +94,15 @@ const renderLayout = ({ fromName, title, bodyHtml, ctaLabel, ctaUrl, secondaryCt
   `.trim();
 };
 
-const sendToSubscribers = async ({ subject, html }) => {
-  if (!process.env.RESEND_API_KEY) {
-    return { skipped: 'missing_api_key' };
-  }
+const buildListUnsubscribeHeaders = (unsubscribeUrl) => {
+  if (!unsubscribeUrl) return undefined;
+  return {
+    'List-Unsubscribe': `<${unsubscribeUrl}>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+  };
+};
 
-  const { from } = await resolveEmailSettings();
-  if (!from) {
-    return { skipped: 'missing_from' };
-  }
-
+const sendToSubscribers = async ({ subject, siteUrl, renderEmail }) => {
   const subscribers = await Subscriber.find().sort({ createdAt: -1 });
   const recipients = subscribers
     .map((sub) => sub?.email)
@@ -119,26 +112,39 @@ const sendToSubscribers = async ({ subject, html }) => {
     return { skipped: 'no_subscribers' };
   }
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  const messages = recipients.map((email) => ({
-    from,
-    to: [email],
-    subject,
-    html
-  }));
+  let sent = 0;
+  for (const recipient of recipients) {
+    const token = createUnsubscribeToken(recipient);
+    const unsubscribeUrl = buildUnsubscribeUrl(siteUrl, token);
+    const payload = typeof renderEmail === 'function'
+      ? renderEmail({ email: recipient, unsubscribeUrl })
+      : {};
+    const html = payload?.html || '';
+    const text = payload?.text || '';
+    const headers = buildListUnsubscribeHeaders(unsubscribeUrl);
 
-  const chunks = chunkArray(messages, 100);
-  for (const chunk of chunks) {
-    const { error } = await resend.batch.send(chunk);
-    if (error) {
-      console.error('Resend batch send error:', error);
+    try {
+      const result = await sendEmail({
+        to: [recipient],
+        subject,
+        html,
+        text,
+        headers
+      });
+      if (!result?.error) {
+        sent += 1;
+      } else {
+        console.error('Subscriber send error:', result.error);
+      }
+    } catch (error) {
+      console.error('Subscriber send exception:', error);
     }
   }
 
-  return { sent: recipients.length };
+  return { sent };
 };
 
-const renderProjectEmail = (project, { siteUrl, fromName, logoUrl }) => {
+const renderProjectEmail = (project, { siteUrl, fromName, logoUrl, unsubscribeUrl }) => {
   const imageUrl = resolveImageUrl(project?.image || '', siteUrl);
   const resolvedLogoUrl = resolveImageUrl(logoUrl || '', siteUrl);
   const rawDescription = String(project?.description || '');
@@ -169,11 +175,12 @@ const renderProjectEmail = (project, { siteUrl, fromName, logoUrl }) => {
     ctaUrl: siteUrl ? `${siteUrl}/#projects` : (project?.demoLink || ''),
     secondaryCtaLabel: siteUrl && project?.demoLink ? 'Open demo' : '',
     secondaryCtaUrl: siteUrl && project?.demoLink ? project.demoLink : '',
-    logoUrl: resolvedLogoUrl
+    logoUrl: resolvedLogoUrl,
+    unsubscribeUrl
   });
 };
 
-const renderCareerEmail = (items, { siteUrl, fromName, logoUrl }) => {
+const renderCareerEmail = (items, { siteUrl, fromName, logoUrl, unsubscribeUrl }) => {
   const resolvedLogoUrl = resolveImageUrl(logoUrl || '', siteUrl);
   const cards = items.map((item) => {
     const tags = Array.isArray(item?.tags) && item.tags.length
@@ -199,8 +206,53 @@ const renderCareerEmail = (items, { siteUrl, fromName, logoUrl }) => {
     `,
     ctaLabel: 'View the update',
     ctaUrl: siteUrl ? `${siteUrl}/#career` : '',
-    logoUrl: resolvedLogoUrl
+    logoUrl: resolvedLogoUrl,
+    unsubscribeUrl
   });
+};
+
+const renderProjectEmailText = (project, { siteUrl, fromName, unsubscribeUrl }) => {
+  const rawDescription = String(project?.description || '');
+  const snippet = rawDescription.length > 240 ? `${rawDescription.slice(0, 240)}...` : rawDescription;
+  const technologies = Array.isArray(project?.technologies) ? project.technologies : [];
+  const stackPreview = technologies.slice(0, 6).join(', ');
+  const stackSuffix = technologies.length > 6 ? ` +${technologies.length - 6} more` : '';
+  const lines = [
+    fromName ? `${fromName}` : '',
+    `New project: ${project?.title || 'Just launched'}`,
+    snippet || 'A new project is now live.',
+    project?.type ? `Type: ${project.type}` : '',
+    project?.category ? `Category: ${project.category}` : '',
+    project?.timeline ? `Timeline: ${project.timeline}` : '',
+    stackPreview ? `Stack: ${stackPreview}${stackSuffix}` : '',
+    '',
+    siteUrl ? `See the new project: ${siteUrl}/#projects` : (project?.demoLink ? `Demo: ${project.demoLink}` : ''),
+    unsubscribeUrl ? `Unsubscribe: ${unsubscribeUrl}` : ''
+  ].filter(Boolean);
+  return lines.join('\n');
+};
+
+const renderCareerEmailText = (items, { siteUrl, fromName, unsubscribeUrl }) => {
+  const lines = [];
+  if (fromName) lines.push(fromName);
+  lines.push('New career update');
+  lines.push('I just added a new milestone to my career timeline.');
+  lines.push('');
+
+  items.forEach((item) => {
+    lines.push(`${item?.title || 'New role'} — ${item?.place || ''}`.trim());
+    if (item?.period) lines.push(item.period);
+    if (item?.description) lines.push(item.description);
+    if (Array.isArray(item?.tags) && item.tags.length) {
+      lines.push(`Tags: ${item.tags.join(', ')}`);
+    }
+    lines.push('');
+  });
+
+  if (siteUrl) lines.push(`View the update: ${siteUrl}/#career`);
+  if (unsubscribeUrl) lines.push(`Unsubscribe: ${unsubscribeUrl}`);
+
+  return lines.filter(Boolean).join('\n');
 };
 
 module.exports = {
@@ -209,5 +261,7 @@ module.exports = {
   resolveImageUrl,
   sendToSubscribers,
   renderProjectEmail,
-  renderCareerEmail
+  renderCareerEmail,
+  renderProjectEmailText,
+  renderCareerEmailText
 };

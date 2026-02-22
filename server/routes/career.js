@@ -3,7 +3,7 @@ const router = express.Router();
 const Career = require('../models/Career');
 const auth = require('../middleware/auth');
 const { resolveEmailSettings } = require('../utils/emailSettings');
-const { sendToSubscribers, renderCareerEmail, getSiteUrl } = require('../utils/subscriberMailer');
+const { sendToSubscribers, renderCareerEmail, renderCareerEmailText, getSiteUrl } = require('../utils/subscriberMailer');
 
 const normalizeCareer = (career) => {
   const careerData = career?.toJSON ? career.toJSON() : career || {};
@@ -113,14 +113,22 @@ router.put('/', auth, async (req, res) => {
       try {
         const siteUrl = getSiteUrl(req);
         const settings = await resolveEmailSettings();
-        const html = renderCareerEmail(newItems, {
-          siteUrl,
-          fromName: settings.fromName,
-          logoUrl: settings.logoUrl
-        });
         sendToSubscribers({
           subject: 'New career update',
-          html
+          siteUrl,
+          renderEmail: ({ unsubscribeUrl }) => ({
+            html: renderCareerEmail(newItems, {
+              siteUrl,
+              fromName: settings.fromName,
+              logoUrl: settings.logoUrl,
+              unsubscribeUrl
+            }),
+            text: renderCareerEmailText(newItems, {
+              siteUrl,
+              fromName: settings.fromName,
+              unsubscribeUrl
+            })
+          })
         }).catch((error) => {
           console.error('Career announcement send error:', error);
         });

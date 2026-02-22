@@ -102,14 +102,42 @@ const connectDatabase = async () => {
       try {
         const queryInterface = sequelize.getQueryInterface();
         const table = await queryInterface.describeTable('email_settings');
-        if (!table.logoUrl) {
-          await queryInterface.addColumn('email_settings', 'logoUrl', {
-            type: DataTypes.STRING,
-            allowNull: true
-          });
-        }
+        const addColumnIfMissing = async (column, definition) => {
+          if (!table[column]) {
+            await queryInterface.addColumn('email_settings', column, definition);
+          }
+        };
+
+        await addColumnIfMissing('logoUrl', {
+          type: DataTypes.STRING,
+          allowNull: true
+        });
+        await addColumnIfMissing('provider', {
+          type: DataTypes.STRING,
+          allowNull: true
+        });
+        await addColumnIfMissing('smtpHost', {
+          type: DataTypes.STRING,
+          allowNull: true
+        });
+        await addColumnIfMissing('smtpPort', {
+          type: DataTypes.INTEGER,
+          allowNull: true
+        });
+        await addColumnIfMissing('smtpUser', {
+          type: DataTypes.STRING,
+          allowNull: true
+        });
+        await addColumnIfMissing('smtpPass', {
+          type: DataTypes.STRING,
+          allowNull: true
+        });
+        await addColumnIfMissing('smtpSecure', {
+          type: DataTypes.BOOLEAN,
+          allowNull: true
+        });
       } catch (err) {
-        console.error('Failed to ensure email_settings.logoUrl column:', err);
+        console.error('Failed to ensure email_settings columns:', err);
       }
       console.log(`Connected to ${isPostgres ? 'PostgreSQL' : 'MySQL'}`);
     } catch (err) {

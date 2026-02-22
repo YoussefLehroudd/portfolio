@@ -6,7 +6,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const multer = require('multer');
 const { resolveEmailSettings } = require('../utils/emailSettings');
-const { sendToSubscribers, renderProjectEmail, getSiteUrl } = require('../utils/subscriberMailer');
+const { sendToSubscribers, renderProjectEmail, renderProjectEmailText, getSiteUrl } = require('../utils/subscriberMailer');
 
 // Configure multer for handling file uploads
 const storage = multer.diskStorage({
@@ -62,14 +62,22 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
       try {
         const siteUrl = getSiteUrl(req);
         const settings = await resolveEmailSettings();
-        const html = renderProjectEmail(savedProject, {
-          siteUrl,
-          fromName: settings.fromName,
-          logoUrl: settings.logoUrl
-        });
         sendToSubscribers({
           subject: `New project: ${savedProject.title || 'Update'}`,
-          html
+          siteUrl,
+          renderEmail: ({ unsubscribeUrl }) => ({
+            html: renderProjectEmail(savedProject, {
+              siteUrl,
+              fromName: settings.fromName,
+              logoUrl: settings.logoUrl,
+              unsubscribeUrl
+            }),
+            text: renderProjectEmailText(savedProject, {
+              siteUrl,
+              fromName: settings.fromName,
+              unsubscribeUrl
+            })
+          })
         }).catch((error) => {
           console.error('Project announcement send error:', error);
         });

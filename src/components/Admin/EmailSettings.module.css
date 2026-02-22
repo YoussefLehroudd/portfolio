@@ -41,6 +41,40 @@
   gap: 0.5rem;
 }
 
+.inlineHint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.providerToggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.providerOption {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0.7rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.providerOption:hover {
+  border-color: rgba(100, 255, 218, 0.6);
+  color: #fff;
+}
+
+.providerActive {
+  background: rgba(100, 255, 218, 0.18);
+  border-color: rgba(100, 255, 218, 0.7);
+  color: #64ffda;
+}
+
 .formGroup label {
   color: #fff;
   font-size: 1rem;
@@ -61,6 +95,48 @@
   outline: none;
   border-color: #64ffda;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.smtpSection {
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  gap: 1rem;
+}
+
+.smtpHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.smtpHeader h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.smtpGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+}
+
+.checkboxRow input {
+  width: 18px;
+  height: 18px;
 }
 
 
@@ -209,6 +285,14 @@
 
   .form {
     gap: 1rem;
+  }
+
+  .providerToggle {
+    grid-template-columns: 1fr;
+  }
+
+  .smtpGrid {
+    grid-template-columns: 1fr;
   }
 
   .testForm {

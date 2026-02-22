@@ -4,11 +4,18 @@ import AdminSkeleton from './AdminSkeleton';
 
 const EmailSettings = () => {
   const [formData, setFormData] = useState({
+    provider: 'resend',
     fromName: '',
     fromEmail: '',
     notifyEmail: '',
-    logoUrl: ''
+    logoUrl: '',
+    smtpHost: '',
+    smtpPort: '',
+    smtpUser: '',
+    smtpPass: '',
+    smtpSecure: false
   });
+  const [smtpPassSet, setSmtpPassSet] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [testStatus, setTestStatus] = useState('');
   const [testMessage, setTestMessage] = useState('');
@@ -37,11 +44,18 @@ const EmailSettings = () => {
       if (response.ok) {
         const data = await response.json();
         setFormData({
+          provider: data.provider || 'resend',
           fromName: data.fromName || '',
           fromEmail: data.fromEmail || '',
           notifyEmail: data.notifyEmail || '',
-          logoUrl: data.logoUrl || ''
+          logoUrl: data.logoUrl || '',
+          smtpHost: data.smtpHost || '',
+          smtpPort: data.smtpPort ? String(data.smtpPort) : '',
+          smtpUser: data.smtpUser || '',
+          smtpPass: '',
+          smtpSecure: Boolean(data.smtpSecure)
         });
+        setSmtpPassSet(Boolean(data.smtpPassSet));
       } else {
         setError('Failed to fetch email settings');
       }
@@ -99,10 +113,10 @@ const EmailSettings = () => {
 
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -126,11 +140,18 @@ const EmailSettings = () => {
       if (response.ok) {
         const data = await response.json();
         setFormData({
+          provider: data.provider || 'resend',
           fromName: data.fromName || '',
           fromEmail: data.fromEmail || '',
           notifyEmail: data.notifyEmail || '',
-          logoUrl: data.logoUrl || ''
+          logoUrl: data.logoUrl || '',
+          smtpHost: data.smtpHost || '',
+          smtpPort: data.smtpPort ? String(data.smtpPort) : '',
+          smtpUser: data.smtpUser || '',
+          smtpPass: '',
+          smtpSecure: Boolean(data.smtpSecure)
         });
+        setSmtpPassSet(Boolean(data.smtpPassSet));
         setSuccess('Email settings updated successfully');
         setTimeout(() => setSuccess(''), 3000);
       } else {
@@ -242,11 +263,35 @@ const EmailSettings = () => {
       {success && <div className={styles.success}>{success}</div>}
 
       <div className={styles.helper}>
-        <p>Use a verified sender from Resend. Example: <strong>Acme</strong> + <strong>hello@yourdomain.com</strong>.</p>
+        <p>Choose how emails are sent. Resend is easiest, SMTP lets you use your own provider.</p>
+        <p>Example sender: <strong>Acme</strong> + <strong>hello@yourdomain.com</strong>.</p>
         <p>If From Email is empty, confirmation emails will not be sent.</p>
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.formGroup}>
+          <label>Email Provider</label>
+          <div className={styles.providerToggle}>
+            <button
+              type="button"
+              className={`${styles.providerOption} ${formData.provider === 'resend' ? styles.providerActive : ''}`}
+              onClick={() => setFormData((prev) => ({ ...prev, provider: 'resend' }))}
+            >
+              Resend
+            </button>
+            <button
+              type="button"
+              className={`${styles.providerOption} ${formData.provider === 'smtp' ? styles.providerActive : ''}`}
+              onClick={() => setFormData((prev) => ({ ...prev, provider: 'smtp' }))}
+            >
+              SMTP
+            </button>
+          </div>
+          <p className={styles.inlineHint}>
+            SMTP requires host, port, and credentials from your email provider.
+          </p>
+        </div>
+
         <div className={styles.formGroup}>
           <label>From Name</label>
           <input
@@ -290,6 +335,69 @@ const EmailSettings = () => {
             placeholder="https://yourdomain.com/logo.png"
           />
         </div>
+
+        {formData.provider === 'smtp' && (
+          <div className={styles.smtpSection}>
+            <div className={styles.smtpHeader}>
+              <h3>SMTP Settings</h3>
+              <p className={styles.inlineHint}>
+                Leave the password blank to keep the saved value. Leave username/password empty if no auth is required.
+              </p>
+            </div>
+            <div className={styles.smtpGrid}>
+              <div className={styles.formGroup}>
+                <label>SMTP Host</label>
+                <input
+                  type="text"
+                  name="smtpHost"
+                  value={formData.smtpHost}
+                  onChange={handleChange}
+                  placeholder="smtp.yourdomain.com"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>SMTP Port</label>
+                <input
+                  type="number"
+                  name="smtpPort"
+                  value={formData.smtpPort}
+                  onChange={handleChange}
+                  placeholder="587"
+                  min="1"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>SMTP Username</label>
+                <input
+                  type="text"
+                  name="smtpUser"
+                  value={formData.smtpUser}
+                  onChange={handleChange}
+                  placeholder="username@yourdomain.com"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>SMTP Password</label>
+                <input
+                  type="password"
+                  name="smtpPass"
+                  value={formData.smtpPass}
+                  onChange={handleChange}
+                  placeholder={smtpPassSet ? 'Saved password' : 'SMTP password'}
+                />
+              </div>
+            </div>
+            <label className={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                name="smtpSecure"
+                checked={formData.smtpSecure}
+                onChange={handleChange}
+              />
+              Use TLS/SSL (secure)
+            </label>
+          </div>
+        )}
 
         <button type="submit" className={styles.submitButton} disabled={loading}>
           Save Changes
