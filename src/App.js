@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Hero from './components/Hero/Hero';
 import About from './components/About/About';
@@ -19,6 +19,71 @@ import GradientBackground from './components/Background/GradientBackground';
 import Ribbons from './components/Background/Ribbons';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
+
+const updateMetaTag = (selector, content) => {
+  if (!content) return;
+  const el = document.querySelector(selector);
+  if (!el) return;
+  el.setAttribute('content', content);
+};
+
+const resolveMetaImage = (value) => {
+  if (!value) return '';
+  if (value.startsWith('http://') || value.startsWith('https://')) return value;
+  const origin = window.location.origin || '';
+  if (!origin) return value;
+  if (value.startsWith('/')) return `${origin}${value}`;
+  return `${origin}/${value}`;
+};
+
+const applySeoMeta = (payload) => {
+  if (!payload || typeof document === 'undefined') return;
+  const title = typeof payload.title === 'string' ? payload.title.trim() : '';
+  const description = typeof payload.description === 'string' ? payload.description.trim() : '';
+  const image = typeof payload.image === 'string' ? payload.image.trim() : '';
+  const resolvedImage = resolveMetaImage(image);
+  const currentUrl = window.location.href;
+
+  if (title) {
+    document.title = title;
+    updateMetaTag('meta[property="og:title"]', title);
+    updateMetaTag('meta[property="twitter:title"]', title);
+  }
+  if (description) {
+    updateMetaTag('meta[name="description"]', description);
+    updateMetaTag('meta[property="og:description"]', description);
+    updateMetaTag('meta[property="twitter:description"]', description);
+  }
+  if (resolvedImage) {
+    updateMetaTag('meta[property="og:image"]', resolvedImage);
+    updateMetaTag('meta[property="twitter:image"]', resolvedImage);
+  }
+  if (currentUrl) {
+    updateMetaTag('meta[property="og:url"]', currentUrl);
+    updateMetaTag('meta[property="twitter:url"]', currentUrl);
+  }
+};
+
+const SeoMeta = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!location || location.pathname.startsWith('/admin')) return undefined;
+    const controller = new AbortController();
+
+    fetch(`${process.env.REACT_APP_API_URL}/api/seo`, { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!data) return;
+        applySeoMeta(data);
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, [location.pathname]);
+
+  return null;
+};
 
 const PrivateRoute = ({ children }) => {
   const { admin, loading } = useAuth();
@@ -249,6 +314,7 @@ function App() {
   return (
     <AuthProvider>
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <SeoMeta />
         <div className={`app-shell ${isMagicTheme ? 'magic-app-shell' : ''} ${isSwitchingTheme ? 'theme-switching' : ''}`}>
           {isSwitchingTheme && (
             <div className="theme-transition-overlay" aria-hidden="true">

@@ -25,6 +25,18 @@ if (isSQL) {
         allowNull: false,
         unique: true
       },
+      seoTitle: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      seoDescription: {
+        type: DataTypes.TEXT,
+        allowNull: true
+      },
+      seoImage: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
       userId: {
         type: DataTypes.UUID,
         allowNull: false
@@ -55,6 +67,21 @@ if (isSQL) {
       unique: true,
       trim: true,
       lowercase: true
+    },
+    seoTitle: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    seoDescription: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    seoImage: {
+      type: String,
+      trim: true,
+      default: ''
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,

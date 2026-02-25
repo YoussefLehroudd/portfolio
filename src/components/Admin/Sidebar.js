@@ -194,6 +194,27 @@ const Sidebar = ({ messageCount = 0, subscriberCount = 0, reviewCount = 0 }) => 
           <span>Avatars</span>
         </div>
 
+        <div
+          className={`${styles.navItem} ${isActive('media') ? styles.active : ''}`}
+          onClick={() => handleNavigation('media')}
+        >
+          <div className={styles.iconWrapper}>
+            <svg
+              className={styles.icon}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 7h5l2 2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"></path>
+              <path d="M3 7V5a2 2 0 0 1 2-2h4l2 2"></path>
+            </svg>
+          </div>
+          <span>Media</span>
+        </div>
+
         <div 
           className={`${styles.navItem} ${isActive('projects') ? styles.active : ''}`}
           onClick={() => handleNavigation('projects')}

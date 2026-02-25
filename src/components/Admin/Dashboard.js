@@ -15,6 +15,7 @@ import ReviewsManagement from './ReviewsManagement';
 import AvatarManagement from './AvatarManagement';
 import EmailSettings from './EmailSettings';
 import SubscribersManagement from './SubscribersManagement';
+import MediaLibrary from './MediaLibrary';
 
 const SUBSCRIBER_SEEN_KEY = 'admin:lastSeen:subscribers';
 const REVIEW_SEEN_KEY = 'admin:lastSeen:reviews';
@@ -1089,6 +1090,9 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
     if (path.includes('/avatars')) {
       return 'Avatar Library';
     }
+    if (path.includes('/media')) {
+      return 'Media Library';
+    }
     if (path.includes('/statistics')) {
       return 'Statistics';
     }
@@ -1164,6 +1168,7 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
             <Route path="profile/*" element={<ProfileManagement />} />
             <Route path="reviews/*" element={<ReviewsManagement />} />
             <Route path="avatars/*" element={<AvatarManagement />} />
+            <Route path="media/*" element={<MediaLibrary />} />
             <Route path="email-settings/*" element={<EmailSettings />} />
             <Route path="subscribers/*" element={<SubscribersManagement />} />
             <Route 

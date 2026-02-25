@@ -14,6 +14,7 @@ const aboutRoutes = require('./routes/about');
 const careerRoutes = require('./routes/career');
 const socialRoutes = require('./routes/social');
 const profileRoutes = require('./routes/profile');
+const seoRoutes = require('./routes/seo');
 const uploadRoutes = require('./routes/upload');
 const statisticsRoutes = require('./routes/statistics');
 const reviewRoutes = require('./routes/reviews');
@@ -23,6 +24,7 @@ const emailSettingsRoutes = require('./routes/emailSettings');
 const emailLogRoutes = require('./routes/emailLogs');
 const emailTrackingRoutes = require('./routes/emailTracking');
 const subscriberRoutes = require('./routes/subscribers');
+const mediaRoutes = require('./routes/media');
 const Message = require('./models/Message');
 
 dotenv.config();
@@ -97,6 +99,7 @@ app.use('/api/hero', heroRoutes);
 app.use('/api/about', aboutRoutes);
 app.use('/api/career', careerRoutes);
 app.use('/api/social', socialRoutes);
+app.use('/api/seo', seoRoutes);
 app.use('/api/admin/profile', profileRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/statistics', statisticsRoutes);
@@ -105,8 +108,37 @@ app.use('/api/avatars', avatarRoutes);
 app.use('/api/admin/avatars', adminAvatarRoutes);
 app.use('/api/admin/email-settings', emailSettingsRoutes);
 app.use('/api/admin/email-logs', emailLogRoutes);
+app.use('/api/admin/media', mediaRoutes);
 app.use('/api/email', emailTrackingRoutes);
 app.use('/api/subscribers', subscriberRoutes);
+
+// Public media redirect (use custom domain URLs like /media/image/portfolio/uploads/file.jpg)
+app.get('/media/:resourceType/*', (req, res) => {
+  try {
+    const cloudName = process.env.CLOUDINARY_NAME;
+    if (!cloudName) {
+      return res.status(404).end();
+    }
+    const resourceTypeRaw = req.params.resourceType || 'image';
+    const resourceType = ['image', 'video', 'raw'].includes(resourceTypeRaw)
+      ? resourceTypeRaw
+      : resourceTypeRaw === 'file'
+        ? 'raw'
+        : 'image';
+    const requestedPath = req.params[0] || '';
+    if (!requestedPath) {
+      return res.status(404).end();
+    }
+    const ext = path.extname(requestedPath);
+    const publicId = ext ? requestedPath.slice(0, -ext.length) : requestedPath;
+    const safePublicId = publicId.replace(/^\//, '');
+    const targetUrl = `https://res.cloudinary.com/${cloudName}/${resourceType}/upload/${safePublicId}${ext}`;
+    return res.redirect(302, targetUrl);
+  } catch (error) {
+    console.error('Error redirecting media:', error);
+    return res.status(500).end();
+  }
+});
 
 // Serve static (for local prod build)
 app.use(express.static(path.join(__dirname, '../build')));

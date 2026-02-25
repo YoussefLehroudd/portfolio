@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 import styles from './EmailSettings.module.css';
 import AdminSkeleton from './AdminSkeleton';
 import DeleteModal from './DeleteModal';
+import EmailPreviewModal from './EmailPreviewModal';
 
 const EmailSettings = () => {
   const [formData, setFormData] = useState({
@@ -32,6 +33,15 @@ const EmailSettings = () => {
   const [blastStatus, setBlastStatus] = useState('');
   const [blastMessage, setBlastMessage] = useState('');
   const [isBlastSending, setIsBlastSending] = useState(false);
+  const [selectedLogIds, setSelectedLogIds] = useState([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewMode, setPreviewMode] = useState('html');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState('');
+  const [previewContent, setPreviewContent] = useState({ subject: '', html: '', text: '' });
   const [emailLogs, setEmailLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(true);
   const [logsError, setLogsError] = useState('');
@@ -43,6 +53,8 @@ const EmailSettings = () => {
   const [success, setSuccess] = useState('');
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const logLimit = 60;
+  const getLogId = useCallback((log) => log?._id || log?.id || log?.trackingId, []);
+  const normalizeId = useCallback((value) => (value ? String(value) : ''), []);
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -143,9 +155,6 @@ const EmailSettings = () => {
       auth: { token }
     });
 
-    const getLogId = (log) => log?._id || log?.id || log?.trackingId;
-    const normalizeId = (value) => (value ? String(value) : '');
-
     socket.on('email:updated', (log) => {
       if (!log) return;
       const id = getLogId(log);
@@ -163,6 +172,7 @@ const EmailSettings = () => {
 
     socket.on('email:deleted', ({ id }) => {
       if (!id) return;
+      setSelectedLogIds((prev) => prev.filter((item) => normalizeId(item) !== normalizeId(id)));
       setEmailLogs((prev) => prev.filter((item) => normalizeId(getLogId(item)) !== normalizeId(id)));
     });
 
@@ -173,7 +183,7 @@ const EmailSettings = () => {
     return () => {
       socket.disconnect();
     };
-  }, [logLimit]);
+  }, [getLogId, logLimit, normalizeId]);
 
   useEffect(() => {
     if (!testStatus) return;
@@ -201,6 +211,18 @@ const EmailSettings = () => {
     }, 3000);
     return () => clearTimeout(timer);
   }, [blastStatus]);
+
+  useEffect(() => {
+    setSelectedLogIds((prev) => {
+      if (!prev.length) return prev;
+      const existing = new Set(
+        emailLogs
+          .map((log) => normalizeId(getLogId(log)))
+          .filter(Boolean)
+      );
+      return prev.filter((id) => existing.has(normalizeId(id)));
+    });
+  }, [emailLogs, getLogId, normalizeId]);
 
 
   const handleChange = (e) => {
@@ -387,6 +409,116 @@ const EmailSettings = () => {
     }
   };
 
+  const handlePreviewProject = async () => {
+    if (!blastProjectId) {
+      setBlastStatus('error');
+      setBlastMessage('Please select a project.');
+      return;
+    }
+
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    setPreviewError('');
+    setPreviewContent({ subject: '', html: '', text: '' });
+    setPreviewMode('html');
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/email-settings/preview-project`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ projectId: blastProjectId })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPreviewContent({
+          subject: data.subject || '',
+          html: data.html || '',
+          text: data.text || ''
+        });
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setPreviewError(errorData.message || 'Failed to load preview.');
+      }
+    } catch (err) {
+      setPreviewError('Failed to load preview.');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const toggleLogSelection = (logId) => {
+    const id = normalizeId(logId);
+    if (!id) return;
+    setSelectedLogIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((item) => item !== id);
+      }
+      return [...prev, id];
+    });
+  };
+
+  const handleLogCardClick = (logId, event) => {
+    if (!isSelectMode) return;
+    const target = event?.target;
+    if (target && typeof target.closest === 'function') {
+      const interactive = target.closest('button, a, input, select, textarea, label');
+      if (interactive) return;
+    }
+    toggleLogSelection(logId);
+  };
+
+  const startSelectMode = () => {
+    if (!filteredLogs.length) return;
+    setIsSelectMode(true);
+  };
+
+  const exitSelectMode = () => {
+    setIsSelectMode(false);
+    setSelectedLogIds([]);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedLogIds.length) {
+      setBulkDeleteOpen(false);
+      return;
+    }
+
+    try {
+      setBulkDeleting(true);
+      setLogsError('');
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/email-logs/bulk-delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ ids: selectedLogIds })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete email logs');
+      }
+
+      const selectedSet = new Set(selectedLogIds.map((item) => normalizeId(item)));
+      setEmailLogs((prev) =>
+        prev.filter((log) => !selectedSet.has(normalizeId(getLogId(log))))
+      );
+      setSelectedLogIds([]);
+    } catch (err) {
+      setLogsError(err?.message || 'Failed to delete email logs');
+    } finally {
+      setBulkDeleting(false);
+      setBulkDeleteOpen(false);
+    }
+  };
+
   const filteredLogs = useMemo(() => {
     if (logFilter === 'all') return emailLogs;
     const isOpened = (log) => Boolean(log.openedAt) || Number(log.openCount) > 0;
@@ -398,6 +530,31 @@ const EmailSettings = () => {
     }
     return emailLogs;
   }, [emailLogs, logFilter]);
+
+  const selectedSet = useMemo(() => new Set(selectedLogIds), [selectedLogIds]);
+  const visibleLogIds = useMemo(() => (
+    filteredLogs
+      .map((log) => normalizeId(getLogId(log)))
+      .filter(Boolean)
+  ), [filteredLogs, getLogId, normalizeId]);
+  const visibleSet = useMemo(() => new Set(visibleLogIds), [visibleLogIds]);
+  const allVisibleSelected = visibleLogIds.length > 0
+    && visibleLogIds.every((id) => selectedSet.has(id));
+
+  const handleSelectAllVisible = () => {
+    if (!isSelectMode) return;
+    if (!visibleLogIds.length) return;
+    setSelectedLogIds((prev) => {
+      if (allVisibleSelected) {
+        return prev.filter((id) => !visibleSet.has(id));
+      }
+      const next = new Set(prev);
+      visibleLogIds.forEach((id) => next.add(id));
+      return Array.from(next);
+    });
+  };
+
+  const selectedCount = selectedLogIds.length;
 
   if (loading) {
     return <AdminSkeleton compact />;
@@ -627,7 +784,7 @@ const EmailSettings = () => {
 
       <div className={styles.testSection}>
         <h3>Send Project Test</h3>
-        <p className={styles.testHint}>Pick a project and preview the announcement email.</p>
+        <p className={styles.testHint}>Pick a project and send a test announcement.</p>
         <form onSubmit={handleProjectTestSubmit} className={styles.projectTestForm}>
           <select
             value={selectedProjectId}
@@ -666,7 +823,7 @@ const EmailSettings = () => {
 
       <div className={styles.testSection}>
         <h3>Send Project Announcement</h3>
-        <p className={styles.testHint}>Send the selected project to all subscribers.</p>
+        <p className={styles.testHint}>Send the selected project to all subscribers, or preview the template first.</p>
         <form onSubmit={handleBlastSubmit} className={styles.projectBlastForm}>
           <select
             value={blastProjectId}
@@ -684,6 +841,14 @@ const EmailSettings = () => {
               ))
             )}
           </select>
+          <button
+            type="button"
+            className={styles.previewButton}
+            onClick={handlePreviewProject}
+            disabled={projects.length === 0 || isBlastSending || previewLoading}
+          >
+            {previewLoading ? 'Loading...' : 'Preview'}
+          </button>
           <button type="submit" className={styles.testButton} disabled={isBlastSending || projects.length === 0}>
             {isBlastSending ? 'Sending...' : 'Send to Subscribers'}
           </button>
@@ -712,6 +877,47 @@ const EmailSettings = () => {
                 </button>
               ))}
             </div>
+            {isSelectMode ? (
+              <div className={styles.bulkActions}>
+                <button
+                  type="button"
+                  className={styles.bulkButton}
+                  onClick={handleSelectAllVisible}
+                  disabled={visibleLogIds.length === 0}
+                >
+                  {allVisibleSelected ? 'Unselect visible' : 'Select visible'}
+                </button>
+                {selectedCount > 0 && (
+                  <div className={styles.selectedPill}>{selectedCount} selected</div>
+                )}
+                <button
+                  type="button"
+                  className={styles.bulkDeleteButton}
+                  onClick={() => setBulkDeleteOpen(true)}
+                  disabled={selectedCount === 0 || bulkDeleting}
+                >
+                  {bulkDeleting ? 'Deleting...' : 'Delete selected'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.bulkCancelButton}
+                  onClick={exitSelectMode}
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <div className={styles.bulkActions}>
+                <button
+                  type="button"
+                  className={styles.bulkButton}
+                  onClick={startSelectMode}
+                  disabled={visibleLogIds.length === 0}
+                >
+                  Select
+                </button>
+              </div>
+            )}
             <div className={styles.countPill}>{emailLogs.length} recent</div>
           </div>
         </div>
@@ -727,15 +933,30 @@ const EmailSettings = () => {
         ) : (
           <div className={styles.logsList}>
             {filteredLogs.map((log) => {
-              const logId = log._id || log.id || log.trackingId;
+              const logId = normalizeId(getLogId(log));
               const status = log.status || 'sent';
               const opened = Boolean(log.openedAt) || Number(log.openCount) > 0;
               return (
-                <div key={logId} className={styles.logItem}>
-                  <div className={styles.logMain}>
-                    <div className={styles.logEmail}>{log.recipient || log.to || 'Unknown recipient'}</div>
-                    <div className={styles.logSubject}>{log.subject || '—'}</div>
-                    {log.category && <div className={styles.logCategory}>{log.category}</div>}
+                <div
+                  key={logId}
+                  className={`${styles.logItem} ${isSelectMode ? styles.logItemSelectable : ''} ${selectedSet.has(logId) ? styles.logItemSelected : ''}`}
+                  onClick={(event) => handleLogCardClick(logId, event)}
+                >
+                  <div className={styles.logHeaderRow}>
+                    {isSelectMode && (
+                      <label className={styles.logCheckbox}>
+                        <input
+                          type="checkbox"
+                          checked={selectedSet.has(logId)}
+                          onChange={() => toggleLogSelection(logId)}
+                        />
+                      </label>
+                    )}
+                    <div className={styles.logMain}>
+                      <div className={styles.logEmail}>{log.recipient || log.to || 'Unknown recipient'}</div>
+                      <div className={styles.logSubject}>{log.subject || '—'}</div>
+                      {log.category && <div className={styles.logCategory}>{log.category}</div>}
+                    </div>
                   </div>
                   <div className={styles.logMeta}>
                     <span className={`${styles.statusBadge} ${styles[`status${getStatusLabel(status)}`]}`}>
@@ -778,6 +999,28 @@ const EmailSettings = () => {
         message="Delete this email log? This action cannot be undone."
         confirmLabel="Delete"
         cancelLabel="Cancel"
+      />
+
+      <DeleteModal
+        isOpen={bulkDeleteOpen}
+        onClose={() => setBulkDeleteOpen(false)}
+        onConfirm={handleBulkDelete}
+        title="Delete selected logs"
+        message={`Delete ${selectedCount} selected email logs? This action cannot be undone.`}
+        confirmLabel={bulkDeleting ? 'Deleting...' : 'Delete'}
+        cancelLabel="Cancel"
+      />
+
+      <EmailPreviewModal
+        isOpen={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        subject={previewContent.subject}
+        html={previewContent.html}
+        text={previewContent.text}
+        mode={previewMode}
+        onModeChange={setPreviewMode}
+        loading={previewLoading}
+        error={previewError}
       />
     </div>
   );

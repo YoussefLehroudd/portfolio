@@ -139,6 +139,32 @@ const connectDatabase = async () => {
       } catch (err) {
         console.error('Failed to ensure email_settings columns:', err);
       }
+
+      // Ensure profile SEO columns exist for SQL stores
+      try {
+        const queryInterface = sequelize.getQueryInterface();
+        const table = await queryInterface.describeTable('profiles');
+        const addColumnIfMissing = async (column, definition) => {
+          if (!table[column]) {
+            await queryInterface.addColumn('profiles', column, definition);
+          }
+        };
+
+        await addColumnIfMissing('seoTitle', {
+          type: DataTypes.STRING,
+          allowNull: true
+        });
+        await addColumnIfMissing('seoDescription', {
+          type: DataTypes.TEXT,
+          allowNull: true
+        });
+        await addColumnIfMissing('seoImage', {
+          type: DataTypes.STRING,
+          allowNull: true
+        });
+      } catch (err) {
+        console.error('Failed to ensure profiles SEO columns:', err);
+      }
       console.log(`Connected to ${isPostgres ? 'PostgreSQL' : 'MySQL'}`);
     } catch (err) {
       console.error(`${isPostgres ? 'PostgreSQL' : 'MySQL'} connection error:`, err);

@@ -29,7 +29,8 @@
   font-weight: 500;
 }
 
-.formGroup input {
+.formGroup input,
+.formGroup textarea {
   padding: 0.75rem;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -39,10 +40,101 @@
   transition: all 0.3s ease;
 }
 
-.formGroup input:focus {
+.formGroup input:focus,
+.formGroup textarea:focus {
   outline: none;
   border-color: #64ffda;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.formGroup textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.sectionHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.uploadRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.uploadButton {
+  background: rgba(100, 255, 218, 0.12);
+  color: #64ffda;
+  border: 1px solid rgba(100, 255, 218, 0.5);
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.uploadButton:hover {
+  border-color: rgba(100, 255, 218, 0.8);
+  background: rgba(100, 255, 218, 0.2);
+  transform: translateY(-2px);
+}
+
+.uploadButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.uploadHint {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+}
+
+.fileInput {
+  display: none;
+}
+
+.sectionHeader {
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  gap: 0.35rem;
+}
+
+.sectionHeader h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.sectionHeader p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.previewButton {
+  border: 1px solid rgba(100, 255, 218, 0.55);
+  background: rgba(100, 255, 218, 0.12);
+  color: #64ffda;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: fit-content;
+}
+
+.previewButton:hover {
+  border-color: rgba(100, 255, 218, 0.85);
+  background: rgba(100, 255, 218, 0.2);
+  transform: translateY(-1px);
 }
 
 .submitButton {

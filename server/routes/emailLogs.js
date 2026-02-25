@@ -22,6 +22,58 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+router.post('/bulk-delete', auth, async (req, res) => {
+  try {
+    const ids = Array.isArray(req.body?.ids) ? req.body.ids : [];
+    const normalizedIds = Array.from(new Set(
+      ids.map((value) => String(value || '').trim()).filter(Boolean)
+    ));
+
+    if (!normalizedIds.length) {
+      return res.status(400).json({ message: 'No email logs selected' });
+    }
+
+    if (normalizedIds.length > 200) {
+      return res.status(400).json({ message: 'Too many logs selected at once' });
+    }
+
+    let deletedCount = 0;
+
+    if (typeof EmailLog.deleteMany === 'function') {
+      const result = await EmailLog.deleteMany({ _id: { $in: normalizedIds } });
+      deletedCount = result?.deletedCount || 0;
+    } else if (typeof EmailLog.destroy === 'function') {
+      deletedCount = await EmailLog.destroy({ where: { id: normalizedIds } });
+    } else if (typeof EmailLog.findById === 'function') {
+      const results = await Promise.all(normalizedIds.map(async (id) => {
+        const log = await EmailLog.findById(id);
+        if (!log) return 0;
+        if (typeof log.deleteOne === 'function') {
+          await log.deleteOne();
+        } else if (typeof EmailLog.findByIdAndDelete === 'function') {
+          await EmailLog.findByIdAndDelete(id);
+        } else if (typeof EmailLog.destroy === 'function') {
+          await EmailLog.destroy({ where: { id } });
+        }
+        return 1;
+      }));
+      deletedCount = results.reduce((sum, value) => sum + value, 0);
+    }
+
+    const io = getIo();
+    if (io) {
+      normalizedIds.forEach((id) => {
+        io.to('admins').emit('email:deleted', { id });
+      });
+    }
+
+    return res.json({ deleted: deletedCount });
+  } catch (error) {
+    console.error('Error bulk deleting email logs:', error);
+    return res.status(500).json({ message: 'Error deleting email logs' });
+  }
+});
+
 router.delete('/:id', auth, async (req, res) => {
   try {
     const log = await EmailLog.findById(req.params.id);

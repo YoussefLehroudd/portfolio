@@ -22,7 +22,20 @@ router.get('/', auth, async (req, res) => {
 // Update profile
 router.put('/', auth, async (req, res) => {
   try {
-    const { firstName, lastName, email, currentPassword, password } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      currentPassword,
+      password,
+      seoTitle,
+      seoDescription,
+      seoImage
+    } = req.body;
+
+    const cleanedSeoTitle = typeof seoTitle === 'string' ? seoTitle.trim() : '';
+    const cleanedSeoDescription = typeof seoDescription === 'string' ? seoDescription.trim() : '';
+    const cleanedSeoImage = typeof seoImage === 'string' ? seoImage.trim() : '';
 
     // If trying to change password, verify current password
     if (password) {
@@ -45,12 +58,18 @@ router.put('/', auth, async (req, res) => {
         userId: req.admin.id,
         firstName,
         lastName,
-        email
+        email,
+        seoTitle: cleanedSeoTitle,
+        seoDescription: cleanedSeoDescription,
+        seoImage: cleanedSeoImage
       });
     } else {
       profile.firstName = firstName;
       profile.lastName = lastName;
       profile.email = email;
+      profile.seoTitle = cleanedSeoTitle;
+      profile.seoDescription = cleanedSeoDescription;
+      profile.seoImage = cleanedSeoImage;
     }
 
     await profile.save();

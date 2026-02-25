@@ -212,6 +212,43 @@ router.post('/test-project', auth, async (req, res) => {
   }
 });
 
+router.post('/preview-project', auth, async (req, res) => {
+  try {
+    const { projectId } = req.body || {};
+
+    if (!projectId) {
+      return res.status(400).json({ message: 'Project is required' });
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const settings = await resolveEmailSettings();
+    const siteUrl = getSiteUrl(req);
+    const subject = `New project: ${project.title || 'Update'}`;
+
+    const html = renderProjectEmail(project, {
+      siteUrl,
+      fromName: settings.fromName,
+      logoUrl: settings.logoUrl,
+      unsubscribeUrl: ''
+    });
+
+    const text = renderProjectEmailText(project, {
+      siteUrl,
+      fromName: settings.fromName,
+      unsubscribeUrl: ''
+    });
+
+    return res.json({ subject, html, text });
+  } catch (error) {
+    console.error('Error building project preview:', error);
+    return res.status(500).json({ message: 'Failed to build preview' });
+  }
+});
+
 router.post('/send-project', auth, async (req, res) => {
   try {
     const { projectId } = req.body || {};
