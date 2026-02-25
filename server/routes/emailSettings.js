@@ -132,7 +132,8 @@ router.post('/test', auth, async (req, res) => {
         settings.fromName ? settings.fromName : '',
         'Test email',
         'Your portfolio email settings are working.'
-      ].filter(Boolean).join('\n')
+      ].filter(Boolean).join('\n'),
+      tracking: { enabled: true, category: 'test', siteUrl }
     });
 
     if (result?.error) {
@@ -188,7 +189,8 @@ router.post('/test-project', auth, async (req, res) => {
         settings.fromName ? settings.fromName : '',
         `Test project: ${project.title || 'Update'}`,
         project?.description ? String(project.description).slice(0, 240) : 'A project update.'
-      ].filter(Boolean).join('\n')
+      ].filter(Boolean).join('\n'),
+      tracking: { enabled: true, category: 'project_test', siteUrl }
     });
 
     if (result?.error) {

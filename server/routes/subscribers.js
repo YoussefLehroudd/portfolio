@@ -88,7 +88,10 @@ router.post('/', async (req, res) => {
       headers: buildListUnsubscribeHeaders(unsubscribeUrl)
     };
 
-    const welcomeResult = await sendEmail(baseEmail);
+    const welcomeResult = await sendEmail({
+      ...baseEmail,
+      tracking: { enabled: true, category: 'welcome', siteUrl }
+    });
     if (welcomeResult?.error) {
       console.error('Welcome email error:', welcomeResult.error);
       return res.status(201).json({ status: 'subscribed', emailSent: false });

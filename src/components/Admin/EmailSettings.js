@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { io } from 'socket.io-client';
 import styles from './EmailSettings.module.css';
 import AdminSkeleton from './AdminSkeleton';
 
@@ -26,10 +27,14 @@ const EmailSettings = () => {
   const [projectTestStatus, setProjectTestStatus] = useState('');
   const [projectTestMessage, setProjectTestMessage] = useState('');
   const [isProjectTesting, setIsProjectTesting] = useState(false);
+  const [emailLogs, setEmailLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(true);
+  const [logsError, setLogsError] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const logLimit = 60;
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -88,10 +93,70 @@ const EmailSettings = () => {
     }
   }, [selectedProjectId]);
 
+  const fetchEmailLogs = useCallback(async () => {
+    try {
+      setLogsLoading(true);
+      setLogsError('');
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/email-logs?limit=${logLimit}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setEmailLogs(Array.isArray(data) ? data : []);
+      } else {
+        setLogsError('Failed to fetch email activity');
+      }
+    } catch (err) {
+      setLogsError('Error loading email activity');
+    } finally {
+      setLogsLoading(false);
+    }
+  }, [logLimit]);
+
   useEffect(() => {
     fetchSettings();
     fetchProjects();
-  }, [fetchSettings, fetchProjects]);
+    fetchEmailLogs();
+  }, [fetchSettings, fetchProjects, fetchEmailLogs]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return undefined;
+
+    const socket = io(process.env.REACT_APP_API_URL, {
+      transports: ['websocket'],
+      auth: { token }
+    });
+
+    const getLogId = (log) => log?._id || log?.id || log?.trackingId;
+
+    socket.on('email:updated', (log) => {
+      if (!log) return;
+      const id = getLogId(log);
+      if (!id) return;
+      setEmailLogs((prev) => {
+        const index = prev.findIndex((item) => getLogId(item) === id);
+        if (index === -1) {
+          return [log, ...prev].slice(0, logLimit);
+        }
+        const updated = [...prev];
+        updated[index] = { ...updated[index], ...log };
+        return updated;
+      });
+    });
+
+    socket.on('connect_error', (socketError) => {
+      console.error('Email socket connection error:', socketError?.message || socketError);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [logLimit]);
 
   useEffect(() => {
     if (!testStatus) return;
@@ -254,6 +319,19 @@ const EmailSettings = () => {
   if (loading) {
     return <AdminSkeleton compact />;
   }
+
+  const formatDateTime = (value) => {
+    if (!value) return '—';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return '—';
+    return parsed.toLocaleString();
+  };
+
+  const getStatusLabel = (status) => {
+    if (status === 'failed') return 'Failed';
+    if (status === 'pending') return 'Pending';
+    return 'Sent';
+  };
 
   return (
     <div className={styles.emailSettings}>
@@ -464,6 +542,60 @@ const EmailSettings = () => {
 
         {projectTestStatus === 'success' && <div className={styles.success}>{projectTestMessage}</div>}
         {projectTestStatus === 'error' && <div className={styles.error}>{projectTestMessage}</div>}
+      </div>
+
+      <div className={styles.logsSection}>
+        <div className={styles.logsHeader}>
+          <div>
+            <h3>Email Activity</h3>
+            <p className={styles.testHint}>Live delivery + open tracking for recent emails.</p>
+          </div>
+          <div className={styles.countPill}>{emailLogs.length} recent</div>
+        </div>
+
+        {logsError && <div className={styles.error}>{logsError}</div>}
+
+        {logsLoading ? (
+          <div className={styles.empty}>Loading email activity...</div>
+        ) : emailLogs.length === 0 ? (
+          <div className={styles.empty}>No email activity yet.</div>
+        ) : (
+          <div className={styles.logsList}>
+            {emailLogs.map((log) => {
+              const logId = log._id || log.id || log.trackingId;
+              const status = log.status || 'sent';
+              const opened = Boolean(log.openedAt) || Number(log.openCount) > 0;
+              return (
+                <div key={logId} className={styles.logItem}>
+                  <div className={styles.logMain}>
+                    <div className={styles.logEmail}>{log.recipient || log.to || 'Unknown recipient'}</div>
+                    <div className={styles.logSubject}>{log.subject || '—'}</div>
+                    {log.category && <div className={styles.logCategory}>{log.category}</div>}
+                  </div>
+                  <div className={styles.logMeta}>
+                    <span className={`${styles.statusBadge} ${styles[`status${getStatusLabel(status)}`]}`}>
+                      {getStatusLabel(status)}
+                    </span>
+                    {status === 'failed' && log.error && (
+                      <span className={styles.logError}>{log.error}</span>
+                    )}
+                  </div>
+                  <div className={styles.logMeta}>
+                    <span className={`${styles.openBadge} ${opened ? styles.opened : styles.notOpened}`}>
+                      {opened ? 'Opened' : 'Not opened'}
+                    </span>
+                    <span className={styles.logTimestamp}>
+                      Sent: {formatDateTime(log.sentAt || log.createdAt)}
+                    </span>
+                    <span className={styles.logTimestamp}>
+                      Opened: {formatDateTime(log.openedAt)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

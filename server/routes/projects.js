@@ -65,6 +65,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
         sendToSubscribers({
           subject: `New project: ${savedProject.title || 'Update'}`,
           siteUrl,
+          tracking: { enabled: true, category: 'project' },
           renderEmail: ({ unsubscribeUrl }) => ({
             html: renderProjectEmail(savedProject, {
               siteUrl,

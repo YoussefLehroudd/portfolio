@@ -187,14 +187,14 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.8rem;
-  align-items: center;
+  align-items: stretch;
 }
 
 .projectTestForm {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   gap: 0.8rem;
-  align-items: center;
+  align-items: stretch;
 }
 
 .testInput {
@@ -206,6 +206,7 @@
   font-size: 1rem;
   transition: all 0.3s ease;
   box-sizing: border-box;
+  min-height: 46px;
 }
 
 .testInput:focus {
@@ -224,6 +225,7 @@
   transition: all 0.3s ease;
   box-sizing: border-box;
   color-scheme: dark;
+  min-height: 46px;
 }
 
 .testSelect:focus {
@@ -246,6 +248,9 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  min-height: 46px;
+  height: 100%;
+  align-self: stretch;
 }
 
 .testButton:hover {
@@ -258,6 +263,134 @@
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+.logsSection {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  gap: 1rem;
+}
+
+.logsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.countPill {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(100, 255, 218, 0.15);
+  color: #64ffda;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.logsList {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.logItem {
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  display: grid;
+  gap: 0.6rem;
+}
+
+.logMain {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.logEmail {
+  font-weight: 600;
+  color: #e6f7f4;
+  word-break: break-word;
+}
+
+.logSubject {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+}
+
+.logCategory {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(100, 255, 218, 0.8);
+}
+
+.logMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+}
+
+.statusBadge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.statusSent {
+  background: rgba(76, 175, 80, 0.2);
+  color: #b7f5c4;
+  border: 1px solid rgba(76, 175, 80, 0.5);
+}
+
+.statusFailed {
+  background: rgba(244, 67, 54, 0.2);
+  color: #ffb4ae;
+  border: 1px solid rgba(244, 67, 54, 0.5);
+}
+
+.statusPending {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffe8a3;
+  border: 1px solid rgba(255, 193, 7, 0.5);
+}
+
+.openBadge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.opened {
+  background: rgba(100, 255, 218, 0.2);
+  color: #bfffee;
+  border: 1px solid rgba(100, 255, 218, 0.5);
+}
+
+.notOpened {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.logTimestamp {
+  font-size: 0.8rem;
+}
+
+.logError {
+  color: #ffb4ae;
+  font-size: 0.8rem;
 }
 
 .error,
@@ -307,5 +440,13 @@
 
   .projectTestForm {
     grid-template-columns: 1fr;
+  }
+
+  .testButton {
+    width: 100%;
+  }
+
+  .logsHeader {
+    align-items: flex-start;
   }
 }

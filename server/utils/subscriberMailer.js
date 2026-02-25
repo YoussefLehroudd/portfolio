@@ -102,7 +102,7 @@ const buildListUnsubscribeHeaders = (unsubscribeUrl) => {
   };
 };
 
-const sendToSubscribers = async ({ subject, siteUrl, renderEmail }) => {
+const sendToSubscribers = async ({ subject, siteUrl, renderEmail, tracking }) => {
   const subscribers = await Subscriber.find().sort({ createdAt: -1 });
   const recipients = subscribers
     .map((sub) => sub?.email)
@@ -123,13 +123,18 @@ const sendToSubscribers = async ({ subject, siteUrl, renderEmail }) => {
     const text = payload?.text || '';
     const headers = buildListUnsubscribeHeaders(unsubscribeUrl);
 
+    const trackingOptions = tracking && tracking.enabled !== false
+      ? { ...tracking, siteUrl: tracking.siteUrl || siteUrl }
+      : null;
+
     try {
       const result = await sendEmail({
         to: [recipient],
         subject,
         html,
         text,
-        headers
+        headers,
+        tracking: trackingOptions
       });
       if (!result?.error) {
         sent += 1;

@@ -20,6 +20,8 @@ const reviewRoutes = require('./routes/reviews');
 const avatarRoutes = require('./routes/avatars');
 const adminAvatarRoutes = require('./routes/adminAvatars');
 const emailSettingsRoutes = require('./routes/emailSettings');
+const emailLogRoutes = require('./routes/emailLogs');
+const emailTrackingRoutes = require('./routes/emailTracking');
 const subscriberRoutes = require('./routes/subscribers');
 const Message = require('./models/Message');
 
@@ -102,6 +104,8 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/avatars', avatarRoutes);
 app.use('/api/admin/avatars', adminAvatarRoutes);
 app.use('/api/admin/email-settings', emailSettingsRoutes);
+app.use('/api/admin/email-logs', emailLogRoutes);
+app.use('/api/email', emailTrackingRoutes);
 app.use('/api/subscribers', subscriberRoutes);
 
 // Serve static (for local prod build)
