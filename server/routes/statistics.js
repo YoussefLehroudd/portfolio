@@ -54,6 +54,7 @@ router.post('/visit', async (req, res) => {
             if (io && created) {
                 const visitPayload = created.toJSON ? created.toJSON() : created;
                 io.to('admins').emit('visit:new', visitPayload);
+                io.to('admins').emit('stats:updated');
             }
         } catch (logError) {
             console.error('Error recording visit log:', logError);
@@ -72,6 +73,10 @@ router.post('/project-click', async (req, res) => {
             return res.status(400).json({ message: 'Project ID is required' });
         }
         const result = await Statistics.incrementProjectClicks(projectId, title, image);
+        const io = getIo();
+        if (io) {
+            io.to('admins').emit('stats:updated');
+        }
         res.json(result);
     } catch (error) {
         res.status(500).json({ message: error.message });

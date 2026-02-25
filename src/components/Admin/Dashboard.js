@@ -49,8 +49,238 @@ const countNewItems = (items, lastSeen) => {
 
 const StatisticsSection = ({ stats, visits, visitsLoading }) => {
   const [projects, setProjects] = useState([]);
+  const [sparklineHover, setSparklineHover] = useState(null);
+  const [donutHover, setDonutHover] = useState(null);
+  const [donutPinned, setDonutPinned] = useState(false);
+  const donutRef = useRef(null);
+  const donutWrapRef = useRef(null);
   const safeStats = Array.isArray(stats) ? stats : [];
   const safeVisits = Array.isArray(visits) ? visits : [];
+  const statsSorted = [...safeStats].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const last7Stats = statsSorted.slice(-7);
+  const prev7Stats = statsSorted.slice(-14, -7);
+  const sumByKey = (items, key) =>
+    items.reduce((total, item) => total + (Number(item?.[key]) || 0), 0);
+  const sumProjectClicks = (items) =>
+    items.reduce((total, item) => {
+      const details = Array.isArray(item?.project_details) ? item.project_details : [];
+      return total + details.reduce((sum, project) => sum + (project.clicks || 0), 0);
+    }, 0);
+  const last7Visits = sumByKey(last7Stats, 'visits');
+  const prev7Visits = sumByKey(prev7Stats, 'visits');
+  const last7Clicks = sumProjectClicks(last7Stats);
+  const prev7Clicks = sumProjectClicks(prev7Stats);
+  const visitsDelta = prev7Visits ? ((last7Visits - prev7Visits) / prev7Visits) * 100 : null;
+  const clicksDelta = prev7Clicks ? ((last7Clicks - prev7Clicks) / prev7Clicks) * 100 : null;
+  const bestDay = last7Stats.reduce((best, item) => {
+    if (!best || (item?.visits || 0) > (best?.visits || 0)) return item;
+    return best;
+  }, null);
+  const visitsSeries = last7Stats.map((item) => Number(item?.visits) || 0);
+  const clicksSeries = last7Stats.map((item) => {
+    const details = Array.isArray(item?.project_details) ? item.project_details : [];
+    return details.reduce((sum, project) => sum + (project.clicks || 0), 0);
+  });
+  const buildSparklinePoints = (values, width = 220, height = 70, padding = 6) => {
+    if (!values.length) return [];
+    const max = Math.max(...values, 1);
+    const min = Math.min(...values, 0);
+    const range = max - min || 1;
+    return values.map((value, index) => {
+      const x = padding + (index / Math.max(values.length - 1, 1)) * (width - padding * 2);
+      const y =
+        padding +
+        (height - padding * 2) -
+        ((value - min) / range) * (height - padding * 2);
+      return { x, y };
+    });
+  };
+  const visitsPointsArr = buildSparklinePoints(visitsSeries);
+  const clicksPointsArr = buildSparklinePoints(clicksSeries);
+  const visitsPoints = visitsPointsArr.map((point) => `${point.x},${point.y}`).join(' ');
+  const clicksPoints = clicksPointsArr.map((point) => `${point.x},${point.y}`).join(' ');
+  const trendRows = last7Stats
+    .map((item, index) => {
+      const prev = last7Stats[index - 1];
+      const delta = prev ? (item.visits || 0) - (prev.visits || 0) : 0;
+      return {
+        date: item?.date,
+        visits: item?.visits || 0,
+        delta
+      };
+    })
+    .slice(-5)
+    .reverse();
+
+  const sparklineCount = Math.max(visitsPointsArr.length, clicksPointsArr.length, last7Stats.length);
+  const getPointerX = (event) => {
+    if (event?.touches?.length) return event.touches[0].clientX;
+    if (event?.changedTouches?.length) return event.changedTouches[0].clientX;
+    return event.clientX;
+  };
+  const getPointerY = (event) => {
+    if (event?.touches?.length) return event.touches[0].clientY;
+    if (event?.changedTouches?.length) return event.changedTouches[0].clientY;
+    return event.clientY;
+  };
+  const handleSparklineMove = (event) => {
+    if (!sparklineCount) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    if (!bounds.width) return;
+    const clientX = getPointerX(event);
+    if (typeof clientX !== 'number') return;
+    const ratioRaw = (clientX - bounds.left) / bounds.width;
+    const ratio = Math.min(Math.max(ratioRaw, 0), 1);
+    const index = Math.round(ratio * Math.max(sparklineCount - 1, 0));
+    setSparklineHover({ index, leftPct: ratio * 100 });
+  };
+
+  const handleSparklineLeave = () => {
+    setSparklineHover(null);
+  };
+
+  const hoverIndex = sparklineHover?.index ?? null;
+  const hoverData = hoverIndex !== null ? last7Stats[hoverIndex] : null;
+  const hoverVisits = hoverIndex !== null ? visitsSeries[hoverIndex] ?? 0 : 0;
+  const hoverClicks = hoverIndex !== null ? clicksSeries[hoverIndex] ?? 0 : 0;
+  const hoverVisitsPoint = hoverIndex !== null ? visitsPointsArr[hoverIndex] : null;
+  const hoverClicksPoint = hoverIndex !== null ? clicksPointsArr[hoverIndex] : null;
+  const hoverX = hoverVisitsPoint?.x ?? hoverClicksPoint?.x ?? 0;
+
+  const isTouchLike = () =>
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+  const showDonutTooltip = (event, item, index, { pin = false } = {}) => {
+    const donutRect = donutRef.current?.getBoundingClientRect();
+    const wrapRect = donutWrapRef.current?.getBoundingClientRect() || donutRect;
+    if (!donutRect || !wrapRect) return;
+    const clientX = getPointerX(event);
+    const clientY = getPointerY(event);
+    if (typeof clientX !== 'number' || typeof clientY !== 'number') return;
+    const centerX = donutRect.left + donutRect.width / 2;
+    const centerY = donutRect.top + donutRect.height / 2;
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+    const verticalBias = 12;
+    let direction = 'top';
+    if (dy < -verticalBias) {
+      direction = 'top';
+    } else if (dy > verticalBias) {
+      direction = 'bottom';
+    } else {
+      direction = dx >= 0 ? 'right' : 'left';
+    }
+    const touchMode = isTouchLike() || pin;
+    if (touchMode) {
+      const localX = clientX - wrapRect.left;
+      const localY = clientY - wrapRect.top;
+      const tooltipWidth = window.innerWidth <= 768 ? 160 : 200;
+      const tooltipHeight = 90;
+      const pad = 8;
+      let leftPx = localX;
+      let topPx = localY;
+
+      if (direction === 'top') {
+        leftPx -= tooltipWidth / 2;
+        topPx -= tooltipHeight + 12;
+      } else if (direction === 'bottom') {
+        leftPx -= tooltipWidth / 2;
+        topPx += 12;
+      } else if (direction === 'left') {
+        leftPx -= tooltipWidth + 12;
+        topPx -= tooltipHeight / 2;
+      } else if (direction === 'right') {
+        leftPx += 12;
+        topPx -= tooltipHeight / 2;
+      }
+
+      leftPx = Math.min(Math.max(leftPx, pad), wrapRect.width - tooltipWidth - pad);
+      topPx = Math.min(Math.max(topPx, pad), wrapRect.height - tooltipHeight - pad);
+
+      setDonutHover({
+        index,
+        left: leftPx,
+        top: topPx,
+        item,
+        direction,
+        mode: 'pixel'
+      });
+    } else {
+      const leftPct = ((clientX - donutRect.left) / donutRect.width) * 100;
+      const topPct = ((clientY - donutRect.top) / donutRect.height) * 100;
+      setDonutHover({
+        index,
+        left: leftPct,
+        top: topPct,
+        item,
+        direction,
+        mode: 'percent'
+      });
+    }
+    if (pin) {
+      setDonutPinned(true);
+    }
+  };
+
+  const handleDonutLeave = () => {
+    if (donutPinned) return;
+    setDonutHover(null);
+  };
+
+  const isSegmentTarget = (event) => event?.target?.dataset?.segment === 'true';
+
+  const handleDonutChartMove = (event) => {
+    if (donutPinned) return;
+    if (!isSegmentTarget(event)) {
+      setDonutHover(null);
+    }
+  };
+
+  const handleDonutChartPress = (event) => {
+    if (isSegmentTarget(event)) return;
+    if (donutPinned) {
+      setDonutPinned(false);
+      setDonutHover(null);
+    }
+  };
+
+  const handleDonutHover = (event, item, index) => {
+    if (donutPinned || isTouchLike()) return;
+    showDonutTooltip(event, item, index);
+  };
+
+  const handleDonutClick = (event, item, index) => {
+    if (!isTouchLike()) return;
+    showDonutTooltip(event, item, index, { pin: true });
+  };
+
+  useEffect(() => {
+    if (!donutPinned) return undefined;
+    const handlePointerDown = (event) => {
+      if (donutWrapRef.current && donutWrapRef.current.contains(event.target)) return;
+      setDonutPinned(false);
+      setDonutHover(null);
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [donutPinned]);
+
+  const projectClicks = projects.map((project) => {
+    const total = safeStats.reduce((sum, stat) => {
+      const details = Array.isArray(stat?.project_details) ? stat.project_details : [];
+      const match = details.find((entry) => entry.project_id?.toString?.() === project._id?.toString?.());
+      return sum + (match?.clicks || 0);
+    }, 0);
+    return { id: project._id, title: project.title || 'Untitled', value: total };
+  }).filter((item) => item.value > 0);
+
+  const topProjectClicks = projectClicks.sort((a, b) => b.value - a.value).slice(0, 4);
+  const totalProjectClicks = topProjectClicks.reduce((sum, item) => sum + item.value, 0);
+  const donutColors = ['#64ffda', '#6aa6ff', '#ffb454', '#ff6b6b'];
   const formatCountry = (countryCode) => {
     if (!countryCode || countryCode === 'Unknown') return 'Unknown';
     if (countryCode.length === 2 && typeof Intl !== 'undefined' && Intl.DisplayNames) {
@@ -88,6 +318,16 @@ const StatisticsSection = ({ stats, visits, visitsLoading }) => {
             <p className={styles.statsNumber}>
               {safeStats.reduce((total, stat) => total + (stat.visits || 0), 0)}
             </p>
+            <div className={styles.trendMeta}>
+              <span className={styles.trendLabel}>Last 7 days</span>
+              <span
+                className={`${styles.trendValue} ${
+                  visitsDelta === null ? styles.trendNeutral : visitsDelta >= 0 ? styles.trendUp : styles.trendDown
+                }`}
+              >
+                {visitsDelta === null ? '—' : `${visitsDelta >= 0 ? '+' : ''}${visitsDelta.toFixed(1)}%`}
+              </span>
+            </div>
           </div>
           <div className={styles.messageCard}>
             <h3>Total Project Clicks</h3>
@@ -98,6 +338,246 @@ const StatisticsSection = ({ stats, visits, visitsLoading }) => {
                 return total + dailyClicks;
               }, 0)}
             </p>
+            <div className={styles.trendMeta}>
+              <span className={styles.trendLabel}>Last 7 days</span>
+              <span
+                className={`${styles.trendValue} ${
+                  clicksDelta === null ? styles.trendNeutral : clicksDelta >= 0 ? styles.trendUp : styles.trendDown
+                }`}
+              >
+                {clicksDelta === null ? '—' : `${clicksDelta >= 0 ? '+' : ''}${clicksDelta.toFixed(1)}%`}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.insightsGrid}>
+          <div className={styles.messageCard}>
+            <div className={styles.cardHeaderRow}>
+              <h3>Weekly Trend</h3>
+              <span className={styles.mutedText}>Visits vs Clicks</span>
+            </div>
+            <div className={styles.sparklineWrapper}>
+              <div
+                className={styles.sparklineInteractive}
+                onMouseMove={handleSparklineMove}
+                onMouseLeave={handleSparklineLeave}
+                onTouchStart={handleSparklineMove}
+                onTouchMove={handleSparklineMove}
+                onTouchEnd={handleSparklineLeave}
+              >
+                <svg className={styles.sparkline} viewBox="0 0 220 70" preserveAspectRatio="none">
+                  <polyline className={styles.sparklineLine} points={visitsPoints} />
+                  <polyline className={styles.sparklineLineAlt} points={clicksPoints} />
+                  {hoverIndex !== null && (
+                    <>
+                      <line className={styles.sparklineGuide} x1={hoverX} x2={hoverX} y1="6" y2="64" />
+                      {hoverVisitsPoint && (
+                        <circle
+                          className={styles.sparklineDot}
+                          cx={hoverVisitsPoint.x}
+                          cy={hoverVisitsPoint.y}
+                          r="4"
+                        />
+                      )}
+                      {hoverClicksPoint && (
+                        <circle
+                          className={styles.sparklineDotAlt}
+                          cx={hoverClicksPoint.x}
+                          cy={hoverClicksPoint.y}
+                          r="4"
+                        />
+                      )}
+                    </>
+                  )}
+                </svg>
+                {hoverData && (
+                  <div className={styles.sparklineTooltip} style={{ left: `${sparklineHover.leftPct}%` }}>
+                    <div className={styles.tooltipDate}>
+                      {hoverData?.date ? new Date(hoverData.date).toLocaleDateString() : '—'}
+                    </div>
+                    <div className={styles.tooltipRow}>
+                      <span>Visits</span>
+                      <strong>{hoverVisits}</strong>
+                    </div>
+                    <div className={styles.tooltipRow}>
+                      <span>Clicks</span>
+                      <strong>{hoverClicks}</strong>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className={styles.sparklineLegend}>
+                <span className={styles.legendItem}>
+                  <span className={`${styles.legendDot} ${styles.legendDotPrimary}`} />
+                  Visits
+                </span>
+                <span className={styles.legendItem}>
+                  <span className={`${styles.legendDot} ${styles.legendDotAlt}`} />
+                  Clicks
+                </span>
+              </div>
+            </div>
+            <div className={styles.trendList}>
+              {trendRows.map((row, index) => (
+                <div key={`${row.date}-${index}`} className={styles.trendRow}>
+                  <div className={styles.trendInfo}>
+                    <span
+                      className={styles.trendDot}
+                      style={{ backgroundColor: donutColors[index % donutColors.length] }}
+                    />
+                    <span>{row.date ? new Date(row.date).toLocaleDateString() : '—'}</span>
+                  </div>
+                  <div className={styles.trendStats}>
+                    <span className={styles.trendCount}>{row.visits}</span>
+                    <span
+                      className={`${styles.trendDelta} ${
+                        row.delta > 0 ? styles.trendUp : row.delta < 0 ? styles.trendDown : styles.trendNeutral
+                      }`}
+                    >
+                      {row.delta > 0 ? '▲' : row.delta < 0 ? '▼' : '•'} {Math.abs(row.delta)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className={styles.messageCard}>
+            <div className={styles.cardHeaderRow}>
+              <h3>Project Click Share</h3>
+              <span className={styles.mutedText}>Top projects</span>
+            </div>
+            {totalProjectClicks === 0 ? (
+              <div className={styles.emptyState}>No project clicks yet.</div>
+            ) : (
+              <div className={styles.donutLayout} ref={donutWrapRef}>
+                <div
+                  className={styles.donutChart}
+                  ref={donutRef}
+                  onMouseLeave={handleDonutLeave}
+                  onMouseMove={handleDonutChartMove}
+                  onClick={handleDonutChartPress}
+                  onTouchStart={handleDonutChartPress}
+                  onTouchEnd={handleDonutLeave}
+                  onTouchMove={handleDonutChartMove}
+                >
+                  <svg className={styles.donut} viewBox="0 0 120 120">
+                    <circle className={styles.donutTrack} cx="60" cy="60" r="44" />
+                    {topProjectClicks.reduce((acc, item, idx) => {
+                    const circumference = 2 * Math.PI * 44;
+                    const portion = (item.value / totalProjectClicks) * circumference;
+                    const offset = acc.offset;
+                    acc.offset += portion;
+                    acc.nodes.push(
+                      <circle
+                        key={item.id}
+                        className={`${styles.donutSegment} ${
+                          donutHover && donutHover.index === idx
+                            ? styles.donutSegmentActive
+                            : donutHover
+                              ? styles.donutSegmentDim
+                              : ''
+                        }`}
+                        cx="60"
+                        cy="60"
+                        r="44"
+                        stroke={donutColors[idx % donutColors.length]}
+                        strokeDasharray={`${portion} ${circumference - portion}`}
+                        strokeDashoffset={-offset}
+                        data-segment="true"
+                        onMouseMove={(event) => handleDonutHover(event, item, idx)}
+                        onMouseEnter={(event) => handleDonutHover(event, item, idx)}
+                        onTouchStart={(event) => handleDonutClick(event, item, idx)}
+                        onTouchMove={(event) => handleDonutClick(event, item, idx)}
+                        onClick={(event) => handleDonutClick(event, item, idx)}
+                      />
+                    );
+                    return acc;
+                  }, { offset: 0, nodes: [] }).nodes}
+                  </svg>
+                  {donutHover && donutHover.item && (
+                    <div
+                      className={`${styles.donutTooltip} ${
+                        donutHover.mode === 'percent'
+                          ? donutHover.direction === 'right'
+                            ? styles.donutTooltipRight
+                            : donutHover.direction === 'left'
+                              ? styles.donutTooltipLeft
+                              : donutHover.direction === 'bottom'
+                                ? styles.donutTooltipBottom
+                                : styles.donutTooltipTop
+                          : ''
+                      }`}
+                      style={{
+                        left: donutHover.mode === 'percent'
+                          ? `${donutHover.left}%`
+                          : `${donutHover.left}px`,
+                        top: donutHover.mode === 'percent'
+                          ? `${donutHover.top}%`
+                          : `${donutHover.top}px`
+                      }}
+                    >
+                      <div
+                        className={styles.tooltipDate}
+                        style={{ color: donutColors[donutHover.index % donutColors.length] }}
+                      >
+                        {donutHover.item.title}
+                      </div>
+                      <div className={styles.tooltipRow}>
+                        <span>Clicks</span>
+                        <strong>{donutHover.item.value}</strong>
+                      </div>
+                      <div className={styles.tooltipRow}>
+                        <span>Share</span>
+                        <strong>
+                          {totalProjectClicks
+                            ? `${((donutHover.item.value / totalProjectClicks) * 100).toFixed(1)}%`
+                            : '0%'}
+                        </strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className={styles.donutLegend}>
+                  {topProjectClicks.map((item, idx) => {
+                    const percent = totalProjectClicks ? (item.value / totalProjectClicks) * 100 : 0;
+                    return (
+                      <div
+                        key={item.id}
+                        className={styles.legendRow}
+                        onMouseEnter={(event) => handleDonutHover(event, item, idx)}
+                        onMouseMove={(event) => handleDonutHover(event, item, idx)}
+                        onMouseLeave={handleDonutLeave}
+                        onClick={(event) => handleDonutClick(event, item, idx)}
+                        onTouchStart={(event) => handleDonutClick(event, item, idx)}
+                      >
+                        <span
+                          className={styles.legendDot}
+                          style={{ backgroundColor: donutColors[idx % donutColors.length] }}
+                        />
+                        <span className={styles.legendLabel}>{item.title}</span>
+                        <span className={styles.legendValue}>{percent.toFixed(1)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <div className={styles.highlightGrid}>
+              <div className={styles.highlightItem}>
+                <span className={styles.highlightLabel}>Last 7 days</span>
+                <span className={styles.highlightValue}>{last7Visits} visits</span>
+              </div>
+              <div className={styles.highlightItem}>
+                <span className={styles.highlightLabel}>Clicks</span>
+                <span className={styles.highlightValue}>{last7Clicks}</span>
+              </div>
+              <div className={styles.highlightItem}>
+                <span className={styles.highlightLabel}>Best day</span>
+                <span className={styles.highlightValue}>
+                  {bestDay ? `${bestDay.visits} visits` : '—'}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
         <div className={styles.messageCard}>
@@ -462,6 +942,10 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
       });
     });
 
+    socket.on('stats:updated', () => {
+      fetchStatistics();
+    });
+
     socket.on('subscriber:new', (subscriber) => {
       const timestamp = getItemTimestamp(subscriber) || Date.now();
       if (locationRef.current.includes('/subscribers')) {
@@ -495,7 +979,7 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [fetchStatistics]);
 
   useEffect(() => {
     if (location.pathname.includes('/subscribers')) {

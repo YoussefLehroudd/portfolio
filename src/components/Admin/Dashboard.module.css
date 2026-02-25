@@ -314,6 +314,345 @@ button.themeOption:hover {
   margin-bottom: 1.5rem;
 }
 
+.insightsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.cardHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.mutedText {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.85rem;
+}
+
+.sparklineWrapper {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.sparklineInteractive {
+  position: relative;
+  touch-action: pan-y;
+}
+
+.sparkline {
+  width: 100%;
+  height: 70px;
+}
+
+.sparklineGuide {
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.sparklineDot {
+  fill: #64ffda;
+  stroke: #0a0a0a;
+  stroke-width: 2;
+}
+
+.sparklineDotAlt {
+  fill: #6aa6ff;
+  stroke: #0a0a0a;
+  stroke-width: 2;
+}
+
+.sparklineTooltip {
+  position: absolute;
+  top: -6px;
+  transform: translate(-50%, -100%);
+  background: rgba(10, 10, 10, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.75rem;
+  color: #fff;
+  display: grid;
+  gap: 0.2rem;
+  min-width: 120px;
+  pointer-events: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.tooltipDate {
+  font-weight: 600;
+  color: #64ffda;
+  font-size: 0.75rem;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.tooltipRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.sparklineLine {
+  fill: none;
+  stroke: #64ffda;
+  stroke-width: 3;
+  opacity: 0.9;
+}
+
+.sparklineLineAlt {
+  fill: none;
+  stroke: #6aa6ff;
+  stroke-width: 2;
+  opacity: 0.85;
+}
+
+.sparklineLegend {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legendDotPrimary {
+  background: #64ffda;
+}
+
+.legendDotAlt {
+  background: #6aa6ff;
+}
+
+.trendList {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.trendRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.trendInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+}
+
+.trendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.trendStats {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.trendCount {
+  font-weight: 600;
+  color: #fff;
+}
+
+.trendDelta {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.trendUp {
+  color: #64ffda;
+}
+
+.trendDown {
+  color: #ff6b6b;
+}
+
+.trendNeutral {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.trendMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.trendLabel {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.trendValue {
+  font-weight: 600;
+}
+
+.donutLayout {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  margin: 0.5rem 0 1rem;
+}
+
+.donutChart {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  touch-action: pan-y;
+}
+
+.donut {
+  width: 120px;
+  height: 120px;
+}
+
+.donutTrack {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 16;
+}
+
+.donutSegment {
+  fill: none;
+  stroke-width: 16;
+  transform: rotate(-90deg);
+  transform-origin: 60px 60px;
+  transition: stroke-width 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+  cursor: pointer;
+}
+
+.donutSegmentActive {
+  stroke-width: 20;
+  filter: drop-shadow(0 0 6px rgba(100, 255, 218, 0.4));
+}
+
+.donutSegmentDim {
+  opacity: 0.5;
+}
+
+.donutLegend {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  min-width: 0;
+}
+
+.legendLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legendValue {
+  font-weight: 600;
+  color: #fff;
+}
+
+.donutTooltip {
+  position: absolute;
+  background: rgba(10, 10, 10, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.75rem;
+  color: #fff;
+  display: grid;
+  gap: 0.2rem;
+  min-width: 140px;
+  max-width: 200px;
+  pointer-events: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+
+.donutTooltipTop {
+  transform: translate(-50%, -120%);
+}
+
+.donutTooltipRight {
+  transform: translate(12%, -50%);
+}
+
+.donutTooltipBottom {
+  transform: translate(-50%, 20%);
+}
+
+.donutTooltipLeft {
+  transform: translate(-112%, -50%);
+}
+@media (max-width: 768px) {
+  .donutTooltip {
+    max-width: 160px;
+  }
+}
+
+.highlightGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.6rem;
+}
+
+.highlightItem {
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  display: grid;
+  gap: 0.25rem;
+}
+
+.highlightLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.highlightValue {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+}
+
 .statsNumber {
   font-size: 2rem;
   color: #64ffda;
@@ -481,6 +820,28 @@ button.themeOption:hover {
 
   .statsCards {
     grid-template-columns: 1fr;
+  }
+
+  .insightsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .donutLayout {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: left;
+  }
+
+  .donutLegend {
+    width: 100%;
+  }
+
+  .legendRow {
+    width: 100%;
+  }
+
+  .legendValue {
+    flex-shrink: 0;
   }
 
   .statsNumber {
