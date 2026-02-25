@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -15,6 +15,37 @@ import ReviewsManagement from './ReviewsManagement';
 import AvatarManagement from './AvatarManagement';
 import EmailSettings from './EmailSettings';
 import SubscribersManagement from './SubscribersManagement';
+
+const SUBSCRIBER_SEEN_KEY = 'admin:lastSeen:subscribers';
+const REVIEW_SEEN_KEY = 'admin:lastSeen:reviews';
+
+const getStoredTimestamp = (key) => {
+  if (typeof window === 'undefined') return 0;
+  const raw = window.localStorage.getItem(key);
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const setStoredTimestamp = (key, value) => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(key, String(value));
+};
+
+const getItemTimestamp = (item) => {
+  const value = item?.createdAt || item?.updatedAt || '';
+  const ts = new Date(value).getTime();
+  return Number.isFinite(ts) ? ts : 0;
+};
+
+const countNewItems = (items, lastSeen) => {
+  if (!Array.isArray(items) || !items.length) return 0;
+  let count = 0;
+  items.forEach((item) => {
+    const ts = getItemTimestamp(item);
+    if (ts && ts > lastSeen) count += 1;
+  });
+  return count;
+};
 
 const StatisticsSection = ({ stats, visits, visitsLoading }) => {
   const [projects, setProjects] = useState([]);
@@ -270,36 +301,110 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
   const location = useLocation();
   const locationRef = useRef(location.pathname);
 
-  const subscriberSeenKey = 'admin:lastSeen:subscribers';
-  const reviewSeenKey = 'admin:lastSeen:reviews';
+  const fetchStatistics = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/statistics`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-  const getStoredTimestamp = (key) => {
-    if (typeof window === 'undefined') return 0;
-    const raw = window.localStorage.getItem(key);
-    const parsed = Number(raw);
-    return Number.isFinite(parsed) ? parsed : 0;
-  };
+      if (response.ok) {
+        const data = await response.json();
+        setStatistics(data);
+      } else {
+        console.error('Failed to fetch statistics');
+      }
+    } catch (error) {
+      console.error('Error loading statistics:', error);
+    }
+  }, []);
 
-  const setStoredTimestamp = (key, value) => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(key, String(value));
-  };
+  const fetchMessages = useCallback(async () => {
+    setMessagesLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/messages`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-  const getItemTimestamp = (item) => {
-    const value = item?.createdAt || item?.updatedAt || '';
-    const ts = new Date(value).getTime();
-    return Number.isFinite(ts) ? ts : 0;
-  };
+      if (response.ok) {
+        const data = await response.json();
+        const normalized = Array.isArray(data)
+          ? data.map((item) => ({ ...item, isRead: Boolean(item.isRead) }))
+          : [];
+        setMessages(normalized);
+      } else {
+        setError('Failed to fetch messages');
+      }
+    } catch (error) {
+      setError('Error loading messages');
+    }
+    setMessagesLoading(false);
+  }, []);
 
-  const countNewItems = (items, lastSeen) => {
-    if (!Array.isArray(items) || !items.length) return 0;
-    let count = 0;
-    items.forEach((item) => {
-      const ts = getItemTimestamp(item);
-      if (ts && ts > lastSeen) count += 1;
-    });
-    return count;
-  };
+  const fetchVisitLogs = useCallback(async () => {
+    setVisitsLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/statistics/visits?limit=60`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setVisitLogs(data);
+      } else {
+        console.error('Failed to fetch visit logs');
+      }
+    } catch (error) {
+      console.error('Error loading visit logs:', error);
+    }
+    setVisitsLoading(false);
+  }, []);
+
+  const fetchSubscriberBadge = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/subscribers`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const lastSeen = getStoredTimestamp(SUBSCRIBER_SEEN_KEY);
+        setSubscriberNewCount(countNewItems(Array.isArray(data) ? data : [], lastSeen));
+      }
+    } catch (error) {
+      // ignore badge fetch errors
+    }
+  }, []);
+
+  const fetchReviewBadge = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/reviews`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const lastSeen = getStoredTimestamp(REVIEW_SEEN_KEY);
+        setReviewNewCount(countNewItems(Array.isArray(data) ? data : [], lastSeen));
+      }
+    } catch (error) {
+      // ignore badge fetch errors
+    }
+  }, []);
 
   useEffect(() => {
     fetchMessages();
@@ -309,7 +414,7 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
     fetchReviewBadge();
     // Check initial sidebar state
     setIsSidebarCollapsed(document.body.classList.contains('sidebar-collapsed'));
-  }, []);
+  }, [fetchMessages, fetchStatistics, fetchVisitLogs, fetchSubscriberBadge, fetchReviewBadge]);
 
   useEffect(() => {
     locationRef.current = location.pathname;
@@ -360,11 +465,11 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
     socket.on('subscriber:new', (subscriber) => {
       const timestamp = getItemTimestamp(subscriber) || Date.now();
       if (locationRef.current.includes('/subscribers')) {
-        setStoredTimestamp(subscriberSeenKey, timestamp);
+        setStoredTimestamp(SUBSCRIBER_SEEN_KEY, timestamp);
         setSubscriberNewCount(0);
         return;
       }
-      const lastSeen = getStoredTimestamp(subscriberSeenKey);
+      const lastSeen = getStoredTimestamp(SUBSCRIBER_SEEN_KEY);
       if (timestamp > lastSeen) {
         setSubscriberNewCount((prev) => prev + 1);
       }
@@ -373,11 +478,11 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
     socket.on('review:new', (review) => {
       const timestamp = getItemTimestamp(review) || Date.now();
       if (locationRef.current.includes('/reviews')) {
-        setStoredTimestamp(reviewSeenKey, timestamp);
+        setStoredTimestamp(REVIEW_SEEN_KEY, timestamp);
         setReviewNewCount(0);
         return;
       }
-      const lastSeen = getStoredTimestamp(reviewSeenKey);
+      const lastSeen = getStoredTimestamp(REVIEW_SEEN_KEY);
       if (timestamp > lastSeen) {
         setReviewNewCount((prev) => prev + 1);
       }
@@ -394,119 +499,14 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
 
   useEffect(() => {
     if (location.pathname.includes('/subscribers')) {
-      setStoredTimestamp(subscriberSeenKey, Date.now());
+      setStoredTimestamp(SUBSCRIBER_SEEN_KEY, Date.now());
       setSubscriberNewCount(0);
     }
     if (location.pathname.includes('/reviews')) {
-      setStoredTimestamp(reviewSeenKey, Date.now());
+      setStoredTimestamp(REVIEW_SEEN_KEY, Date.now());
       setReviewNewCount(0);
     }
   }, [location.pathname]);
-
-  const fetchStatistics = async () => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/statistics`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setStatistics(data);
-      } else {
-        console.error('Failed to fetch statistics');
-      }
-    } catch (error) {
-      console.error('Error loading statistics:', error);
-    }
-  };
-
-  const fetchMessages = async () => {
-    setMessagesLoading(true);
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/messages`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const normalized = Array.isArray(data)
-          ? data.map((item) => ({ ...item, isRead: Boolean(item.isRead) }))
-          : [];
-        setMessages(normalized);
-      } else {
-        setError('Failed to fetch messages');
-      }
-    } catch (error) {
-      setError('Error loading messages');
-    }
-    setMessagesLoading(false);
-  };
-
-  const fetchVisitLogs = async () => {
-    setVisitsLoading(true);
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/statistics/visits?limit=60`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setVisitLogs(data);
-      } else {
-        console.error('Failed to fetch visit logs');
-      }
-    } catch (error) {
-      console.error('Error loading visit logs:', error);
-    }
-    setVisitsLoading(false);
-  };
-
-  const fetchSubscriberBadge = async () => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/subscribers`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const lastSeen = getStoredTimestamp(subscriberSeenKey);
-        setSubscriberNewCount(countNewItems(Array.isArray(data) ? data : [], lastSeen));
-      }
-    } catch (error) {
-      // ignore badge fetch errors
-    }
-  };
-
-  const fetchReviewBadge = async () => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/reviews`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const lastSeen = getStoredTimestamp(reviewSeenKey);
-        setReviewNewCount(countNewItems(Array.isArray(data) ? data : [], lastSeen));
-      }
-    } catch (error) {
-      // ignore badge fetch errors
-    }
-  };
 
   const handleDeleteClick = (message) => {
     setMessageToDelete(message);
