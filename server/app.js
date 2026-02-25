@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
-const { connectDatabase, dbType } = require('./config/database');
+const fs = require('fs');
+const { connectDatabase, dbType, isSQL } = require('./config/database');
 const { getIo } = require('./utils/socket');
 const runInitialSeed = require('./seeders/initialSeed');
 const authRoutes = require('./routes/auth');
@@ -26,6 +27,7 @@ const emailTrackingRoutes = require('./routes/emailTracking');
 const subscriberRoutes = require('./routes/subscribers');
 const mediaRoutes = require('./routes/media');
 const Message = require('./models/Message');
+const Profile = require('./models/Profile');
 
 dotenv.config();
 
@@ -88,6 +90,96 @@ const dbReady = connectDatabase().then(() => runInitialSeed()).catch((err) => {
   console.error('DB init error:', err);
   if (!process.env.VERCEL) process.exit(1);
 });
+app.ready = dbReady;
+
+const indexHtmlPath = path.join(__dirname, '../build', 'index.html');
+let cachedIndexHtml = null;
+
+const escapeHtml = (value) => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const resolveMetaImage = (value, origin) => {
+  if (!value) return '';
+  if (value.startsWith('http://') || value.startsWith('https://')) return value;
+  if (!origin) return value;
+  if (value.startsWith('/')) return `${origin}${value}`;
+  return `${origin}/${value}`;
+};
+
+const replaceMetaTag = (html, attr, attrValue, content) => {
+  if (!content) return html;
+  const escaped = escapeHtml(content);
+  const regex = new RegExp(`<meta\\s+[^>]*${attr}="${attrValue}"[^>]*>`, 'i');
+  const tag = `<meta ${attr}="${attrValue}" content="${escaped}" />`;
+  if (regex.test(html)) {
+    return html.replace(regex, tag);
+  }
+  return html.replace('</head>', `  ${tag}\n</head>`);
+};
+
+const applySeoToHtml = (html, seo, url) => {
+  if (!seo) return html;
+  let nextHtml = html;
+  const title = seo.title || '';
+  const description = seo.description || '';
+  const image = seo.image || '';
+
+  if (title) {
+    nextHtml = nextHtml.replace(/<title>.*<\/title>/i, `<title>${escapeHtml(title)}</title>`);
+    nextHtml = replaceMetaTag(nextHtml, 'property', 'og:title', title);
+    nextHtml = replaceMetaTag(nextHtml, 'property', 'twitter:title', title);
+  }
+
+  if (description) {
+    nextHtml = replaceMetaTag(nextHtml, 'name', 'description', description);
+    nextHtml = replaceMetaTag(nextHtml, 'property', 'og:description', description);
+    nextHtml = replaceMetaTag(nextHtml, 'property', 'twitter:description', description);
+  }
+
+  if (image) {
+    nextHtml = replaceMetaTag(nextHtml, 'property', 'og:image', image);
+    nextHtml = replaceMetaTag(nextHtml, 'property', 'twitter:image', image);
+  }
+
+  if (url) {
+    nextHtml = replaceMetaTag(nextHtml, 'property', 'og:url', url);
+    nextHtml = replaceMetaTag(nextHtml, 'property', 'twitter:url', url);
+  }
+
+  return nextHtml;
+};
+
+const getSeoSnapshot = async () => {
+  try {
+    await app.ready;
+    const profile = isSQL
+      ? await Profile.findOne({ order: [['updatedAt', 'DESC']] })
+      : await Profile.findOne().sort({ updatedAt: -1 });
+    if (!profile) return null;
+    const data = profile.toJSON ? profile.toJSON() : profile;
+    return {
+      title: typeof data.seoTitle === 'string' ? data.seoTitle : '',
+      description: typeof data.seoDescription === 'string' ? data.seoDescription : '',
+      image: typeof data.seoImage === 'string' ? data.seoImage : ''
+    };
+  } catch (error) {
+    console.error('Error loading SEO snapshot:', error);
+    return null;
+  }
+};
+
+const shouldServeSeoHtml = (req) => {
+  if (req.path.startsWith('/api')) return false;
+  if (req.path.startsWith('/media')) return false;
+  if (req.path.startsWith('/admin')) return false;
+  if (req.path.includes('.')) return false;
+  const accept = req.headers.accept || '';
+  return accept.includes('text/html');
+};
 
 // Routes
 app.use('/api/admin/profile', profileRoutes);
@@ -137,6 +229,29 @@ app.get('/media/:resourceType/*', (req, res) => {
   } catch (error) {
     console.error('Error redirecting media:', error);
     return res.status(500).end();
+  }
+});
+
+app.get('*', async (req, res, next) => {
+  if (!shouldServeSeoHtml(req)) return next();
+  try {
+    if (!cachedIndexHtml) {
+      cachedIndexHtml = await fs.promises.readFile(indexHtmlPath, 'utf8');
+    }
+    const origin = `${req.protocol}://${req.get('host')}`;
+    const seo = await getSeoSnapshot();
+    if (!seo) {
+      return res.send(cachedIndexHtml);
+    }
+    const resolvedImage = resolveMetaImage(seo.image, origin);
+    const html = applySeoToHtml(
+      cachedIndexHtml,
+      { ...seo, image: resolvedImage },
+      `${origin}${req.originalUrl}`
+    );
+    return res.send(html);
+  } catch (error) {
+    return next();
   }
 });
 
@@ -194,8 +309,5 @@ app.get('/api/messages', async (req, res) => {
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
-
-// Expose app and dbReady for both server and serverless
-app.ready = dbReady;
 
 module.exports = app;

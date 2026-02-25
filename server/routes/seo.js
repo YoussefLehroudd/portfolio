@@ -1,11 +1,14 @@
 const express = require('express');
 const Profile = require('../models/Profile');
+const { isSQL } = require('../config/database');
 
 const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
-    const profile = await Profile.findOne();
+    const profile = isSQL
+      ? await Profile.findOne({ order: [['updatedAt', 'DESC']] })
+      : await Profile.findOne().sort({ updatedAt: -1 });
     if (!profile) {
       return res.json({ title: '', description: '', image: '' });
     }
