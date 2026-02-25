@@ -1,6 +1,23 @@
 const Subscriber = require('../models/Subscriber');
 const { sendEmail } = require('./mailer');
+const { resolveEmailSettings } = require('./emailSettings');
 const { createUnsubscribeToken, buildUnsubscribeUrl } = require('./unsubscribe');
+
+const DEFAULT_RESEND_DELAY_MS = 650;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const resolveSendDelayMs = (settingsOrProvider) => {
+  const provider = typeof settingsOrProvider === 'string'
+    ? settingsOrProvider
+    : settingsOrProvider?.provider;
+  if (!provider || provider === 'smtp') return 0;
+  const raw = process.env.RESEND_SEND_DELAY_MS || process.env.EMAIL_SEND_DELAY_MS;
+  if (raw === undefined || raw === null || raw === '') return DEFAULT_RESEND_DELAY_MS;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 0) return DEFAULT_RESEND_DELAY_MS;
+  return parsed;
+};
 
 const escapeHtml = (value = '') => (
   String(value)
@@ -102,7 +119,9 @@ const buildListUnsubscribeHeaders = (unsubscribeUrl) => {
   };
 };
 
-const sendToSubscribers = async ({ subject, siteUrl, renderEmail, tracking }) => {
+const sendToSubscribers = async ({ subject, siteUrl, renderEmail, tracking, provider }) => {
+  const delaySource = provider || await resolveEmailSettings();
+  const delayMs = resolveSendDelayMs(delaySource);
   const subscribers = await Subscriber.find().sort({ createdAt: -1 });
   const recipients = subscribers
     .map((sub) => sub?.email)
@@ -113,7 +132,8 @@ const sendToSubscribers = async ({ subject, siteUrl, renderEmail, tracking }) =>
   }
 
   let sent = 0;
-  for (const recipient of recipients) {
+  for (let index = 0; index < recipients.length; index += 1) {
+    const recipient = recipients[index];
     const token = createUnsubscribeToken(recipient);
     const unsubscribeUrl = buildUnsubscribeUrl(siteUrl, token);
     const payload = typeof renderEmail === 'function'
@@ -143,6 +163,10 @@ const sendToSubscribers = async ({ subject, siteUrl, renderEmail, tracking }) =>
       }
     } catch (error) {
       console.error('Subscriber send exception:', error);
+    }
+
+    if (delayMs > 0 && index < recipients.length - 1) {
+      await sleep(delayMs);
     }
   }
 

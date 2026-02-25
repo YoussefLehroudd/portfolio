@@ -116,6 +116,7 @@ router.put('/', auth, async (req, res) => {
         sendToSubscribers({
           subject: 'New career update',
           siteUrl,
+          provider: settings.provider,
           tracking: { enabled: true, category: 'career' },
           renderEmail: ({ unsubscribeUrl }) => ({
             html: renderCareerEmail(newItems, {

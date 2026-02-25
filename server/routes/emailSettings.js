@@ -236,6 +236,7 @@ router.post('/send-project', auth, async (req, res) => {
     const result = await sendToSubscribers({
       subject: `New project: ${project.title || 'Update'}`,
       siteUrl,
+      provider: settings.provider,
       tracking: { enabled: true, category: 'project_blast' },
       renderEmail: ({ unsubscribeUrl }) => ({
         html: renderProjectEmail(project, {
