@@ -54,7 +54,7 @@ const MediaLibrary = () => {
     return parsed.toLocaleDateString();
   };
 
-  const fetchMedia = async ({ append = false } = {}) => {
+  const fetchMedia = useCallback(async ({ append = false, cursor = null } = {}) => {
     const token = localStorage.getItem('adminToken');
     if (!token) return;
     const requestId = ++mediaRequestRef.current;
@@ -64,8 +64,8 @@ const MediaLibrary = () => {
       params.set('prefix', currentFolder.trim());
     }
     params.set('max', '60');
-    if (append && nextCursor) {
-      params.set('nextCursor', nextCursor);
+    if (append && cursor) {
+      params.set('nextCursor', cursor);
     }
 
     try {
@@ -96,11 +96,11 @@ const MediaLibrary = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+  }, [resourceType, currentFolder]);
 
   useEffect(() => {
     fetchMedia();
-  }, [resourceType, currentFolder]);
+  }, [fetchMedia]);
 
   const fetchFolders = useCallback(async () => {
     const token = localStorage.getItem('adminToken');
@@ -687,15 +687,6 @@ const MediaLibrary = () => {
                 <option value="raw">Files</option>
               </select>
             </div>
-            <div className={styles.filterGroup}>
-              <label>Folder</label>
-              <input
-                type="text"
-                value={currentFolder}
-                onChange={(event) => setCurrentFolder(event.target.value)}
-                placeholder="portfolio/uploads"
-              />
-            </div>
             <div className={styles.filterActions}>
               {isSelectMode ? (
                 <>
@@ -814,7 +805,11 @@ const MediaLibrary = () => {
 
           {nextCursor && (
             <div className={styles.loadMore}>
-              <button type="button" onClick={() => fetchMedia({ append: true })} disabled={loadingMore}>
+              <button
+                type="button"
+                onClick={() => fetchMedia({ append: true, cursor: nextCursor })}
+                disabled={loadingMore}
+              >
                 {loadingMore ? 'Loading...' : 'Load more'}
               </button>
             </div>

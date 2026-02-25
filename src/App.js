@@ -65,10 +65,10 @@ const applySeoMeta = (payload) => {
 };
 
 const SeoMeta = () => {
-  const location = useLocation();
+  const { pathname } = useLocation();
 
   useEffect(() => {
-    if (!location || location.pathname.startsWith('/admin')) return undefined;
+    if (!pathname || pathname.startsWith('/admin')) return undefined;
     const controller = new AbortController();
 
     fetch(`${process.env.REACT_APP_API_URL}/api/seo`, { signal: controller.signal })
@@ -80,7 +80,7 @@ const SeoMeta = () => {
       .catch(() => {});
 
     return () => controller.abort();
-  }, [location.pathname]);
+  }, [pathname]);
 
   return null;
 };
