@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -263,17 +263,57 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
   const [visitLogs, setVisitLogs] = useState([]);
   const [visitsLoading, setVisitsLoading] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [subscriberNewCount, setSubscriberNewCount] = useState(0);
+  const [reviewNewCount, setReviewNewCount] = useState(0);
   const { admin, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const locationRef = useRef(location.pathname);
+
+  const subscriberSeenKey = 'admin:lastSeen:subscribers';
+  const reviewSeenKey = 'admin:lastSeen:reviews';
+
+  const getStoredTimestamp = (key) => {
+    if (typeof window === 'undefined') return 0;
+    const raw = window.localStorage.getItem(key);
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const setStoredTimestamp = (key, value) => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(key, String(value));
+  };
+
+  const getItemTimestamp = (item) => {
+    const value = item?.createdAt || item?.updatedAt || '';
+    const ts = new Date(value).getTime();
+    return Number.isFinite(ts) ? ts : 0;
+  };
+
+  const countNewItems = (items, lastSeen) => {
+    if (!Array.isArray(items) || !items.length) return 0;
+    let count = 0;
+    items.forEach((item) => {
+      const ts = getItemTimestamp(item);
+      if (ts && ts > lastSeen) count += 1;
+    });
+    return count;
+  };
 
   useEffect(() => {
     fetchMessages();
     fetchStatistics();
     fetchVisitLogs();
+    fetchSubscriberBadge();
+    fetchReviewBadge();
     // Check initial sidebar state
     setIsSidebarCollapsed(document.body.classList.contains('sidebar-collapsed'));
   }, []);
+
+  useEffect(() => {
+    locationRef.current = location.pathname;
+  }, [location.pathname]);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -317,6 +357,32 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
       });
     });
 
+    socket.on('subscriber:new', (subscriber) => {
+      const timestamp = getItemTimestamp(subscriber) || Date.now();
+      if (locationRef.current.includes('/subscribers')) {
+        setStoredTimestamp(subscriberSeenKey, timestamp);
+        setSubscriberNewCount(0);
+        return;
+      }
+      const lastSeen = getStoredTimestamp(subscriberSeenKey);
+      if (timestamp > lastSeen) {
+        setSubscriberNewCount((prev) => prev + 1);
+      }
+    });
+
+    socket.on('review:new', (review) => {
+      const timestamp = getItemTimestamp(review) || Date.now();
+      if (locationRef.current.includes('/reviews')) {
+        setStoredTimestamp(reviewSeenKey, timestamp);
+        setReviewNewCount(0);
+        return;
+      }
+      const lastSeen = getStoredTimestamp(reviewSeenKey);
+      if (timestamp > lastSeen) {
+        setReviewNewCount((prev) => prev + 1);
+      }
+    });
+
     socket.on('connect_error', (error) => {
       console.error('Socket connection error:', error?.message || error);
     });
@@ -325,6 +391,17 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
       socket.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (location.pathname.includes('/subscribers')) {
+      setStoredTimestamp(subscriberSeenKey, Date.now());
+      setSubscriberNewCount(0);
+    }
+    if (location.pathname.includes('/reviews')) {
+      setStoredTimestamp(reviewSeenKey, Date.now());
+      setReviewNewCount(0);
+    }
+  }, [location.pathname]);
 
   const fetchStatistics = async () => {
     try {
@@ -391,6 +468,44 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
       console.error('Error loading visit logs:', error);
     }
     setVisitsLoading(false);
+  };
+
+  const fetchSubscriberBadge = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/subscribers`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const lastSeen = getStoredTimestamp(subscriberSeenKey);
+        setSubscriberNewCount(countNewItems(Array.isArray(data) ? data : [], lastSeen));
+      }
+    } catch (error) {
+      // ignore badge fetch errors
+    }
+  };
+
+  const fetchReviewBadge = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/reviews`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const lastSeen = getStoredTimestamp(reviewSeenKey);
+        setReviewNewCount(countNewItems(Array.isArray(data) ? data : [], lastSeen));
+      }
+    } catch (error) {
+      // ignore badge fetch errors
+    }
   };
 
   const handleDeleteClick = (message) => {
@@ -503,7 +618,11 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
 
   return (
     <div className={`${styles.dashboardContainer} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
-      <Sidebar messageCount={unreadCount} />
+      <Sidebar
+        messageCount={unreadCount}
+        subscriberCount={subscriberNewCount}
+        reviewCount={reviewNewCount}
+      />
       <div className={styles.dashboard}>
         <header className={styles.header}>
           <h1>{getPageTitle()}</h1>

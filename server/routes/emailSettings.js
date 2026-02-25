@@ -3,7 +3,13 @@ const auth = require('../middleware/auth');
 const EmailSettings = require('../models/EmailSettings');
 const Project = require('../models/Project');
 const { buildFromAddress, resolveEmailSettings, normalizeSettings } = require('../utils/emailSettings');
-const { renderProjectEmail, getSiteUrl, resolveImageUrl } = require('../utils/subscriberMailer');
+const {
+  renderProjectEmail,
+  renderProjectEmailText,
+  sendToSubscribers,
+  getSiteUrl,
+  resolveImageUrl
+} = require('../utils/subscriberMailer');
 const { sendEmail } = require('../utils/mailer');
 
 const router = express.Router();
@@ -203,6 +209,57 @@ router.post('/test-project', auth, async (req, res) => {
   } catch (error) {
     console.error('Error sending test project email:', error);
     return res.status(500).json({ message: 'Failed to send test email' });
+  }
+});
+
+router.post('/send-project', auth, async (req, res) => {
+  try {
+    const { projectId } = req.body || {};
+
+    if (!projectId) {
+      return res.status(400).json({ message: 'Project is required' });
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const settings = await resolveEmailSettings();
+    const from = buildFromAddress(settings);
+
+    if (!from) {
+      return res.status(400).json({ message: 'From email is not configured' });
+    }
+
+    const siteUrl = getSiteUrl(req);
+    const result = await sendToSubscribers({
+      subject: `New project: ${project.title || 'Update'}`,
+      siteUrl,
+      tracking: { enabled: true, category: 'project_blast' },
+      renderEmail: ({ unsubscribeUrl }) => ({
+        html: renderProjectEmail(project, {
+          siteUrl,
+          fromName: settings.fromName,
+          logoUrl: settings.logoUrl,
+          unsubscribeUrl
+        }),
+        text: renderProjectEmailText(project, {
+          siteUrl,
+          fromName: settings.fromName,
+          unsubscribeUrl
+        })
+      })
+    });
+
+    if (result?.skipped === 'no_subscribers') {
+      return res.json({ status: 'skipped', message: 'No subscribers found.' });
+    }
+
+    return res.json({ status: 'sent', sent: result?.sent || 0 });
+  } catch (error) {
+    console.error('Error sending project announcement:', error);
+    return res.status(500).json({ message: 'Failed to send project announcement' });
   }
 });
 

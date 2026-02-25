@@ -197,6 +197,22 @@
   align-items: stretch;
 }
 
+.projectBlastForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: stretch;
+}
+
+.testForm > *,
+.projectTestForm > * {
+  min-width: 0;
+}
+
+.projectBlastForm > * {
+  min-width: 0;
+}
+
 .testInput {
   padding: 0.75rem;
   border-radius: 4px;
@@ -207,6 +223,8 @@
   transition: all 0.3s ease;
   box-sizing: border-box;
   min-height: 46px;
+  min-width: 0;
+  width: 100%;
 }
 
 .testInput:focus {
@@ -226,6 +244,8 @@
   box-sizing: border-box;
   color-scheme: dark;
   min-height: 46px;
+  min-width: 0;
+  width: 100%;
 }
 
 .testSelect:focus {
@@ -251,6 +271,7 @@
   min-height: 46px;
   height: 100%;
   align-self: stretch;
+  min-width: 0;
 }
 
 .testButton:hover {
@@ -279,6 +300,38 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.logsHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.logsFilters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filterBtn {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterBtnActive {
+  border-color: rgba(100, 255, 218, 0.6);
+  background: rgba(100, 255, 218, 0.2);
+  color: #64ffda;
 }
 
 .countPill {
@@ -393,6 +446,29 @@
   font-size: 0.8rem;
 }
 
+.logDelete {
+  margin-left: auto;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 67, 54, 0.5);
+  background: rgba(244, 67, 54, 0.12);
+  color: #ffb4ae;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logDelete:hover {
+  border-color: rgba(244, 67, 54, 0.8);
+  background: rgba(244, 67, 54, 0.2);
+}
+
+.logDelete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .error,
 .success {
   padding: 1rem;
@@ -439,6 +515,10 @@
   }
 
   .projectTestForm {
+    grid-template-columns: 1fr;
+  }
+
+  .projectBlastForm {
     grid-template-columns: 1fr;
   }
 

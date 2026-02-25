@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './Sidebar.module.css';
 
-const Sidebar = ({ messageCount = 0 }) => {
+const Sidebar = ({ messageCount = 0, subscriberCount = 0, reviewCount = 0 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -143,6 +143,9 @@ const Sidebar = ({ messageCount = 0 }) => {
             </svg>
           </div>
           <span>Subscribers</span>
+          {subscriberCount > 0 && (
+            <span className={styles.badge}>{subscriberCount}</span>
+          )}
         </div>
 
         <div 
@@ -165,6 +168,9 @@ const Sidebar = ({ messageCount = 0 }) => {
             </svg>
           </div>
           <span>Reviews</span>
+          {reviewCount > 0 && (
+            <span className={styles.badge}>{reviewCount}</span>
+          )}
         </div>
 
         <div 

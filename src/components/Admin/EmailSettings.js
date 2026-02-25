@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { io } from 'socket.io-client';
 import styles from './EmailSettings.module.css';
 import AdminSkeleton from './AdminSkeleton';
+import DeleteModal from './DeleteModal';
 
 const EmailSettings = () => {
   const [formData, setFormData] = useState({
@@ -27,9 +28,16 @@ const EmailSettings = () => {
   const [projectTestStatus, setProjectTestStatus] = useState('');
   const [projectTestMessage, setProjectTestMessage] = useState('');
   const [isProjectTesting, setIsProjectTesting] = useState(false);
+  const [blastProjectId, setBlastProjectId] = useState('');
+  const [blastStatus, setBlastStatus] = useState('');
+  const [blastMessage, setBlastMessage] = useState('');
+  const [isBlastSending, setIsBlastSending] = useState(false);
   const [emailLogs, setEmailLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(true);
   const [logsError, setLogsError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deletingId, setDeletingId] = useState('');
+  const [logFilter, setLogFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -87,11 +95,14 @@ const EmailSettings = () => {
         if (!selectedProjectId && list.length) {
           setSelectedProjectId(list[0]._id || list[0].id || '');
         }
+        if (!blastProjectId && list.length) {
+          setBlastProjectId(list[0]._id || list[0].id || '');
+        }
       }
     } catch (err) {
       console.error('Failed to load projects for test email:', err);
     }
-  }, [selectedProjectId]);
+  }, [selectedProjectId, blastProjectId]);
 
   const fetchEmailLogs = useCallback(async () => {
     try {
@@ -133,13 +144,14 @@ const EmailSettings = () => {
     });
 
     const getLogId = (log) => log?._id || log?.id || log?.trackingId;
+    const normalizeId = (value) => (value ? String(value) : '');
 
     socket.on('email:updated', (log) => {
       if (!log) return;
       const id = getLogId(log);
       if (!id) return;
       setEmailLogs((prev) => {
-        const index = prev.findIndex((item) => getLogId(item) === id);
+        const index = prev.findIndex((item) => normalizeId(getLogId(item)) === normalizeId(id));
         if (index === -1) {
           return [log, ...prev].slice(0, logLimit);
         }
@@ -147,6 +159,11 @@ const EmailSettings = () => {
         updated[index] = { ...updated[index], ...log };
         return updated;
       });
+    });
+
+    socket.on('email:deleted', ({ id }) => {
+      if (!id) return;
+      setEmailLogs((prev) => prev.filter((item) => normalizeId(getLogId(item)) !== normalizeId(id)));
     });
 
     socket.on('connect_error', (socketError) => {
@@ -175,6 +192,15 @@ const EmailSettings = () => {
     }, 3000);
     return () => clearTimeout(timer);
   }, [projectTestStatus]);
+
+  useEffect(() => {
+    if (!blastStatus) return;
+    const timer = setTimeout(() => {
+      setBlastStatus('');
+      setBlastMessage('');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [blastStatus]);
 
 
   const handleChange = (e) => {
@@ -316,6 +342,63 @@ const EmailSettings = () => {
     }
   };
 
+  const handleBlastSubmit = async (e) => {
+    e.preventDefault();
+    setBlastMessage('');
+    setBlastStatus('');
+
+    if (!blastProjectId) {
+      setBlastStatus('error');
+      setBlastMessage('Please select a project.');
+      return;
+    }
+
+    try {
+      setIsBlastSending(true);
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/email-settings/send-project`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ projectId: blastProjectId })
+      });
+
+      if (response.ok) {
+        const data = await response.json().catch(() => ({}));
+        if (data?.status === 'skipped') {
+          setBlastStatus('error');
+          setBlastMessage(data?.message || 'No subscribers found.');
+        } else {
+          setBlastStatus('success');
+          setBlastMessage('Project announcement sent to subscribers.');
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setBlastStatus('error');
+        setBlastMessage(errorData.message || 'Failed to send project announcement.');
+      }
+    } catch (err) {
+      setBlastStatus('error');
+      setBlastMessage('Failed to send project announcement.');
+    } finally {
+      setIsBlastSending(false);
+    }
+  };
+
+  const filteredLogs = useMemo(() => {
+    if (logFilter === 'all') return emailLogs;
+    const isOpened = (log) => Boolean(log.openedAt) || Number(log.openCount) > 0;
+    if (logFilter === 'opened') {
+      return emailLogs.filter((log) => isOpened(log));
+    }
+    if (logFilter === 'not_opened') {
+      return emailLogs.filter((log) => !isOpened(log));
+    }
+    return emailLogs;
+  }, [emailLogs, logFilter]);
+
   if (loading) {
     return <AdminSkeleton compact />;
   }
@@ -331,6 +414,43 @@ const EmailSettings = () => {
     if (status === 'failed') return 'Failed';
     if (status === 'pending') return 'Pending';
     return 'Sent';
+  };
+
+  const requestDelete = (log) => {
+    if (!log) return;
+    setDeleteTarget(log);
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteTarget?._id || deleteTarget?.id;
+    if (!id) {
+      setDeleteTarget(null);
+      return;
+    }
+    try {
+      setDeletingId(String(id));
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/admin/email-logs/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete email log');
+      }
+
+      setEmailLogs((prev) =>
+        prev.filter((item) => (item._id || item.id) !== id)
+      );
+    } catch (err) {
+      setLogsError(err?.message || 'Failed to delete email log');
+    } finally {
+      setDeletingId('');
+      setDeleteTarget(null);
+    }
   };
 
   return (
@@ -544,13 +664,56 @@ const EmailSettings = () => {
         {projectTestStatus === 'error' && <div className={styles.error}>{projectTestMessage}</div>}
       </div>
 
+      <div className={styles.testSection}>
+        <h3>Send Project Announcement</h3>
+        <p className={styles.testHint}>Send the selected project to all subscribers.</p>
+        <form onSubmit={handleBlastSubmit} className={styles.projectBlastForm}>
+          <select
+            value={blastProjectId}
+            onChange={(e) => setBlastProjectId(e.target.value)}
+            className={styles.testSelect}
+            disabled={projects.length === 0 || isBlastSending}
+          >
+            {projects.length === 0 ? (
+              <option value="">No projects available</option>
+            ) : (
+              projects.map((project) => (
+                <option key={project._id || project.id} value={project._id || project.id}>
+                  {project.title || 'Untitled project'}
+                </option>
+              ))
+            )}
+          </select>
+          <button type="submit" className={styles.testButton} disabled={isBlastSending || projects.length === 0}>
+            {isBlastSending ? 'Sending...' : 'Send to Subscribers'}
+          </button>
+        </form>
+
+        {blastStatus === 'success' && <div className={styles.success}>{blastMessage}</div>}
+        {blastStatus === 'error' && <div className={styles.error}>{blastMessage}</div>}
+      </div>
+
       <div className={styles.logsSection}>
         <div className={styles.logsHeader}>
           <div>
             <h3>Email Activity</h3>
             <p className={styles.testHint}>Live delivery + open tracking for recent emails.</p>
           </div>
-          <div className={styles.countPill}>{emailLogs.length} recent</div>
+          <div className={styles.logsHeaderActions}>
+            <div className={styles.logsFilters}>
+              {['all', 'opened', 'not_opened'].map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  className={`${styles.filterBtn} ${logFilter === item ? styles.filterBtnActive : ''}`}
+                  onClick={() => setLogFilter(item)}
+                >
+                  {item === 'all' ? 'All' : item === 'opened' ? 'Opened' : 'Not opened'}
+                </button>
+              ))}
+            </div>
+            <div className={styles.countPill}>{emailLogs.length} recent</div>
+          </div>
         </div>
 
         {logsError && <div className={styles.error}>{logsError}</div>}
@@ -559,9 +722,11 @@ const EmailSettings = () => {
           <div className={styles.empty}>Loading email activity...</div>
         ) : emailLogs.length === 0 ? (
           <div className={styles.empty}>No email activity yet.</div>
+        ) : filteredLogs.length === 0 ? (
+          <div className={styles.empty}>No emails match this filter.</div>
         ) : (
           <div className={styles.logsList}>
-            {emailLogs.map((log) => {
+            {filteredLogs.map((log) => {
               const logId = log._id || log.id || log.trackingId;
               const status = log.status || 'sent';
               const opened = Boolean(log.openedAt) || Number(log.openCount) > 0;
@@ -579,6 +744,14 @@ const EmailSettings = () => {
                     {status === 'failed' && log.error && (
                       <span className={styles.logError}>{log.error}</span>
                     )}
+                    <button
+                      type="button"
+                      className={styles.logDelete}
+                      onClick={() => requestDelete(log)}
+                      disabled={deletingId === String(logId)}
+                    >
+                      {deletingId === String(logId) ? 'Deleting...' : 'Delete'}
+                    </button>
                   </div>
                   <div className={styles.logMeta}>
                     <span className={`${styles.openBadge} ${opened ? styles.opened : styles.notOpened}`}>
@@ -597,6 +770,15 @@ const EmailSettings = () => {
           </div>
         )}
       </div>
+
+      <DeleteModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        message="Delete this email log? This action cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+      />
     </div>
   );
 };

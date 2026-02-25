@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { io } from 'socket.io-client';
 import styles from './ReviewsManagement.module.css';
+import AdminSkeleton from './AdminSkeleton';
 
 const ReviewsManagement = () => {
   const [reviews, setReviews] = useState([]);
@@ -8,7 +10,7 @@ const ReviewsManagement = () => {
   const [filter, setFilter] = useState('all');
   const [selectedReview, setSelectedReview] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const refreshInFlightRef = useRef(false);
+  const requestIdRef = useRef(0);
   const hasLoadedRef = useRef(false);
   const refreshAbortRef = useRef(null);
   const reviewsChannelRef = useRef(null);
@@ -38,8 +40,9 @@ const ReviewsManagement = () => {
   }, [getReviewKey]);
 
   const fetchReviews = useCallback(async ({ silent = false } = {}) => {
-    if (refreshInFlightRef.current) return;
-    refreshInFlightRef.current = true;
+    requestIdRef.current += 1;
+    const requestId = requestIdRef.current;
+
     if (refreshAbortRef.current) {
       refreshAbortRef.current.abort();
     }
@@ -65,19 +68,17 @@ const ReviewsManagement = () => {
 
       const data = await response.json();
       const nextReviews = Array.isArray(data) ? data : [];
+      if (requestIdRef.current !== requestId) return;
       setReviews((prev) => (isSameReviews(prev, nextReviews) ? prev : nextReviews));
       hasLoadedRef.current = true;
     } catch (err) {
+      if (requestIdRef.current !== requestId) return;
       if (err?.name !== 'AbortError') {
         setError('Could not load reviews.');
       }
     } finally {
-      if (!silent || !hasLoadedRef.current) {
-        setLoading(false);
-      } else if (hasLoadedRef.current) {
-        setLoading(false);
-      }
-      refreshInFlightRef.current = false;
+      if (requestIdRef.current !== requestId) return;
+      setLoading(false);
     }
   }, [isSameReviews]);
 
@@ -100,6 +101,35 @@ const ReviewsManagement = () => {
       }
     };
   }, [fetchReviews]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return undefined;
+
+    const socket = io(process.env.REACT_APP_API_URL, {
+      transports: ['websocket'],
+      auth: { token }
+    });
+
+    const getReviewId = (review) => review?._id || review?.id;
+
+    socket.on('review:new', (review) => {
+      const id = getReviewId(review);
+      if (!id) return;
+      setReviews((prev) => {
+        if (prev.some((item) => getReviewId(item) === id)) return prev;
+        return [review, ...prev];
+      });
+    });
+
+    socket.on('connect_error', (socketError) => {
+      console.error('Reviews socket connection error:', socketError?.message || socketError);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -225,6 +255,10 @@ const ReviewsManagement = () => {
     rejected: reviews.filter((r) => r.status === 'rejected').length
   };
 
+  if (loading) {
+    return <AdminSkeleton compact rows={6} cards={3} showActions={false} />;
+  }
+
   return (
     <section className={styles.reviewsManagement}>
       <div className={styles.header}>
@@ -248,9 +282,7 @@ const ReviewsManagement = () => {
       </div>
 
       {error && <div className={styles.error}>{error}</div>}
-      {loading ? (
-        <div className={styles.loading}>Loading reviews...</div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className={styles.empty}>No reviews found.</div>
       ) : (
         <div className={styles.grid}>

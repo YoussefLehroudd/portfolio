@@ -4,6 +4,7 @@ const { resolveEmailSettings } = require('../utils/emailSettings');
 const { sendEmail } = require('../utils/mailer');
 const { getSiteUrl } = require('../utils/subscriberMailer');
 const { createUnsubscribeToken, verifyUnsubscribeToken, buildUnsubscribeUrl } = require('../utils/unsubscribe');
+const { getIo } = require('../utils/socket');
 
 const router = express.Router();
 
@@ -57,6 +58,11 @@ router.post('/', async (req, res) => {
 
     const subscriber = new Subscriber({ email: normalizedEmail });
     await subscriber.save();
+    const io = getIo();
+    if (io) {
+      const payload = subscriber?.toJSON ? subscriber.toJSON() : subscriber;
+      io.to('admins').emit('subscriber:new', payload);
+    }
 
     const { notifyEmail, fromName } = await resolveEmailSettings();
     const siteUrl = getSiteUrl(req);

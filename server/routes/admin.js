@@ -6,6 +6,13 @@ const Review = require('../models/Review');
 const Subscriber = require('../models/Subscriber');
 const { getIo } = require('../utils/socket');
 
+const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+const getRecordId = (record) => {
+  const raw = record?._id || record?.id;
+  return raw ? String(raw) : '';
+};
+
 // Get all messages
 router.get('/messages', auth, async (req, res) => {
   try {
@@ -142,6 +149,57 @@ router.get('/subscribers', auth, async (req, res) => {
   } catch (error) {
     console.error('Error fetching subscribers:', error);
     res.status(500).json({ message: 'Error fetching subscribers' });
+  }
+});
+
+router.patch('/subscribers/:id', auth, async (req, res) => {
+  try {
+    const targetEmail = typeof req.body?.email === 'string'
+      ? req.body.email.trim().toLowerCase()
+      : '';
+
+    if (!targetEmail || !emailRegex.test(targetEmail)) {
+      return res.status(400).json({ message: 'A valid email is required' });
+    }
+
+    const existing = await Subscriber.findOne({ email: targetEmail });
+    if (existing && getRecordId(existing) !== String(req.params.id)) {
+      return res.status(409).json({ message: 'Email already subscribed' });
+    }
+
+    const subscriber = await Subscriber.findById(req.params.id);
+    if (!subscriber) {
+      return res.status(404).json({ message: 'Subscriber not found' });
+    }
+
+    subscriber.email = targetEmail;
+    await subscriber.save();
+    return res.json(subscriber);
+  } catch (error) {
+    console.error('Error updating subscriber:', error);
+    return res.status(500).json({ message: 'Error updating subscriber' });
+  }
+});
+
+router.delete('/subscribers/:id', auth, async (req, res) => {
+  try {
+    const subscriber = await Subscriber.findById(req.params.id);
+    if (!subscriber) {
+      return res.status(404).json({ message: 'Subscriber not found' });
+    }
+
+    if (typeof subscriber.deleteOne === 'function') {
+      await subscriber.deleteOne();
+    } else if (typeof Subscriber.findByIdAndDelete === 'function') {
+      await Subscriber.findByIdAndDelete(subscriber._id);
+    } else {
+      await Subscriber.destroy({ where: { id: subscriber._id || subscriber.id } });
+    }
+
+    return res.json({ message: 'Subscriber deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting subscriber:', error);
+    return res.status(500).json({ message: 'Error deleting subscriber' });
   }
 });
 

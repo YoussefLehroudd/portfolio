@@ -4,6 +4,7 @@ const { Readable } = require('stream');
 const Review = require('../models/Review');
 const cloudinary = require('../utils/cloudinary');
 const Avatar = require('../models/Avatar');
+const { getIo } = require('../utils/socket');
 
 const router = express.Router();
 
@@ -84,6 +85,11 @@ router.post('/', upload.single('image'), async (req, res) => {
     });
 
     const saved = await review.save();
+    const io = getIo();
+    if (io) {
+      const payload = saved?.toJSON ? saved.toJSON() : saved;
+      io.to('admins').emit('review:new', payload);
+    }
     res.status(201).json({ message: 'Review submitted', review: saved });
   } catch (error) {
     console.error('Error creating review:', error);

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './AvatarManagement.module.css';
+import AdminSkeleton from './AdminSkeleton';
 
 const AvatarManagement = () => {
   const [avatars, setAvatars] = useState([]);
@@ -126,6 +127,10 @@ const AvatarManagement = () => {
     }
   };
 
+  if (loading) {
+    return <AdminSkeleton compact rows={5} cards={4} showActions={false} />;
+  }
+
   return (
     <section className={styles.avatarManagement}>
       <div className={styles.header}>
@@ -163,9 +168,7 @@ const AvatarManagement = () => {
 
       {error && <div className={styles.error}>{error}</div>}
 
-      {loading ? (
-        <div className={styles.loading}>Loading avatars...</div>
-      ) : avatars.length === 0 ? (
+      {avatars.length === 0 ? (
         <div className={styles.empty}>No avatars uploaded yet.</div>
       ) : (
         <div className={styles.grid}>
