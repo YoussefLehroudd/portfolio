@@ -1,7 +1,9 @@
 .sidebar {
+  --sidebar-header-height: 60px;
   width: 250px;
+  height: 100vh;
+  height: 100svh;
   height: 100dvh;
-  min-height: 100vh;
   background: rgba(25, 25, 25, 0.95);
   border-right: 1px solid rgba(100, 255, 218, 0.1);
   position: fixed;
@@ -20,7 +22,7 @@
 }
 
 .logo {
-  height: 60px;
+  height: var(--sidebar-header-height);
   padding: 0 1rem;
   display: flex;
   align-items: center;
@@ -100,6 +102,9 @@
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+  height: calc(100vh - var(--sidebar-header-height));
+  height: calc(100svh - var(--sidebar-header-height));
+  height: calc(100dvh - var(--sidebar-header-height));
   overscroll-behavior: contain;
   padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   scrollbar-width: none;
