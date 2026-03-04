@@ -12,6 +12,7 @@
   transition: width 0.3s ease;
   z-index: 100;
   padding-bottom: env(safe-area-inset-bottom);
+  overflow: hidden;
 }
 
 .sidebar.collapsed {
@@ -98,9 +99,12 @@
   padding: 1rem 0.5rem;
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
   overscroll-behavior: contain;
   padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .nav::-webkit-scrollbar {
