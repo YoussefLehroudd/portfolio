@@ -3,13 +3,53 @@ import styles from './AboutManagement.module.css';
 import AdminSkeleton from './AdminSkeleton';
 
 const AboutManagement = () => {
+  const baseCategories = [
+    { title: 'Frontend Languages / Frameworks', skills: [] },
+    { title: 'Backend Languages / Frameworks', skills: [] },
+    { title: 'Databases', skills: [] },
+    { title: 'Tools & Others', skills: [] }
+  ];
+
+  const normalizeSkillCategories = (categories) => {
+    const list = Array.isArray(categories) ? categories : [];
+    const mapped = list
+      .filter(Boolean)
+      .map((category) => {
+        const title = category?.title || '';
+        const normalizedTitle =
+          title === 'Frontend'
+            ? 'Frontend Languages / Frameworks'
+            : title === 'Backend'
+              ? 'Backend Languages / Frameworks'
+              : title;
+        return {
+          ...category,
+          title: normalizedTitle,
+          skills: Array.isArray(category?.skills) ? category.skills : []
+        };
+      })
+      .filter((category) => category.title);
+
+    const byTitle = new Map();
+    mapped.forEach((category) => {
+      if (!byTitle.has(category.title)) {
+        byTitle.set(category.title, { ...category });
+      } else {
+        const existing = byTitle.get(category.title);
+        const mergedSkills = Array.from(new Set([...(existing.skills || []), ...(category.skills || [])]));
+        byTitle.set(category.title, { ...existing, skills: mergedSkills });
+      }
+    });
+
+    const baseTitles = baseCategories.map((category) => category.title);
+    const ordered = baseCategories.map((category) => byTitle.get(category.title) || category);
+    const extras = mapped.filter((category) => !baseTitles.includes(category.title));
+    return [...ordered, ...extras];
+  };
+
   const [aboutData, setAboutData] = useState({
     description: '',
-    skillCategories: [
-      { title: 'Frontend', skills: [] },
-      { title: 'Backend', skills: [] },
-      { title: 'Tools & Others', skills: [] }
-    ]
+    skillCategories: baseCategories
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -24,7 +64,11 @@ const AboutManagement = () => {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/about`);
       if (response.ok) {
         const data = await response.json();
-        setAboutData(data);
+        setAboutData({
+          ...data,
+          description: typeof data?.description === 'string' ? data.description : '',
+          skillCategories: normalizeSkillCategories(data?.skillCategories)
+        });
       } else {
         setError('Failed to fetch about data');
       }
@@ -43,39 +87,43 @@ const AboutManagement = () => {
   };
 
   const handleSkillChange = (categoryIndex, skillIndex, value) => {
-    setAboutData(prev => {
-      const newSkillCategories = [...prev.skillCategories];
-      newSkillCategories[categoryIndex].skills[skillIndex] = value;
-      return {
-        ...prev,
-        skillCategories: newSkillCategories
-      };
-    });
+    setAboutData(prev => ({
+      ...prev,
+      skillCategories: prev.skillCategories.map((category, idx) => {
+        if (idx !== categoryIndex) return category;
+        return {
+          ...category,
+          skills: category.skills.map((skill, i) => (i === skillIndex ? value : skill))
+        };
+      })
+    }));
   };
 
   const handleAddSkill = (categoryIndex) => {
-    setAboutData(prev => {
-      const newSkillCategories = [...prev.skillCategories];
-      // Add only one empty skill if none exists to prevent duplicates
-      if (!newSkillCategories[categoryIndex].skills.includes('')) {
-        newSkillCategories[categoryIndex].skills.push('');
-      }
-      return {
-        ...prev,
-        skillCategories: newSkillCategories
-      };
-    });
+    setAboutData(prev => ({
+      ...prev,
+      skillCategories: prev.skillCategories.map((category, idx) => {
+        if (idx !== categoryIndex) return category;
+        if (category.skills.includes('')) return category;
+        return {
+          ...category,
+          skills: [...category.skills, '']
+        };
+      })
+    }));
   };
 
   const handleRemoveSkill = (categoryIndex, skillIndex) => {
-    setAboutData(prev => {
-      const newSkillCategories = [...prev.skillCategories];
-      newSkillCategories[categoryIndex].skills.splice(skillIndex, 1);
-      return {
-        ...prev,
-        skillCategories: newSkillCategories
-      };
-    });
+    setAboutData(prev => ({
+      ...prev,
+      skillCategories: prev.skillCategories.map((category, idx) => {
+        if (idx !== categoryIndex) return category;
+        return {
+          ...category,
+          skills: category.skills.filter((_, i) => i !== skillIndex)
+        };
+      })
+    }));
   };
 
   const handleSubmit = async (e) => {

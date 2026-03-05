@@ -17,10 +17,19 @@ const ProjectsManagement = () => {
   const [projectToDelete, setProjectToDelete] = useState(null);
   const [showCategories, setShowCategories] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [viewMode, setViewMode] = useState('grid');
 
   useEffect(() => {
     fetchProjects();
   }, []);
+
+  useEffect(() => {
+    if (!selectedProject) return undefined;
+    document.body.classList.add('modal-open');
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [selectedProject]);
 
   // Clear success message after timeout
   useEffect(() => {
@@ -178,15 +187,35 @@ const ProjectsManagement = () => {
             {showCategories ? 'Hide Categories' : 'Manage Categories'}
           </button>
         </div>
-        <button 
-          onClick={() => {
-            setEditingProject(null);
-            setIsFormOpen(true);
-          }}
-          className={styles.addButton}
-        >
-          Add Project
-        </button>
+        <div className={styles.headerActions}>
+          <div className={styles.viewToggle}>
+            <button
+              type="button"
+              className={`${styles.viewToggleButton} ${viewMode === 'grid' ? styles.viewToggleActive : ''}`}
+              onClick={() => setViewMode('grid')}
+              aria-pressed={viewMode === 'grid'}
+            >
+              Grid
+            </button>
+            <button
+              type="button"
+              className={`${styles.viewToggleButton} ${viewMode === 'list' ? styles.viewToggleActive : ''}`}
+              onClick={() => setViewMode('list')}
+              aria-pressed={viewMode === 'list'}
+            >
+              List
+            </button>
+          </div>
+          <button 
+            onClick={() => {
+              setEditingProject(null);
+              setIsFormOpen(true);
+            }}
+            className={styles.addButton}
+          >
+            Add Project
+          </button>
+        </div>
       </header>
 
       {error && <div className={styles.error}>{error}</div>}
@@ -194,7 +223,7 @@ const ProjectsManagement = () => {
 
       {showCategories && <CategoryManagement />}
 
-      <div className={styles.projectsList}>
+      <div className={`${styles.projectsList} ${viewMode === 'list' ? styles.list : ''}`}>
         {projects.map(project => (
           <div key={project._id} className={styles.projectCard}>
             <div className={styles.projectImage}>

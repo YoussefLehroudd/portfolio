@@ -9,6 +9,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
 }
 
 .headerLeft {
@@ -21,6 +22,12 @@
   font-size: 1.8rem;
   color: #fff;
   margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .manageCategoriesButton {
@@ -53,10 +60,64 @@
   transform: translateY(-2px);
 }
 
+.viewToggle {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.viewToggleButton {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 0.5rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.viewToggleButton:hover {
+  border-color: rgba(100, 255, 218, 0.45);
+  color: #64ffda;
+}
+
+.viewToggleActive {
+  background: rgba(100, 255, 218, 0.15);
+  color: #64ffda;
+  border-color: rgba(100, 255, 218, 0.45);
+}
+
 .projectsList {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.list {
+  grid-template-columns: 1fr;
+}
+
+.list .projectCard {
+  display: flex;
+  align-items: stretch;
+}
+
+.list .projectImage {
+  width: 280px;
+  height: auto;
+  min-height: 200px;
+  flex-shrink: 0;
+}
+
+.list .projectHeader {
+  border-bottom: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 260px;
+}
+
+.list .projectInfo {
+  flex: 1;
 }
 
 .projectCard {
@@ -246,6 +307,11 @@
     text-align: center;
   }
 
+  .headerActions {
+    width: 100%;
+    flex-direction: column;
+  }
+
   .manageCategoriesButton,
   .addButton {
     width: 100%;
@@ -261,6 +327,21 @@
 
   .actions button {
     width: 100%;
+  }
+
+  .list .projectCard {
+    flex-direction: column;
+  }
+
+  .list .projectImage {
+    width: 100%;
+    min-height: 180px;
+  }
+
+  .list .projectHeader {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 0;
   }
 
   .error,

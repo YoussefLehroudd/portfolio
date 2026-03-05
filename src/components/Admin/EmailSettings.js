@@ -55,6 +55,7 @@ const EmailSettings = () => {
   const logLimit = 60;
   const getLogId = useCallback((log) => log?._id || log?.id || log?.trackingId, []);
   const normalizeId = useCallback((value) => (value ? String(value) : ''), []);
+  const isOpened = useCallback((log) => Boolean(log.openedAt) || Number(log.openCount) > 0, []);
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -521,7 +522,6 @@ const EmailSettings = () => {
 
   const filteredLogs = useMemo(() => {
     if (logFilter === 'all') return emailLogs;
-    const isOpened = (log) => Boolean(log.openedAt) || Number(log.openCount) > 0;
     if (logFilter === 'opened') {
       return emailLogs.filter((log) => isOpened(log));
     }
@@ -529,7 +529,16 @@ const EmailSettings = () => {
       return emailLogs.filter((log) => !isOpened(log));
     }
     return emailLogs;
-  }, [emailLogs, logFilter]);
+  }, [emailLogs, logFilter, isOpened]);
+
+  const openedCount = useMemo(
+    () => emailLogs.filter((log) => isOpened(log)).length,
+    [emailLogs, isOpened]
+  );
+  const notOpenedCount = useMemo(
+    () => emailLogs.filter((log) => !isOpened(log)).length,
+    [emailLogs, isOpened]
+  );
 
   const selectedSet = useMemo(() => new Set(selectedLogIds), [selectedLogIds]);
   const visibleLogIds = useMemo(() => (
@@ -873,7 +882,11 @@ const EmailSettings = () => {
                   className={`${styles.filterBtn} ${logFilter === item ? styles.filterBtnActive : ''}`}
                   onClick={() => setLogFilter(item)}
                 >
-                  {item === 'all' ? 'All' : item === 'opened' ? 'Opened' : 'Not opened'}
+                  {item === 'all'
+                    ? 'All'
+                    : item === 'opened'
+                      ? `Opened (${openedCount})`
+                      : `Not opened (${notOpenedCount})`}
                 </button>
               ))}
             </div>

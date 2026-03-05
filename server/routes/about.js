@@ -33,12 +33,16 @@ router.get('/', async (req, res) => {
         description: "I'm a passionate Full Stack Developer with expertise in modern web technologies. I specialize in creating engaging and responsive web applications using React, Node.js, and other cutting-edge tools. My approach combines clean code practices with creative problem-solving to deliver exceptional user experiences.",
         skillCategories: [
           {
-            title: "Frontend",
+            title: "Frontend Languages / Frameworks",
             skills: ["React.js", "JavaScript", "HTML & CSS", "Responsive Design"]
           },
           {
-            title: "Backend",
-            skills: ["Node.js", "Express.js", "RESTful APIs", "MongoDB"]
+            title: "Backend Languages / Frameworks",
+            skills: ["Node.js", "Express.js", "RESTful APIs"]
+          },
+          {
+            title: "Databases",
+            skills: ["MongoDB"]
           },
           {
             title: "Tools & Others",

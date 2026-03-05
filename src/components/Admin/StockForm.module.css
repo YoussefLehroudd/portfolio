@@ -62,6 +62,7 @@
   gap: 1.5rem;
 }
 
+
 .formGroup {
   display: flex;
   flex-direction: column;
@@ -318,6 +319,7 @@
   .tagInput button {
     width: 100%;
   }
+
 }
 
 :global(body.modal-open) {

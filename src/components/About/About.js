@@ -38,6 +38,22 @@ const About = ({ isMagicTheme = false }) => {
   const skeletonSkillCards = useMemo(() => Array.from({ length: 4 }), []);
   const skeletonLines = useMemo(() => Array.from({ length: 3 }), []);
 
+  const renderCategoryTitle = (title) => {
+    if (!title) return null;
+    const trimmed = title.trim();
+    const suffix = 'Languages / Frameworks';
+    if (trimmed.endsWith(suffix)) {
+      const main = trimmed.replace(suffix, '').trim();
+      return (
+        <span className={styles.categoryTitle}>
+          <span className={styles.categoryTitleMain}>{main}</span>
+          <span className={styles.categoryTitleSub}>Languages &amp; Frameworks</span>
+        </span>
+      );
+    }
+    return <span className={styles.categoryTitle}>{trimmed}</span>;
+  };
+
   useEffect(() => {
     if (!aboutData || !descriptionRef.current) return;
 
@@ -279,7 +295,7 @@ const About = ({ isMagicTheme = false }) => {
                         data-reveal
                         style={{ '--reveal-delay': `${0.28 + index * 0.08}s` }}
                       >
-                        <h4>{category.title}</h4>
+                        <h4>{renderCategoryTitle(category.title)}</h4>
                         <ul>
                           {(Array.isArray(category.skills) ? category.skills : []).map((skill, skillIndex) => (
                             <li key={skillIndex}>{skill}</li>
@@ -324,7 +340,7 @@ const About = ({ isMagicTheme = false }) => {
                     style={{ '--reveal-delay': `${0.32 + index * 0.08}s` }}
                   >
                     <span className={styles.borderFx}></span>
-                    <h4>{category.title}</h4>
+                    <h4>{renderCategoryTitle(category.title)}</h4>
                     <ul>
                       {(Array.isArray(category.skills) ? category.skills : []).map((skill, skillIndex) => (
                         <li key={skillIndex}>{skill}</li>

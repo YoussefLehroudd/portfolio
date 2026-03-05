@@ -13,6 +13,7 @@ const StocksManagement = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sort, setSort] = useState('newest');
+  const [viewMode, setViewMode] = useState('grid');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStock, setEditingStock] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -73,6 +74,7 @@ const StocksManagement = () => {
       setLoading(false);
     }
   };
+
 
   const handleFormSubmit = async (payload) => {
     try {
@@ -341,6 +343,28 @@ const StocksManagement = () => {
             <option value="title-desc">Title Z-A</option>
           </select>
         </div>
+
+        <div className={styles.filterGroup}>
+          <label>View</label>
+          <div className={styles.viewToggle}>
+            <button
+              type="button"
+              className={`${styles.viewToggleButton} ${viewMode === 'grid' ? styles.viewToggleActive : ''}`}
+              onClick={() => setViewMode('grid')}
+              aria-pressed={viewMode === 'grid'}
+            >
+              Grid
+            </button>
+            <button
+              type="button"
+              className={`${styles.viewToggleButton} ${viewMode === 'list' ? styles.viewToggleActive : ''}`}
+              onClick={() => setViewMode('list')}
+              aria-pressed={viewMode === 'list'}
+            >
+              List
+            </button>
+          </div>
+        </div>
       </div>
 
       {error && <div className={styles.error}>{error}</div>}
@@ -349,7 +373,7 @@ const StocksManagement = () => {
       {filteredStocks.length === 0 ? (
         <div className={styles.empty}>No stock items yet.</div>
       ) : (
-        <div className={styles.grid}>
+        <div className={`${styles.grid} ${viewMode === 'list' ? styles.list : ''}`}>
           {filteredStocks.map((stock) => {
             const id = getId(stock);
             const isActive = stock.status === 'active';

@@ -45,6 +45,7 @@ const StockForm = ({ stock, onSubmit, onClose }) => {
     }));
   };
 
+
   const handleImageChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -143,6 +144,7 @@ const StockForm = ({ stock, onSubmit, onClose }) => {
       tags: formData.tags
     });
   };
+
 
   const handleKeyPress = (event) => {
     if (event.key === 'Enter') {
