@@ -16,6 +16,7 @@ import AvatarManagement from './AvatarManagement';
 import EmailSettings from './EmailSettings';
 import SubscribersManagement from './SubscribersManagement';
 import MediaLibrary from './MediaLibrary';
+import StocksManagement from './StocksManagement';
 
 const SUBSCRIBER_SEEN_KEY = 'admin:lastSeen:subscribers';
 const REVIEW_SEEN_KEY = 'admin:lastSeen:reviews';
@@ -888,6 +889,13 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
   }, []);
 
   useEffect(() => {
+    document.body.classList.add('admin-shell');
+    return () => {
+      document.body.classList.remove('admin-shell');
+    };
+  }, []);
+
+  useEffect(() => {
     fetchMessages();
     fetchStatistics();
     fetchVisitLogs();
@@ -1081,6 +1089,9 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
     if (path.includes('/email-settings')) {
       return 'Email Settings';
     }
+    if (path.includes('/stocks')) {
+      return 'Stock Panel';
+    }
     if (path.includes('/subscribers')) {
       return 'Subscribers';
     }
@@ -1170,6 +1181,7 @@ const Dashboard = ({ isMagicTheme = false, onToggleTheme }) => {
             <Route path="avatars/*" element={<AvatarManagement />} />
             <Route path="media/*" element={<MediaLibrary />} />
             <Route path="email-settings/*" element={<EmailSettings />} />
+            <Route path="stocks/*" element={<StocksManagement />} />
             <Route path="subscribers/*" element={<SubscribersManagement />} />
             <Route 
               path="statistics/*" 

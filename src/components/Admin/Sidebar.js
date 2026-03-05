@@ -215,6 +215,29 @@ const Sidebar = ({ messageCount = 0, subscriberCount = 0, reviewCount = 0 }) => 
           <span>Media</span>
         </div>
 
+        <div
+          className={`${styles.navItem} ${isActive('stocks') ? styles.active : ''}`}
+          onClick={() => handleNavigation('stocks')}
+        >
+          <div className={styles.iconWrapper}>
+            <svg
+              className={styles.icon}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="4" y="3" width="16" height="18" rx="2" ry="2"></rect>
+              <line x1="8" y1="7" x2="16" y2="7"></line>
+              <line x1="8" y1="11" x2="16" y2="11"></line>
+              <line x1="8" y1="15" x2="13" y2="15"></line>
+            </svg>
+          </div>
+          <span>Stock Panel</span>
+        </div>
+
         <div 
           className={`${styles.navItem} ${isActive('projects') ? styles.active : ''}`}
           onClick={() => handleNavigation('projects')}

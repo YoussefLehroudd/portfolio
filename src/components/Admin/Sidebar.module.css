@@ -1,10 +1,11 @@
 .sidebar {
   --sidebar-header-height: 60px;
+  --sidebar-bg: rgba(25, 25, 25, 0.95);
   width: 250px;
   height: 100vh;
   height: 100svh;
   height: 100dvh;
-  background: rgba(25, 25, 25, 0.95);
+  background: var(--sidebar-bg);
   border-right: 1px solid rgba(100, 255, 218, 0.1);
   position: fixed;
   left: 0;
@@ -14,7 +15,8 @@
   transition: width 0.3s ease;
   z-index: 100;
   padding-bottom: env(safe-area-inset-bottom);
-  overflow: hidden;
+  overflow-y: hidden;
+  overflow-x: visible;
 }
 
 .sidebar.collapsed {
@@ -30,6 +32,7 @@
   color: #64ffda;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
+  z-index: 1;
 }
 
 .logoWrapper {
@@ -110,6 +113,8 @@
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+  position: relative;
+  z-index: 1;
 }
 
 .nav::-webkit-scrollbar {
@@ -130,6 +135,7 @@
   margin-bottom: 0.5rem;
   position: relative;
   white-space: nowrap;
+  z-index: 1;
 }
 
 .navItem:hover {
@@ -141,6 +147,7 @@
   background: rgba(100, 255, 218, 0.1);
   color: #64ffda;
 }
+
 
 .iconWrapper {
   width: 24px;

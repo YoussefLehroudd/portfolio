@@ -116,6 +116,7 @@ button.themeOption:hover {
 
 .main {
   padding: calc(60px + 2rem) 2rem 2rem;
+  background: #0a0a0a;
 }
 
 .main input,
@@ -1018,4 +1019,9 @@ button.themeOption:hover {
     overflow-wrap: anywhere;
   }
 
+}
+
+:global(body.admin-shell) {
+  background-color: #0a0a0a;
+  background-image: none;
 }

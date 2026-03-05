@@ -26,6 +26,7 @@ const emailLogRoutes = require('./routes/emailLogs');
 const emailTrackingRoutes = require('./routes/emailTracking');
 const subscriberRoutes = require('./routes/subscribers');
 const mediaRoutes = require('./routes/media');
+const stockRoutes = require('./routes/stocks');
 const Message = require('./models/Message');
 const Profile = require('./models/Profile');
 
@@ -201,6 +202,7 @@ app.use('/api/admin/avatars', adminAvatarRoutes);
 app.use('/api/admin/email-settings', emailSettingsRoutes);
 app.use('/api/admin/email-logs', emailLogRoutes);
 app.use('/api/admin/media', mediaRoutes);
+app.use('/api/admin/stocks', stockRoutes);
 app.use('/api/email', emailTrackingRoutes);
 app.use('/api/subscribers', subscriberRoutes);
 
