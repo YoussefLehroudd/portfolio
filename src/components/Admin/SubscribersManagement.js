@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import styles from './SubscribersManagement.module.css';
 import AdminSkeleton from './AdminSkeleton';
@@ -14,10 +14,6 @@ const SubscribersManagement = () => {
   const [deletingId, setDeletingId] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-  useEffect(() => {
-    fetchSubscribers();
-  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -48,7 +44,7 @@ const SubscribersManagement = () => {
     };
   }, []);
 
-  const fetchSubscribers = async () => {
+  const fetchSubscribers = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
@@ -69,7 +65,11 @@ const SubscribersManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchSubscribers();
+  }, [fetchSubscribers]);
 
   const startEdit = (subscriber) => {
     const id = subscriber?._id || subscriber?.id || '';

@@ -1,65 +1,67 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import styles from './AboutManagement.module.css';
 import AdminSkeleton from './AdminSkeleton';
 
+const BASE_CATEGORIES = [
+  { title: 'Frontend Languages / Frameworks', skills: [] },
+  { title: 'Backend Languages / Frameworks', skills: [] },
+  { title: 'Databases', skills: [] },
+  { title: 'Tools & Others', skills: [] }
+];
+
+const createBaseCategories = () =>
+  BASE_CATEGORIES.map((category) => ({
+    ...category,
+    skills: [...category.skills]
+  }));
+
+const normalizeSkillCategories = (categories) => {
+  const list = Array.isArray(categories) ? categories : [];
+  const mapped = list
+    .filter(Boolean)
+    .map((category) => {
+      const title = category?.title || '';
+      const normalizedTitle =
+        title === 'Frontend'
+          ? 'Frontend Languages / Frameworks'
+          : title === 'Backend'
+            ? 'Backend Languages / Frameworks'
+            : title;
+      return {
+        ...category,
+        title: normalizedTitle,
+        skills: Array.isArray(category?.skills) ? category.skills : []
+      };
+    })
+    .filter((category) => category.title);
+
+  const byTitle = new Map();
+  mapped.forEach((category) => {
+    if (!byTitle.has(category.title)) {
+      byTitle.set(category.title, { ...category });
+    } else {
+      const existing = byTitle.get(category.title);
+      const mergedSkills = Array.from(new Set([...(existing.skills || []), ...(category.skills || [])]));
+      byTitle.set(category.title, { ...existing, skills: mergedSkills });
+    }
+  });
+
+  const baseTitles = BASE_CATEGORIES.map((category) => category.title);
+  const ordered = createBaseCategories().map((category) => byTitle.get(category.title) || category);
+  const extras = mapped.filter((category) => !baseTitles.includes(category.title));
+  return [...ordered, ...extras];
+};
+
 const AboutManagement = () => {
-  const baseCategories = [
-    { title: 'Frontend Languages / Frameworks', skills: [] },
-    { title: 'Backend Languages / Frameworks', skills: [] },
-    { title: 'Databases', skills: [] },
-    { title: 'Tools & Others', skills: [] }
-  ];
-
-  const normalizeSkillCategories = (categories) => {
-    const list = Array.isArray(categories) ? categories : [];
-    const mapped = list
-      .filter(Boolean)
-      .map((category) => {
-        const title = category?.title || '';
-        const normalizedTitle =
-          title === 'Frontend'
-            ? 'Frontend Languages / Frameworks'
-            : title === 'Backend'
-              ? 'Backend Languages / Frameworks'
-              : title;
-        return {
-          ...category,
-          title: normalizedTitle,
-          skills: Array.isArray(category?.skills) ? category.skills : []
-        };
-      })
-      .filter((category) => category.title);
-
-    const byTitle = new Map();
-    mapped.forEach((category) => {
-      if (!byTitle.has(category.title)) {
-        byTitle.set(category.title, { ...category });
-      } else {
-        const existing = byTitle.get(category.title);
-        const mergedSkills = Array.from(new Set([...(existing.skills || []), ...(category.skills || [])]));
-        byTitle.set(category.title, { ...existing, skills: mergedSkills });
-      }
-    });
-
-    const baseTitles = baseCategories.map((category) => category.title);
-    const ordered = baseCategories.map((category) => byTitle.get(category.title) || category);
-    const extras = mapped.filter((category) => !baseTitles.includes(category.title));
-    return [...ordered, ...extras];
-  };
-
   const [aboutData, setAboutData] = useState({
     description: '',
-    skillCategories: baseCategories
+    skillCategories: createBaseCategories()
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    fetchAboutData();
-  }, []);
-
-  const fetchAboutData = async () => {
+  const fetchAboutData = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/about`);
       if (response.ok) {
@@ -77,7 +79,11 @@ const AboutManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchAboutData();
+  }, [fetchAboutData]);
 
   const handleDescriptionChange = (e) => {
     setAboutData(prev => ({

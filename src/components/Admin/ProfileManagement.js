@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './ProfileManagement.module.css';
 import AdminSkeleton from './AdminSkeleton';
 import SeoPreviewModal from './SeoPreviewModal';
@@ -21,11 +21,7 @@ const ProfileManagement = () => {
   const ogFileInputRef = useRef(null);
   const [seoPreviewOpen, setSeoPreviewOpen] = useState(false);
 
-  useEffect(() => {
-    fetchProfileData();
-  }, []);
-
-  const fetchProfileData = async () => {
+  const fetchProfileData = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
@@ -54,7 +50,11 @@ const ProfileManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchProfileData();
+  }, [fetchProfileData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

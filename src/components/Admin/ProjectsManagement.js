@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import styles from './ProjectsManagement.module.css';
 import ProjectForm from './ProjectForm';
 import DeleteModal from './DeleteModal';
@@ -18,10 +18,6 @@ const ProjectsManagement = () => {
   const [showCategories, setShowCategories] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
 
   useEffect(() => {
     if (!selectedProject) return undefined;
@@ -51,7 +47,7 @@ const ProjectsManagement = () => {
     }
   }, [error]);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/projects/admin`, {
@@ -72,7 +68,11 @@ const ProjectsManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const handleToggleVisibility = async (projectId) => {
     try {

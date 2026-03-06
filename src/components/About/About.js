@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ElectricBorder from './ElectricBorder';
 import styles from './About.module.css';
 
@@ -9,11 +9,7 @@ const About = ({ isMagicTheme = false }) => {
   const litCountRef = useRef(0);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchAboutData();
-  }, []);
-
-  const fetchAboutData = async () => {
+  const fetchAboutData = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/about`);
       if (response.ok) {
@@ -25,7 +21,11 @@ const About = ({ isMagicTheme = false }) => {
     } catch (error) {
       setError('Error loading about data');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchAboutData();
+  }, [fetchAboutData]);
 
   const descriptionText = typeof aboutData?.description === 'string' ? aboutData.description : '';
   const tokens = useMemo(() => descriptionText.split(/(\s+)/), [descriptionText]); // keep spaces

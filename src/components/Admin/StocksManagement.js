@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './StocksManagement.module.css';
 import AdminSkeleton from './AdminSkeleton';
 import DeleteModal from './DeleteModal';
@@ -28,10 +28,6 @@ const StocksManagement = () => {
   }, [previewStock]);
 
   useEffect(() => {
-    fetchStocks();
-  }, []);
-
-  useEffect(() => {
     if (!success) return undefined;
     const timer = setTimeout(() => setSuccess(''), 3000);
     return () => clearTimeout(timer);
@@ -51,7 +47,7 @@ const StocksManagement = () => {
 
   const getId = (item) => item?._id || item?.id;
 
-  const fetchStocks = async () => {
+  const fetchStocks = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
@@ -73,7 +69,11 @@ const StocksManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchStocks();
+  }, [fetchStocks]);
 
 
   const handleFormSubmit = async (payload) => {

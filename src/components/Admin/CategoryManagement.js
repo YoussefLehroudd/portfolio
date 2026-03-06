@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import styles from './CategoryManagement.module.css';
 import AdminSkeleton from './AdminSkeleton';
 
@@ -11,9 +11,26 @@ const CategoryManagement = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/categories`);
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data);
+        setError('');
+      } else {
+        setError('Failed to fetch categories');
+      }
+    } catch (error) {
+      setError('Error loading categories');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   // Clear success message after timeout
   useEffect(() => {
@@ -34,23 +51,6 @@ const CategoryManagement = () => {
       return () => clearTimeout(timer);
     }
   }, [error]);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/categories`);
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
-        setError('');
-      } else {
-        setError('Failed to fetch categories');
-      }
-    } catch (error) {
-      setError('Error loading categories');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddCategory = async () => {
     if (!newCategory.trim()) return;

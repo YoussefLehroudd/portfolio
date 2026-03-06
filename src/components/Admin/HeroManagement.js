@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import styles from './HeroManagement.module.css';
 import AdminSkeleton from './AdminSkeleton';
 
@@ -75,11 +75,7 @@ const HeroManagement = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    fetchHeroData();
-  }, []);
-
-  const fetchHeroData = async () => {
+  const fetchHeroData = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
@@ -100,7 +96,11 @@ const HeroManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchHeroData();
+  }, [fetchHeroData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

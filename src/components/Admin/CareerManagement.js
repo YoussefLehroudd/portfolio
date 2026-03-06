@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styles from './CareerManagement.module.css';
 import AdminSkeleton from './AdminSkeleton';
 
@@ -29,11 +29,7 @@ const CareerManagement = () => {
   );
   const getActualIndex = (displayIndex, length) => length - 1 - displayIndex;
 
-  useEffect(() => {
-    fetchCareerData();
-  }, []);
-
-  const fetchCareerData = async () => {
+  const fetchCareerData = useCallback(async () => {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/career`);
       if (response.ok) {
@@ -58,7 +54,11 @@ const CareerManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchCareerData();
+  }, [fetchCareerData]);
 
   const handleFieldChange = (field, value) => {
     setCareerData((prev) => ({

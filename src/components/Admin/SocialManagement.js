@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import styles from './SocialManagement.module.css';
 import AdminSkeleton from './AdminSkeleton';
 import { FaGithub, FaWhatsapp, FaInstagram, FaLinkedin } from 'react-icons/fa';
@@ -14,11 +14,7 @@ const SocialManagement = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    fetchSocialData();
-  }, []);
-
-  const fetchSocialData = async () => {
+  const fetchSocialData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/social`);
@@ -33,7 +29,11 @@ const SocialManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchSocialData();
+  }, [fetchSocialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

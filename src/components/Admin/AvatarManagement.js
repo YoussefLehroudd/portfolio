@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './AvatarManagement.module.css';
 import AdminSkeleton from './AdminSkeleton';
 
@@ -11,7 +11,7 @@ const AvatarManagement = () => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
-  const fetchAvatars = async () => {
+  const fetchAvatars = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -31,11 +31,11 @@ const AvatarManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchAvatars();
-  }, []);
+  }, [fetchAvatars]);
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files || []);
